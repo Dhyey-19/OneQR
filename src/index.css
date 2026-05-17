@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+  --color-brand-royal: #1e40af;
+  --color-brand-electric: #2563eb;
+  --color-brand-neon: #06b6d4;
+
+  --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+
+  --animate-glow-slow: glow 12s ease-in-out infinite;
+  --animate-glow-reverse: glow-rev 16s ease-in-out infinite;
+  --animate-float-slow: float 6s ease-in-out infinite;
+  --animate-float-medium: float 4s ease-in-out infinite;
+  --animate-pulse-subtle: pulseSubtle 4s ease-in-out infinite;
+  --animate-spin-slow: spin 20s linear infinite;
+
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+  --shadow-glass-glow: 0 8px 32px 0 rgba(37, 99, 235, 0.15);
+  --shadow-glass-hover: 0 8px 32px 0 rgba(37, 99, 235, 0.25);
+
+  @keyframes glow {
+    0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.35; }
+    33% { transform: scale(1.15) translate(40px, -40px); opacity: 0.55; }
+    66% { transform: scale(0.9) translate(-30px, 30px); opacity: 0.4; }
+  }
+  @keyframes glow-rev {
+    0%, 100% { transform: scale(1.1) translate(0px, 0px); opacity: 0.4; }
+    33% { transform: scale(0.85) translate(-40px, 30px); opacity: 0.5; }
+    66% { transform: scale(1.2) translate(30px, -30px); opacity: 0.35; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes pulseSubtle {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 0.5; }
+  }
+}
+
+/* Custom CSS Styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  }
+  
+  body {
+    background-color: #030712;
+    color: #f8fafc;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(30, 64, 175, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #030712;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1f2937;
+    border-radius: 9999px;
+    border: 2px solid #030712;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+  }
+}
+
+/* Custom Glassmorphism Classes */
+.glass {
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-glow {
+  box-shadow: 0 0 30px rgba(37, 99, 235, 0.15);
+}
+
+/* Lenis Smooth Scroll Configuration */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overflow: clip;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Custom Utilities */
+.dash-grid {
+  background-size: 30px 30px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.text-gradient-primary {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #60a5fa, #818cf8, #22d3ee);
+}
+
+.text-gradient-blue {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #3b82f6, #6366f1, #1d4ed8);
+}
+
+.glow-blob {
+  filter: blur(100px);
+  pointer-events: none;
+}
