@@ -31,58 +31,30 @@ export default function ContactForm() {
     setStatus('loading');
 
     try {
-      // Submitting via FormSubmit AJAX to the user's correct email
-      const response = await fetch('https://formsubmit.co/ajax/dhyeysha009@gmail.com', {
+      // Submitting to the local backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          Name: formData.name,
-          Email: formData.email,
-          Phone: formData.phone,
-          Message: formData.message,
-          _subject: 'New OneQR Contact Submission!'
-        })
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
-      if (response.ok && (data.success === 'true' || data.success === true)) {
+      if (response.ok && data.status === 'success') {
         setStatus('success');
-        setToastMessage('Thank you! Your message has been sent successfully.');
+        setToastMessage(data.message || 'Thank you! Your message has been sent successfully.');
         setFormData({ name: '', email: '', phone: '', message: '' });
         setTimeout(() => setStatus('idle'), 6000);
-      } else if (response.status === 403 || (data.message && (
-        data.message.toLowerCase().includes('activate') || 
-        data.message.toLowerCase().includes('activation') ||
-        data.message.toLowerCase().includes('confirm') ||
-        data.message.toLowerCase().includes('inbox') ||
-        data.message.toLowerCase().includes('verify')
-      ))) {
-        // Handle first-time activation gracefully
-        setStatus('success');
-        setToastMessage('📩 Activation email sent! Please check dhyeysha009@gmail.com and click the activation link.');
-        setFormData({ name: '', email: '', phone: '', message: '' });
-        setTimeout(() => setStatus('idle'), 8000);
       } else {
         throw new Error(data.message || 'Failed to submit form');
       }
     } catch (error) {
       console.error(error);
       setStatus('error');
-      if (error.message && (
-        error.message.toLowerCase().includes('activate') || 
-        error.message.toLowerCase().includes('activation') ||
-        error.message.toLowerCase().includes('confirm') ||
-        error.message.toLowerCase().includes('inbox') ||
-        error.message.toLowerCase().includes('verify')
-      )) {
-        setToastMessage('📩 Activation email sent! Please check dhyeysha009@gmail.com and click the activation link.');
-      } else {
-        setToastMessage('Something went wrong. Please try again or email us directly.');
-      }
+      setToastMessage(error.message || 'Something went wrong. Please try again or email us directly.');
       setTimeout(() => setStatus('idle'), 6000);
     }
   };

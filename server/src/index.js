@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+require("dotenv").config({ override: true });
 
 const config = require("./config/config");
 const routes = require("./routes");
@@ -8,8 +8,27 @@ const routes = require("./routes");
 const app = express();
 
 // Middleware
+// Parse comma-separated list of origins or fallback to common local development origins
+const allowedOrigins = typeof config.CORS_ORIGIN === "string"
+  ? config.CORS_ORIGIN.split(",").map(origin => origin.trim())
+  : ["http://localhost:5173", "http://localhost:3000"];
+
 app.use(cors({
-  origin: config.CORS_ORIGIN,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or postman)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed === "*") return true;
+      return allowed.toLowerCase() === origin.toLowerCase();
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
