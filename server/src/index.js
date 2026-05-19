@@ -3,9 +3,13 @@ const cors = require("cors");
 require("dotenv").config({ override: true });
 
 const config = require("./config/config");
+const connectDB = require("./config/db");
 const routes = require("./routes");
 
 const app = express();
+
+// Connect to Database
+connectDB();
 
 // Middleware
 // Parse comma-separated list of origins or fallback to common local development origins
