@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Phone, ArrowRight, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { authService } from '../services/authService';
 
 export default function AuthModal({ onClose, initialTab = 'login' }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'login' | 'signup'
@@ -48,43 +49,21 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     setStatus('loading');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: loginPhone,
-          password: loginPassword,
-        }),
-      });
+      const data = await authService.login(loginPhone, loginPassword);
 
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        // Handle "Remember Me" storage
-        if (rememberMe) {
-          localStorage.setItem('oneqr_remembered_phone', loginPhone);
-        } else {
-          localStorage.removeItem('oneqr_remembered_phone');
-        }
-
-        // Store user in localStorage for application state
-        localStorage.setItem('oneqr_current_user', JSON.stringify(data.user));
-
-        setStatus('success');
-        setFeedbackMsg(data.message || 'Login successful! Welcome back to OneQR.');
-        
-        // Dispatch custom event so Navbar and other components know auth status has changed
-        window.dispatchEvent(new Event('auth-state-change'));
-
-        setTimeout(() => {
-          onClose();
-        }, 1800);
+      // Handle "Remember Me" storage
+      if (rememberMe) {
+        localStorage.setItem('oneqr_remembered_phone', loginPhone);
       } else {
-        throw new Error(data.message || 'Failed to sign in.');
+        localStorage.removeItem('oneqr_remembered_phone');
       }
+
+      setStatus('success');
+      setFeedbackMsg(data.message || 'Login successful! Welcome back to OneQR.');
+
+      setTimeout(() => {
+        onClose();
+      }, 1800);
     } catch (error) {
       console.error('Login error:', error);
       setFeedbackMsg(error.message || 'Incorrect credentials or server error. Please try again.');
@@ -123,45 +102,30 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     setStatus('loading');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: signupPhone,
-          password: signupPassword,
-        }),
-      });
+      const data = await authService.signup(signupPhone, signupPassword);
 
-      const data = await response.json();
-
-      if (response.ok && data.status === 'success') {
-        setStatus('success');
-        setFeedbackMsg(data.message || 'Account created successfully! Switching to Login...');
-        
-        // Auto transition to login tab with prefilled mobile
-        setTimeout(() => {
-          setLoginPhone(signupPhone);
-          setSignupPhone('');
-          setSignupPassword('');
-          setSignupConfirmPassword('');
-          setActiveTab('login');
-          setStatus('idle');
-          setFeedbackMsg('');
-          setShowSignupPassword(false);
-          setShowConfirmPassword(false);
-        }, 2000);
-      } else {
-        throw new Error(data.message || 'Failed to create account.');
-      }
+      setStatus('success');
+      setFeedbackMsg(data.message || 'Account created successfully! Switching to Login...');
+      
+      // Auto transition to login tab with prefilled mobile
+      setTimeout(() => {
+        setLoginPhone(signupPhone);
+        setSignupPhone('');
+        setSignupPassword('');
+        setSignupConfirmPassword('');
+        setActiveTab('login');
+        setStatus('idle');
+        setFeedbackMsg('');
+        setShowSignupPassword(false);
+        setShowConfirmPassword(false);
+      }, 2000);
     } catch (error) {
       console.error('Signup error:', error);
       setFeedbackMsg(error.message || 'An error occurred during registration. Please try again.');
       setStatus('error');
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-hidden">

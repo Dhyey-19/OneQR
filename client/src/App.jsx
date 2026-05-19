@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 import { AnimatePresence } from 'framer-motion';
+import { authService } from './services/authService';
 
 // Section Components
 import Navbar from './components/Navbar';
@@ -48,8 +49,7 @@ export default function App() {
   // Listen to logout / auth change to auto-redirect from dashboard to landing page
   useEffect(() => {
     const handleAuthChange = () => {
-      const userJson = localStorage.getItem('oneqr_current_user');
-      if (!userJson) {
+      if (!authService.isAuthenticated()) {
         setCurrentView('landing');
       }
     };

@@ -6,6 +6,7 @@ import {
   MapPin, CreditCard, Star, Plus, Trash2, ArrowUpRight
 } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle } from 'react-icons/fa';
+import { authService } from '../services/authService';
 
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -45,16 +46,11 @@ export default function Dashboard() {
 
   // Load current user details
   useEffect(() => {
-    const userJson = localStorage.getItem('oneqr_current_user');
-    if (userJson) {
-      try {
-        const user = JSON.parse(userJson);
-        setCurrentUser(user);
-        if (user.phone) {
-          setProfilePhone(user.phone);
-        }
-      } catch (e) {
-        console.error(e);
+    const user = authService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      if (user.phone) {
+        setProfilePhone(user.phone);
       }
     }
   }, []);
