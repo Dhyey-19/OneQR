@@ -5,20 +5,19 @@ import { AnimatePresence } from 'framer-motion';
 // Section Components
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import ProductShowcase from './components/ProductShowcase';
 import Features from './components/Features';
-import QrNfcShowcase from './components/QrNfcShowcase';
-import UseCases from './components/UseCases';
 import Pricing from './components/Pricing';
 import Testimonials from './components/Testimonials';
 import Faq from './components/Faq';
 import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
+import Dashboard from './components/Dashboard';
 
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState('login'); // 'login' | 'signup'
+  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard'
 
   const openAuthModal = (tab = 'login') => {
     setAuthInitialTab(tab);
@@ -46,6 +45,18 @@ export default function App() {
     };
   }, []);
 
+  // Listen to logout / auth change to auto-redirect from dashboard to landing page
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const userJson = localStorage.getItem('oneqr_current_user');
+      if (!userJson) {
+        setCurrentView('landing');
+      }
+    };
+    window.addEventListener('auth-state-change', handleAuthChange);
+    return () => window.removeEventListener('auth-state-change', handleAuthChange);
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-[#030712] selection:bg-blue-500/30 selection:text-white">
       {/* Structural Global Background Glows */}
@@ -55,37 +66,38 @@ export default function App() {
         <div className="absolute bottom-[20%] right-[-10vw] w-[35vw] h-[35vw] rounded-full bg-indigo-600/5 blur-[110px]" />
       </div>
 
-      {/* Semantic Sections Container */}
+      {/* Structural Sections Container */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar onOpenAuth={openAuthModal} />
+        <Navbar 
+          onOpenAuth={openAuthModal} 
+          currentView={currentView}
+          onNavigate={setCurrentView}
+        />
         
         <main className="flex-grow">
-          {/* 1. Hero Section */}
-          <Hero onOpenAuth={openAuthModal} />
-          
-          {/* 2. Product Showcase */}
-          <ProductShowcase />
-          
-          {/* 3. Features Grid */}
-          <Features />
-          
-          {/* 4. Hardware QR + NFC Showcase */}
-          <QrNfcShowcase />
-          
-          {/* 5. Business Use Cases */}
-          <UseCases />
-          
-          {/* 6. Pricing Section */}
-          <Pricing onOpenAuth={openAuthModal} />
-          
-          {/* 7. Testimonials */}
-          <Testimonials />
-          
-          {/* 8. Collapsible FAQ */}
-          <Faq />
-          
-          {/* 9. Contact Form */}
-          <ContactForm />
+          {currentView === 'landing' ? (
+            <>
+              {/* 1. Hero Section */}
+              <Hero onOpenAuth={openAuthModal} />
+              
+              {/* 2. Features Grid */}
+              <Features />
+              
+              {/* 3. Pricing Section */}
+              <Pricing onOpenAuth={openAuthModal} />
+              
+              {/* 4. Testimonials */}
+              <Testimonials />
+              
+              {/* 5. Collapsible FAQ */}
+              <Faq />
+              
+              {/* 6. Contact Form */}
+              <ContactForm />
+            </>
+          ) : (
+            <Dashboard />
+          )}
         </main>
         
         <Footer />

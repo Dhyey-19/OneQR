@@ -46,6 +46,15 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend running", status: "ok" });
 });
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("GLOBAL ERROR CAPTURED:", err);
+  res.status(500).json({
+    status: "error",
+    message: err.message || "Internal Server Error",
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

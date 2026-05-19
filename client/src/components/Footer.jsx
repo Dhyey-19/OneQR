@@ -6,10 +6,7 @@ export default function Footer() {
     {
       title: 'Product',
       links: [
-        { name: 'Smart QR Profiles', href: '#showcase' },
-        { name: 'NFC Business Cards', href: '#hardware' },
-        { name: 'Analytics Cloud', href: '#showcase' },
-        { name: 'Use Cases', href: '#use-cases' },
+        { name: 'Features List', href: '#features' },
         { name: 'Pricing Tiers', href: '#pricing' }
       ]
     },
