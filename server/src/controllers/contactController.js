@@ -40,8 +40,29 @@ exports.sendContactEmail = async (req, res) => {
         <p>${message}</p>
       `,
     };
-
+    
+    const mailOptions2 = {
+      from: process.env.EMAIL_USER,
+      to: "dhyeyshah009@gmail.com",
+      subject: `Copy: New OneQR Contact Submission from ${name}`,
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Phone: ${phone}
+        Message: ${message}
+      `,
+      html: `
+        <h3>Copy: New OneQR Contact Submission</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+      `,
+    };
+    
     await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions2);
 
     res.status(200).json({
       status: "success",
