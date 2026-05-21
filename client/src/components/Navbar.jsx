@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown } from 'lucide-react';
+import { authService } from '../services/authService';
 
 export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,16 +10,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const checkUserStatus = () => {
-    const userJson = localStorage.getItem('oneqr_current_user');
-    if (userJson) {
-      try {
-        setCurrentUser(JSON.parse(userJson));
-      } catch (e) {
-        setCurrentUser(null);
-      }
-    } else {
-      setCurrentUser(null);
-    }
+    setCurrentUser(authService.getCurrentUser());
   };
 
   useEffect(() => {
@@ -47,11 +39,10 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('oneqr_current_user');
+    authService.logout();
     setCurrentUser(null);
-    // Notify all components of auth change (will auto-redirect to landing)
-    window.dispatchEvent(new Event('auth-state-change'));
   };
+
 
   // Plain navigation links (Dashboard removed as requested)
   const navLinks = [

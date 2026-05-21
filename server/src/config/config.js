@@ -4,4 +4,7 @@ module.exports = {
   CORS_ORIGIN: process.env.CORS_ORIGIN || "http://localhost:5173",
   DB_URL: process.env.DB_URL || "",
   API_VERSION: process.env.API_VERSION || "v1",
+  JWT_SECRET: process.env.JWT_SECRET || "one_qr_secret_key_change_me_in_prod",
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1d",
 };
+

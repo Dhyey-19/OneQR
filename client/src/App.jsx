@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 import { AnimatePresence } from 'framer-motion';
+import { authService } from './services/authService';
 
 // Section Components
 import Navbar from './components/Navbar';
