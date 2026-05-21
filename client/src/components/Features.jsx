@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   QrCode, 
@@ -11,71 +12,61 @@ import {
   UserPlus, 
   MessageSquare, 
   Shuffle, 
-  CloudLightning 
+  CloudLightning,
+  Store,
+  MapPin,
+  Smartphone,
+  ChevronDown
 } from 'lucide-react';
 
 export default function Features() {
+  const [expandedIdx, setExpandedIdx] = useState(null);
+
+  const toggleExpand = (idx) => {
+    setExpandedIdx(expandedIdx === idx ? null : idx);
+  };
+
   const featureList = [
     {
-      title: 'Smart QR Profiles',
-      description: 'Host custom-designed profile pages with instant links and dynamic widgets.',
-      icon: <QrCode className="w-5 h-5 text-blue-400" />
+      title: 'Digital Shop Profile',
+      description: 'Create a simple and beautiful page with your shop name, contact details, product list, active offers, and important links.',
+      icon: <Store className="w-5 h-5 text-blue-400" />
     },
     {
-      title: 'NFC Integration',
-      description: 'Program, lock, and overwrite modern physical NFC tags instantly inside the cloud panel.',
-      icon: <Wifi className="w-5 h-5 text-cyan-400 rotate-90" />
-    },
-    {
-      title: 'Analytics Dashboard',
-      description: 'Track scan times, geographic locations, and link conversion telemetry in real-time.',
+      title: 'Track Customer Visits',
+      description: 'See exactly how many people scanned your QR code, when they visited, and which links they clicked on in your profile.',
       icon: <BarChart3 className="w-5 h-5 text-indigo-400" />
     },
     {
-      title: 'Lead Capture',
-      description: 'Include sleek, custom lead sheets. Capture visitor contacts directly upon tap.',
-      icon: <UserCheck className="w-5 h-5 text-emerald-400" />
-    },
-    {
-      title: 'Social Media Links',
-      description: 'Consolidate all profile handles, social networks, and hubs into a single neat tap dashboard.',
+      title: 'All Links in One Place',
+      description: 'Put your WhatsApp, Instagram, Facebook, website, and Google Maps location together in a single neat page.',
       icon: <Share2 className="w-5 h-5 text-blue-500" />
     },
     {
-      title: 'Google Review Boost',
-      description: 'Redirect users directly to your custom review panels. Increase positive ratings.',
+      title: 'Get More Google Reviews',
+      description: 'Send customers directly to your Google Review page with one tap. Increase reviews and build instant local trust.',
       icon: <Star className="w-5 h-5 text-amber-400 animate-pulse" />
     },
     {
-      title: 'Catalog Uploads',
-      description: 'Embed PDF menus, brochures, product catalogs, and slide-decks directly in-profile.',
+      title: 'Upload Menus & Catalogs',
+      description: 'Share your PDF restaurant menus, product price lists, brochures, or service catalogs with customers instantly.',
       icon: <FolderDown className="w-5 h-5 text-rose-400" />
     },
     {
-      title: 'Custom Themes',
-      description: 'Tailor color schemes, gradients, grid shapes, layout elements, and text styling.',
+      title: 'Your Own Colors & Branding',
+      description: 'Change page colors, backgrounds, fonts, and button styles to match your shop’s logo or visual style in seconds.',
       icon: <Palette className="w-5 h-5 text-purple-400" />
     },
     {
-      title: 'Instant Contact Save',
-      description: 'Allow clients to save complete vCard profiles, numbers, and emails with one click.',
+      title: 'One-Click Contact Save',
+      description: 'Customers can save your shop’s mobile number, email, and address directly to their phone book in a single click.',
       icon: <UserPlus className="w-5 h-5 text-teal-400" />
     },
     {
-      title: 'WhatsApp Integration',
-      description: 'Launch predefined WhatsApp chat dialogs and automated user inquiries.',
-      icon: <MessageSquare className="w-5 h-5 text-emerald-500" />
-    },
-    {
-      title: 'Dynamic QR Redirect',
-      description: 'Swap targets, change links, and swap physical standee targets anytime in the cloud.',
-      icon: <Shuffle className="w-5 h-5 text-indigo-500" />
-    },
-    {
-      title: 'Cloud Dashboard',
-      description: 'Access complete multi-location settings, permissions, and team analytics securely.',
+      title: 'All-in-One Shop Dashboard',
+      description: 'Manage all your active QR codes, team members, branches, and scan activity from a single, simple, and secure panel.',
       icon: <CloudLightning className="w-5 h-5 text-cyan-400" />
-    }
+    },
   ];
 
   return (
@@ -94,19 +85,19 @@ export default function Features() {
             transition={{ duration: 0.6 }}
           >
             <span className="text-blue-500 text-sm font-extrabold uppercase tracking-widest">
-              Packed with Innovation
+              Grow Your Business
             </span>
             <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-3 mb-6">
-              Features Built for Scale
+              Give Your Shop a Digital Upgrade
             </h2>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-              We design robust tools that eliminate paper, accelerate contact retrieval, and automate modern customer check-ins.
+              Simple, high-impact features designed to help shopkeepers, restaurants, and local retail stores connect with customers, build reviews, and manage multiple locations with ease.
             </p>
           </motion.div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Features Grid - Visible on Desktop/Tablet (md and up) */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6">
           {featureList.map((feature, idx) => (
             <motion.div
               key={idx}
@@ -138,6 +129,42 @@ export default function Features() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </motion.div>
           ))}
+        </div>
+
+        {/* Features Accordion List - Visible on Mobile (under md) */}
+        <div className="flex flex-col gap-3 md:hidden">
+          {featureList.map((feature, idx) => {
+            const isExpanded = expandedIdx === idx;
+            return (
+              <div 
+                key={idx}
+                onClick={() => toggleExpand(idx)}
+                className={`p-4 bg-slate-900/40 border rounded-2xl transition-all duration-300 shadow-glass cursor-pointer ${
+                  isExpanded ? 'border-blue-500/30 bg-slate-900/70' : 'border-white/5 hover:border-white/10'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 shrink-0">
+                      {feature.icon}
+                    </div>
+                    <h3 className="text-sm font-bold text-white">{feature.title}</h3>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 shrink-0 ${isExpanded ? 'rotate-180 text-blue-400' : ''}`} />
+                </div>
+                {isExpanded && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.2 }}
+                    className="text-slate-400 text-xs mt-3 leading-relaxed pl-12 border-l border-blue-500/20"
+                  >
+                    {feature.description}
+                  </motion.div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

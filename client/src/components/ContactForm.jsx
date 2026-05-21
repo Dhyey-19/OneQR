@@ -78,50 +78,54 @@ export default function ContactForm() {
           >
             <div>
               <span className="text-blue-500 text-sm font-extrabold uppercase tracking-widest block mb-3">
-                Connect With Us
+                Let's Grow Your Business Together!  
               </span>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-6">
-                Ready to Upgrade Your Network?
+                Book a Coffee with us!
               </h2>
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed mb-10 max-w-md">
-                Get in touch with our product experts to deploy customized corporate metal cards, dynamic QR standees for your locations, or team portals.
+                We’d love to learn about your business and help you create a modern customer experience using OneQR
               </p>
 
               {/* Info Details */}
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
+                <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
                     <span className="text-xs text-slate-500 font-semibold block uppercase">Email Support</span>
-                    <a href="mailto:dhyeysha009@gmail.com" className="text-sm font-bold text-white hover:text-blue-400 transition-colors">
-                      dhyeysha009@gmail.com
-                    </a>
+                    <div className="flex flex-col gap-2 mt-1">
+                      <div className="text-sm text-slate-300">
+                        <a href="mailto:gopaldhorajiya205@gmail.com" className="font-bold text-white hover:text-blue-400 transition-colors">
+                          Gopal Dhorajiya
+                        </a>
+                        <span className="text-slate-500 font-normal"> : (gopaldhorajiya205@gmail.com)</span>
+                      </div>
+                      <div className="text-sm text-slate-300">
+                        <a href="mailto:dhyeyshah009@gmail.com" className="font-bold text-white hover:text-blue-400 transition-colors">
+                          Dhyey Shah
+                        </a>
+                        <span className="text-slate-500 font-normal"> : (dhyeyshah009@gmail.com)</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs text-slate-500 font-semibold block uppercase">Call Sales</span>
-                    <span className="text-sm font-bold text-white">
-                      +1 (800) 555-ONEQR
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-                    <MapPin className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 font-semibold block uppercase">Headquarters</span>
-                    <span className="text-sm font-bold text-white leading-normal">
-                      Silicon Valley, CA, United States
-                    </span>
+                    <span className="text-xs text-slate-500 font-semibold block uppercase">Call Sales & Support</span>
+                    <div className="flex flex-col gap-1 mt-0.5">
+                      <a href="tel:+918200875023" className="text-sm font-bold text-white hover:text-cyan-400 transition-colors">
+                        +91 82008 75023
+                      </a>
+                      <a href="tel:+919724277321" className="text-sm font-bold text-white hover:text-cyan-400 transition-colors">
+                        +91 97242 77321
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -158,7 +162,7 @@ export default function ContactForm() {
                     id="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="e.g. Marcus Rivera"
+                    placeholder="Enter your name"
                     required
                     className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 focus:shadow-glass-glow transition-all"
                   />
@@ -176,7 +180,7 @@ export default function ContactForm() {
                       id="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="e.g. marcus@company.com"
+                      placeholder="Enter your email address"
                       required
                       className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 focus:shadow-glass-glow transition-all"
                     />
@@ -191,7 +195,7 @@ export default function ContactForm() {
                       id="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="e.g. +1 555-0199"
+                      placeholder="Enter your phone number"
                       required
                       className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 focus:shadow-glass-glow transition-all"
                     />
@@ -209,7 +213,7 @@ export default function ContactForm() {
                     rows="5"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="Tell us about your team size, custom physical tag demands, or integration goals..."
+                    placeholder="Tell us about your business or how you want to use OneQR..."
                     required
                     className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 focus:shadow-glass-glow transition-all resize-none"
                   />
@@ -224,12 +228,12 @@ export default function ContactForm() {
                   {status === 'loading' ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Sending inquiry...</span>
+                      <span>Brewing connection... ☕</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Send Message</span>
+                      <span>Let's Connect! ☕</span>
                     </>
                   )}
                 </button>

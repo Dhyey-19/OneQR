@@ -100,8 +100,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  onNavigate('landing');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  onNavigate('manage-qr');
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
               >

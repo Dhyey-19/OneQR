@@ -7,59 +7,46 @@ export default function Pricing({ onOpenAuth }) {
 
   const plans = [
     {
-      name: 'Starter',
-      description: 'Essential digital identity tools for individual professionals.',
-      monthlyPrice: 0,
-      yearlyPrice: 0,
+      name: 'Starter Plan',
+      description: 'Perfect for small shops and personal businesses starting their digital presence.',
+      monthlyPrice: 99,
+      yearlyPrice: 999,
       features: [
-        'Basic Digital Profile page',
-        'Standard Dynamic QR Code',
-        'Social Media Profile Hub links',
-        'VCard 1-Tap Save Contact',
-        'Standard Custom Styles'
+        'Create your own digital business profile page',
+        'Share one smart QR code with customers',
+        'Add WhatsApp, Instagram, Facebook, and other links',
+        'Let customers save your contact in one click',
+        'Add shop name, address, phone number, and timings',
+        'Simple colors and design customization',
+        'Easy mobile-friendly page for all customers',
+        'Update your business information anytime'
       ],
-      cta: 'Start For Free',
+      bestFor: 'Small shops, freelancers, students, tuition classes, local services, and first-time users.',
+      cta: 'Choose Starter',
       isPopular: false,
       glow: 'from-slate-800 to-slate-900',
       buttonStyle: 'glass-light hover:bg-white/5 text-white border-white/10'
     },
     {
-      name: 'Pro',
-      description: 'Advanced custom profiles, hardware triggers, and analytics.',
-      monthlyPrice: 15,
-      yearlyPrice: 12,
+      name: 'Pro Plan',
+      description: 'Best for growing businesses that want more customers, reviews, and better branding.',
+      monthlyPrice: 199,
+      yearlyPrice: 1999,
       features: [
-        'Everything in Starter included',
-        'NFC Smart Card Support',
-        'Live Analytics & Tap Telemetry',
-        'Interactive PDF Catalog uploads',
-        'Custom Lead Capture sheets',
-        'Google Review Integration',
-        'No OneQR Branding mark'
+        'Everything in Starter, plus:',
+        'See how many people scanned your QR code',
+        'Track customer visits and link clicks',
+        'Upload PDF menus, brochures, and product catalogs',
+        'Send customers directly to your Google Review page',
+        'Remove OneQR branding from your profile',
+        'Create a more professional business experience',
+        'Better customization and premium business tools'
       ],
+      bestFor: 'Restaurants, cafes, salons, gyms, retail stores, agencies, real estate businesses, and growing brands.',
       cta: 'Upgrade to Pro',
       isPopular: true,
       glow: 'from-blue-600/20 via-indigo-600/10 to-[#030712]',
       buttonStyle: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-cyan-400'
-    },
-    {
-      name: 'Business',
-      description: 'Scale identity networks for multi-location teams.',
-      monthlyPrice: 49,
-      yearlyPrice: 39,
-      features: [
-        'Everything in Pro included',
-        'Multi-location team dashboard',
-        'Custom corporate domain maps',
-        'Advanced telemetry API exports',
-        'Bulk vCard deployment tools',
-        'Dedicated account manager',
-        '24/7 Priority SLA Support'
-      ],
-      cta: 'Contact B2B Sales',
-      isPopular: false,
-      glow: 'from-slate-800 to-slate-900',
-      buttonStyle: 'glass-light hover:bg-white/5 text-white border-white/10'
     }
   ];
 
@@ -85,7 +72,7 @@ export default function Pricing({ onOpenAuth }) {
               Plans Built for Every Growth Phase
             </h2>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-              Equip yourself or your enterprise with physical and digital smart integrations. Choose the tier that matches your network demands.
+              Equip yourself or your business with physical and digital smart integrations. Choose the tier that matches your network demands.
             </p>
           </motion.div>
 
@@ -119,8 +106,8 @@ export default function Pricing({ onOpenAuth }) {
           </div>
         </div>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
+        {/* Pricing Cards Grid - Centered 2-column layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
           {plans.map((plan, idx) => {
             const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
             return (
@@ -157,33 +144,36 @@ export default function Pricing({ onOpenAuth }) {
                   </p>
 
                   {/* Price */}
-                  <div className="flex items-baseline gap-1.5 mb-8 border-b border-white/5 pb-6">
+                  <div className="flex items-baseline gap-1.5 mb-6 border-b border-white/5 pb-6">
                     <span className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
-                      ${price}
+                      ₹{price}
                     </span>
                     <span className="text-slate-500 text-xs sm:text-sm font-semibold">
-                      / month
+                      / {billingPeriod === 'monthly' ? 'month' : 'year'}
                     </span>
                   </div>
 
                   {/* Feature check list */}
                   <ul className="space-y-4 mb-10">
-                    {plan.features.map((feat) => (
-                      <li key={feat} className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
-                          <Check className="w-3 h-3" />
-                        </div>
-                        <span className="text-slate-300 text-xs sm:text-sm leading-normal">
-                          {feat}
-                        </span>
-                      </li>
-                    ))}
+                    {plan.features.map((feat) => {
+                      const isHeaderFeature = feat.includes('Everything in Starter');
+                      return (
+                        <li key={feat} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+                            <Check className="w-3 h-3" />
+                          </div>
+                          <span className={`text-xs sm:text-sm leading-normal ${isHeaderFeature ? 'text-white font-bold italic' : 'text-slate-300'}`}>
+                            {feat}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
 
                 {/* Checkout CTA */}
                 <button
-                  onClick={() => onOpenAuth(plan.name === 'Starter' ? 'signup' : 'login')}
+                  onClick={() => onOpenAuth(plan.name.includes('Starter') ? 'signup' : 'login')}
                   className={`w-full py-3.5 rounded-2xl font-bold text-sm text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${plan.buttonStyle}`}
                 >
                   <span>{plan.cta}</span>

@@ -4,26 +4,26 @@ import { Star, Quote } from 'lucide-react';
 export default function Testimonials() {
   const reviews = [
     {
-      name: 'Sarah K. Jenkins',
-      role: 'CEO @ Jenkins Real Estate',
-      quote: 'OneQR changed our open house workflow completely. Brokers carry elite metallic NFC cards, and visitors tap them to instantly download properties briefs. Our client lead count tripled in the first month!',
-      avatar: 'SJ',
+      name: 'Kinjan Vasant',
+      role: 'Business Owner at Ranjit Logistics',
+      quote: 'We printed our OneQR code on all our transport receipt files and bills. Now, our transport customers and drivers just scan the code on their mobile to instantly find our office location, call us, or save our number. It has made our dispatch communication so much easier!',
+      avatar: 'KV',
       rating: 5,
       gradient: 'from-blue-600/10 to-indigo-600/10'
     },
     {
-      name: 'Elena Rostova',
-      role: 'Director of Ops @ Velo Cafe Group',
-      quote: 'We replaced physical paper menus with smart QR standees across our 8 bistro locations. Diners scan and checkout tables easily. Our positive Google ratings shot up by 40% using the automatic review redirect.',
-      avatar: 'ER',
+      name: 'Paras Shah',
+      role: 'Business Owner at Softech Infotech',
+      quote: 'Earlier, I had to share website links, maps, and phone numbers separately to clients. Now, I just created a single smart profile page on OneQR and added all my links and contact details. I share it as a QR or link, and clients save my card in one click. Highly recommended for every store owner!',
+      avatar: 'PS',
       rating: 5,
       gradient: 'from-cyan-600/10 to-blue-600/10'
     },
     {
-      name: 'David Sterling',
-      role: 'B2B Sales Leader @ Nova Space Inc',
-      quote: 'Managing a team of 40 representatives is effortless now. Corporate vCards are deployed digitally, metrics are tracked in real-time, and customer contacts synchronize straight to our Salesforce CRM.',
-      avatar: 'DS',
+      name: 'Jigar Vira',
+      role: 'Accountant at SK Logistics',
+      quote: 'Keeping track of client coordination was a headache. With our custom business page, clients can check our contact info and timings anytime. It has saved us so much time and made our day-to-day operations and coordinating with partners incredibly smooth.',
+      avatar: 'JV',
       rating: 5,
       gradient: 'from-[#1e1b4b]/30 to-indigo-950/20'
     }
@@ -48,10 +48,10 @@ export default function Testimonials() {
               Success Stories
             </span>
             <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-3 mb-6">
-              Endorsed by Top-Tier Leaders
+              Loved by Local Business Owners
             </h2>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-              Discover how founders, marketing agencies, B2B sales teams, and premium hospitality outlets elevate customer conversion with OneQR.
+              See how local transport companies, service shops, and retailers are using OneQR to grow their businesses.
             </p>
           </motion.div>
         </div>

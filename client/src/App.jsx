@@ -17,7 +17,14 @@ import Dashboard from './components/Dashboard';
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState('login'); // 'login' | 'signup'
-  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'dashboard'
+  const [currentView, setCurrentView] = useState(() => {
+    const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
+    const hash = window.location.hash;
+    if (hash === '#dashboard' || hash === '#manage-qr') {
+      return isLoggedIn ? 'dashboard' : 'landing';
+    }
+    return 'landing';
+  });
 
   const openAuthModal = (tab = 'login') => {
     setAuthInitialTab(tab);
@@ -45,17 +52,70 @@ export default function App() {
     };
   }, []);
 
+  // Handle URL Hash-based Routing
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
+
+      if (hash === '#dashboard' || hash === '#manage-qr') {
+        if (isLoggedIn) {
+          setCurrentView('dashboard');
+        } else {
+          window.location.hash = '#home';
+          setCurrentView('landing');
+        }
+      } else {
+        setCurrentView('landing');
+        if (hash && hash !== '#home') {
+          setTimeout(() => {
+            const el = document.querySelector(hash);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 150);
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    // Run initially
+    handleHashChange();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   // Listen to logout / auth change to auto-redirect from dashboard to landing page
   useEffect(() => {
     const handleAuthChange = () => {
       const userJson = localStorage.getItem('oneqr_current_user');
       if (!userJson) {
+        window.location.hash = '#home';
         setCurrentView('landing');
+      } else {
+        window.location.hash = '#dashboard';
+        setCurrentView('dashboard');
       }
     };
     window.addEventListener('auth-state-change', handleAuthChange);
     return () => window.removeEventListener('auth-state-change', handleAuthChange);
   }, []);
+
+  // Guarantee instant scroll-to-top whenever the primary view switches!
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [currentView]);
+
+  // Navigate utility that updates URL hash dynamically
+  const handleNavigate = (view) => {
+    if (view === 'dashboard') {
+      window.location.hash = '#dashboard';
+    } else if (view === 'manage-qr') {
+      window.location.hash = '#manage-qr';
+    } else {
+      window.location.hash = '#home';
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-[#030712] selection:bg-blue-500/30 selection:text-white">
@@ -71,7 +131,7 @@ export default function App() {
         <Navbar 
           onOpenAuth={openAuthModal} 
           currentView={currentView}
-          onNavigate={setCurrentView}
+          onNavigate={handleNavigate}
         />
         
         <main className="flex-grow">
