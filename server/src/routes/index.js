@@ -22,6 +22,10 @@ router.post("/auth/signup", validate(UserSignupDto), authController.signup);
 router.post("/auth/login", validate(UserLoginDto), authController.login);
 router.get("/auth/me", protect, authController.getProfile);
 
+// Profile & QR management routes
+const profileRoutes = require("./profileRoutes");
+router.use("/profile", profileRoutes);
+
 
 module.exports = router;
 

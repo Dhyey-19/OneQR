@@ -7,6 +7,99 @@ import {
 } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle } from 'react-icons/fa';
 import { authService } from '../services/authService';
+import { apiRequest } from '../services/apiService';
+
+// Dynamic file preview helper component (handles ObjectURL memory leak safety)
+function FilePreview({ doc }) {
+  const [localUrl, setLocalUrl] = useState(null);
+
+  useEffect(() => {
+    if (doc.file) {
+      const url = URL.createObjectURL(doc.file);
+      setLocalUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setLocalUrl(null);
+    }
+  }, [doc.file]);
+
+  const url = localUrl || doc.url;
+  
+  const isImage = () => {
+    if (doc.file) return doc.file.type.startsWith('image/');
+    const name = doc.filename || '';
+    const u = doc.url || '';
+    return /\.(jpeg|jpg|gif|png|webp|svg)/i.test(name) || /\.(jpeg|jpg|gif|png|webp|svg)/i.test(u);
+  };
+
+  const isPdf = () => {
+    if (doc.file) return doc.file.type === 'application/pdf';
+    const name = doc.filename || '';
+    const u = doc.url || '';
+    return name.toLowerCase().endsWith('.pdf') || u.toLowerCase().endsWith('.pdf');
+  };
+
+  if (!url) {
+    return (
+      <div className="w-16 h-16 rounded-xl bg-slate-900/60 border border-dashed border-white/10 flex items-center justify-center text-slate-600 shrink-0">
+        <Smartphone className="w-6 h-6 opacity-30 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (isImage()) {
+    return (
+      <div className="w-16 h-16 rounded-xl bg-slate-900 border border-white/10 overflow-hidden shrink-0 relative group/thumb cursor-pointer">
+        <img 
+          src={url} 
+          alt={doc.filename} 
+          className="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-110" 
+        />
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center"
+        >
+          <ArrowUpRight className="w-4 h-4 text-white" />
+        </a>
+      </div>
+    );
+  }
+
+  if (isPdf()) {
+    return (
+      <div className="w-16 h-16 rounded-xl bg-rose-950/20 border border-rose-500/20 flex flex-col items-center justify-center text-rose-400 shrink-0 relative group/thumb cursor-pointer">
+        <span className="text-[10px] font-black tracking-wider uppercase mb-1">PDF</span>
+        <div className="text-[8px] bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 text-rose-300">View</div>
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="absolute inset-0 bg-black/45 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center rounded-xl"
+        >
+          <ArrowUpRight className="w-4 h-4 text-white" />
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-16 h-16 rounded-xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center text-slate-400 shrink-0 relative group/thumb cursor-pointer">
+      <span className="text-[9px] font-bold tracking-wider uppercase mb-1 text-slate-500">FILE</span>
+      <a 
+        href={url} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center rounded-xl"
+      >
+        <ArrowUpRight className="w-4 h-4 text-white" />
+      </a>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -53,14 +146,44 @@ export default function Dashboard() {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase();
   };
 
-  // Load current user details
+  // Load current user details and fetch profile
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (user) {
       setCurrentUser(user);
-      if (user.phone) {
-        setProfilePhone(user.phone);
-      }
+      
+      const fetchProfile = async () => {
+        try {
+          const response = await apiRequest('/profile', { method: 'GET' });
+          if (response.status === 'success' && response.data?.profile) {
+            const profile = response.data.profile;
+            setSelectedTheme(profile.selectedTheme || 'midnight');
+            setQrUrl(profile.qrUrl || 'https://oneqr.co/user/profile');
+            setQrColor(profile.qrColor || '000000');
+            setProfileCompany(profile.profileCompany || '');
+            setProfileName(profile.profileName || '');
+            setProfileTitle(profile.profileTitle || '');
+            setProfileLocation(profile.profileLocation || '');
+            setProfileAddress(profile.profileAddress || '');
+            setProfileBio(profile.profileBio || '');
+            setProfileEmail(profile.profileEmail || '');
+            setProfilePhone(profile.profilePhone || profile.phone || '');
+            setProfileWebsite(profile.profileWebsite || '');
+            setSocialFacebook(profile.socialFacebook || '');
+            setSocialGoogle(profile.socialGoogle || '');
+            setSocialInstagram(profile.socialInstagram || '');
+            setSocialYoutube(profile.socialYoutube || '');
+            setSocialLinkedin(profile.socialLinkedin || '');
+            setSocialX(profile.socialX || '');
+            setCustomLinks(profile.customLinks || []);
+            setProfileDocuments(profile.profileDocuments || []);
+          }
+        } catch (err) {
+          console.error('Error fetching profile from server:', err);
+        }
+      };
+      
+      fetchProfile();
     }
   }, []);
 
@@ -162,13 +285,95 @@ export default function Dashboard() {
     setProfileDocuments([]);
   };
 
-  const handleSaveProfileForm = () => {
+  const handleSaveProfileForm = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      // 1. Upload any new files to Cloudinary first
+      const updatedDocs = [...profileDocuments];
+      for (let i = 0; i < updatedDocs.length; i++) {
+        const doc = updatedDocs[i];
+        if (doc.file) {
+          const formData = new FormData();
+          formData.append('file', doc.file);
+
+          const token = localStorage.getItem('oneqr_token');
+          const headers = {};
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          const uploadRes = await fetch('http://localhost:5000/api/profile/upload', {
+            method: 'POST',
+            headers,
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            throw new Error(`Failed to upload file "${doc.filename}". Please try again.`);
+          }
+
+          const uploadData = await uploadRes.json();
+          if (uploadData.status === 'success') {
+            updatedDocs[i] = {
+              id: doc.id,
+              label: doc.label,
+              filename: doc.filename,
+              size: doc.size,
+              url: uploadData.data.url,
+              publicId: uploadData.data.publicId,
+            };
+          }
+        }
+      }
+
+      // Update state with newly uploaded Cloudinary URLs
+      setProfileDocuments(updatedDocs);
+
+      // 2. Build payload to save in MongoDB
+      const payload = {
+        selectedTheme,
+        qrUrl,
+        qrColor,
+        profileCompany,
+        profileName,
+        profileTitle,
+        profileLocation,
+        profileAddress,
+        profileBio,
+        profileEmail,
+        profilePhone,
+        profileWebsite,
+        socialFacebook,
+        socialGoogle,
+        socialInstagram,
+        socialYoutube,
+        socialLinkedin,
+        socialX,
+        customLinks,
+        profileDocuments: updatedDocs.map((d) => ({
+          id: d.id,
+          label: d.label,
+          filename: d.filename,
+          size: d.size,
+          url: d.url || '',
+          publicId: d.publicId || '',
+        })),
+      };
+
+      // 3. Save to MongoDB
+      await apiRequest('/profile', {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
-    }, 800);
+    } catch (err) {
+      console.error('Error saving profile settings:', err);
+      alert(err.message || 'Error occurred while saving profile settings.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Themes Configuration
@@ -382,9 +587,12 @@ export default function Dashboard() {
             </div>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* 1. Digital Profile Builder */}
+            {/* Left Column: Configuration Forms (col-span-8) */}
+            <div className="lg:col-span-8 space-y-8">
+              
+              {/* 1. Digital Profile Builder */}
             <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl space-y-6">
               
               {/* Header & Theme Selection */}
@@ -725,8 +933,11 @@ export default function Dashboard() {
                               <Trash2 className="w-3 h-3" />
                             </button>
 
+                            {/* File Preview Thumbnail */}
+                            <FilePreview doc={doc} />
+
                             {/* Document Title Label Input */}
-                            <div className="w-full md:w-[40%] space-y-1">
+                            <div className="w-full md:w-[32%] space-y-1">
                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Document Label</span>
                               <input 
                                 type="text"
@@ -738,11 +949,22 @@ export default function Dashboard() {
                             </div>
 
                             {/* Simulated File Selector Input */}
-                            <div className="w-full md:w-[60%] space-y-1">
+                            <div className="w-full md:w-[53%] space-y-1">
                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Upload / File Attachment</span>
                               <div className="flex items-center gap-3">
                                 <div className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-sm text-slate-400 flex items-center justify-between overflow-hidden">
-                                  <span className="truncate">{doc.filename}</span>
+                                  {doc.url ? (
+                                    <a 
+                                      href={doc.url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="truncate text-blue-400 hover:underline hover:text-blue-300"
+                                    >
+                                      {doc.filename}
+                                    </a>
+                                  ) : (
+                                    <span className="truncate">{doc.filename}</span>
+                                  )}
                                   <span className="text-xs font-bold text-slate-500 shrink-0">({doc.size})</span>
                                 </div>
                                 <label className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer select-none">
@@ -754,7 +976,8 @@ export default function Dashboard() {
                                       const file = e.target.files[0];
                                       if (file) {
                                         updateDocument(doc.id, 'filename', file.name);
-                                        updateDocument(doc.id, 'size', (file.size / (1024 * 1024)).toFixed(1) + ' MB');
+                                        updateDocument(doc.id, 'size', (file.size / (1024 * 1024)).toFixed(2) + ' MB');
+                                        updateDocument(doc.id, 'file', file);
                                       }
                                     }}
                                   />
@@ -907,10 +1130,10 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+              </div> {/* End of lg:col-span-8 */}
 
-            {/* Live Mobile Simulator Preview - Disabled */}
-            {false && (
-              <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl flex flex-col items-center w-full">
+              {/* Right Column: Live Mobile Preview (col-span-4) - sticky */}
+              <div className="lg:col-span-4 lg:sticky lg:top-28 p-6 md:p-8 glass border border-white/5 rounded-3xl flex flex-col items-center w-full">
                   <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-6 block">Live Mobile Simulator</span>
                   
                   {/* Phone Body Container with Dynamic Theme Class */}
@@ -1077,6 +1300,30 @@ export default function Dashboard() {
                             </div>
                           </div>
                         )}
+
+                        {/* Documents / Catalogs List */}
+                        {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).length > 0 && (
+                          <div className="space-y-2 mt-4 pt-3 border-t border-white/5">
+                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest block text-left mb-1.5">Documents & Catalogs</span>
+                            <div className="space-y-1.5">
+                              {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).map((doc) => (
+                                <a
+                                  key={doc.id}
+                                  href={doc.url || '#'}
+                                  target={doc.url ? "_blank" : undefined}
+                                  rel={doc.url ? "noopener noreferrer" : undefined}
+                                  className={`w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] font-bold text-slate-300 transition-all ${doc.url ? 'hover:bg-white/10' : ''} ${activeTheme.buttonBg}`}
+                                >
+                                  <span className="flex items-center gap-1.5 truncate pr-2">
+                                    <Smartphone className="w-3 h-3 text-cyan-400 shrink-0" />
+                                    <span className="truncate">{doc.label || doc.filename}</span>
+                                  </span>
+                                  <ArrowUpRight className="w-3 h-3 text-slate-500 shrink-0" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Brand Signature */}
@@ -1089,8 +1336,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
           )}
       </div>
     </div>
