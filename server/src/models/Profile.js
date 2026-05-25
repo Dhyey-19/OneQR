@@ -8,9 +8,10 @@ const ProfileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    selectedTheme: {
+
+    profileLogo: {
       type: String,
-      default: "midnight",
+      default: "",
     },
     qrUrl: {
       type: String,
@@ -19,6 +20,10 @@ const ProfileSchema = new mongoose.Schema(
     qrColor: {
       type: String,
       default: "000000",
+    },
+    headerColor: {
+      type: String,
+      default: "gradient",
     },
     profileCompany: {
       type: String,
@@ -32,10 +37,7 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    profileLocation: {
-      type: String,
-      default: "",
-    },
+
     profileAddress: {
       type: String,
       default: "",
@@ -79,6 +81,21 @@ const ProfileSchema = new mongoose.Schema(
     socialX: {
       type: String,
       default: "",
+    },
+    socialWhatsapp: {
+      type: String,
+      default: "",
+    },
+    socialUPI: {
+      type: String,
+      default: "",
+    },
+    socialOrder: {
+      type: [String],
+      default: ['facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'whatsapp', 'upi'],
+    },
+    slug: {
+      type: String,
     },
     customLinks: [
       {

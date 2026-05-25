@@ -48,13 +48,14 @@ exports.getProfile = async (req, res, next) => {
         status: "success",
         data: {
           profile: {
-            selectedTheme: "midnight",
+
+            profileLogo: "",
             qrUrl: "https://oneqr.co/user/profile",
             qrColor: "000000",
             profileCompany: "",
             profileName: "",
             profileTitle: "",
-            profileLocation: "",
+
             profileAddress: "",
             profileBio: "",
             profileEmail: "",
@@ -66,8 +67,12 @@ exports.getProfile = async (req, res, next) => {
             socialYoutube: "",
             socialLinkedin: "",
             socialX: "",
+            socialWhatsapp: "",
+            socialUPI: "",
+            socialOrder: ['facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'whatsapp', 'upi'],
             customLinks: [],
             profileDocuments: [],
+            headerColor: "gradient",
           },
         },
       });
@@ -87,9 +92,16 @@ exports.getProfile = async (req, res, next) => {
  */
 exports.updateProfile = async (req, res, next) => {
   try {
+    const companyName = req.body.profileCompany || req.body.profileName || "demo-profile";
+    const slug = companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
     const profileData = {
       ...req.body,
       user: req.user.id,
+      slug: slug,
     };
 
     const profile = await Profile.findOneAndUpdate(
@@ -141,5 +153,42 @@ exports.uploadFile = async (req, res, next) => {
       status: "error",
       message: error.message || "Failed to upload file to Cloudinary.",
     });
+  }
+};
+
+/**
+ * Retrieves a public profile by its slug.
+ */
+exports.getPublicProfile = async (req, res, next) => {
+  try {
+    const requestedSlug = req.params.slug;
+    let profile = await Profile.findOne({ slug: requestedSlug });
+    
+    // Fallback for older profiles that don't have a slug saved in the database
+    if (!profile) {
+      const allProfiles = await Profile.find({});
+      profile = allProfiles.find(p => {
+        const companyName = p.profileCompany || p.profileName || "demo-profile";
+        const generatedSlug = companyName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        return generatedSlug === requestedSlug;
+      });
+    }
+
+    if (!profile) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile not found",
+      });
+    }
+
+    res.json({
+      status: "success",
+      data: { profile },
+    });
+  } catch (error) {
+    next(error);
   }
 };

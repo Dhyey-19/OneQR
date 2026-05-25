@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { 
   QrCode, Smartphone, BarChart2, Sparkles, Link2, User, 
   Mail, Globe, Phone, Download, Check, RefreshCw, 
-  MapPin, CreditCard, Star, Plus, Trash2, ArrowUpRight
+  MapPin, CreditCard, Star, Plus, Trash2, ArrowUpRight,
+  Sun, Moon
 } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle, FaWhatsapp, FaMoneyBillWave } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { apiRequest } from '../services/apiService';
 
@@ -106,7 +107,8 @@ export default function Dashboard() {
   const [subView, setSubView] = useState('overview'); // 'overview' | 'manage-qr'
 
   // Profile Theme Selection State
-  const [selectedTheme, setSelectedTheme] = useState('midnight'); // 'midnight' | 'emerald' | 'sunset' | 'cyber' | 'royal'
+  const [profileLogo, setProfileLogo] = useState(''); // Base64 or URL
+  const [headerColor, setHeaderColor] = useState('gradient');
 
   // QR Generator States
   const [qrUrl, setQrUrl] = useState('https://oneqr.co/user/profile');
@@ -124,7 +126,6 @@ export default function Dashboard() {
   const [profileEmail, setProfileEmail] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
   const [profileWebsite, setProfileWebsite] = useState('');
-  const [profileLocation, setProfileLocation] = useState('');
   const [profileAddress, setProfileAddress] = useState('');
 
   // Social Links States (Cleared Default Values)
@@ -134,6 +135,9 @@ export default function Dashboard() {
   const [socialYoutube, setSocialYoutube] = useState('');
   const [socialLinkedin, setSocialLinkedin] = useState('');
   const [socialX, setSocialX] = useState('');
+  const [socialWhatsapp, setSocialWhatsapp] = useState('');
+  const [socialUPI, setSocialUPI] = useState('');
+  const [socialOrder, setSocialOrder] = useState(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
 
   // Dynamic Custom Links States (Cleared Default Values)
   const [customLinks, setCustomLinks] = useState([]);
@@ -141,9 +145,27 @@ export default function Dashboard() {
   // Documents / Catalog Uploads States (Cleared Default Values)
   const [profileDocuments, setProfileDocuments] = useState([]);
 
-  const getInitials = (name) => {
+  // Mobile responsive layout check state
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+  const getAlphabeticalLogo = (name) => {
     if (!name) return '';
-    return name.split(' ').map((n) => n[0]).join('').toUpperCase();
+    const cleanName = name.trim();
+    if (!cleanName) return '';
+    const words = cleanName.split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return cleanName.slice(0, 2).toUpperCase();
   };
 
   // Load current user details and fetch profile
@@ -157,13 +179,13 @@ export default function Dashboard() {
           const response = await apiRequest('/profile', { method: 'GET' });
           if (response.status === 'success' && response.data?.profile) {
             const profile = response.data.profile;
-            setSelectedTheme(profile.selectedTheme || 'midnight');
+            setProfileLogo(profile.profileLogo || '');
+            setHeaderColor(profile.headerColor || 'gradient');
             setQrUrl(profile.qrUrl || 'https://oneqr.co/user/profile');
             setQrColor(profile.qrColor || '000000');
             setProfileCompany(profile.profileCompany || '');
             setProfileName(profile.profileName || '');
             setProfileTitle(profile.profileTitle || '');
-            setProfileLocation(profile.profileLocation || '');
             setProfileAddress(profile.profileAddress || '');
             setProfileBio(profile.profileBio || '');
             setProfileEmail(profile.profileEmail || '');
@@ -175,6 +197,11 @@ export default function Dashboard() {
             setSocialYoutube(profile.socialYoutube || '');
             setSocialLinkedin(profile.socialLinkedin || '');
             setSocialX(profile.socialX || '');
+            setSocialWhatsapp(profile.socialWhatsapp || '');
+            setSocialUPI(profile.socialUPI || '');
+            if (profile.socialOrder && profile.socialOrder.length > 0) {
+              setSocialOrder(profile.socialOrder);
+            }
             setCustomLinks(profile.customLinks || []);
             setProfileDocuments(profile.profileDocuments || []);
           }
@@ -273,7 +300,6 @@ export default function Dashboard() {
     setProfileEmail('');
     setProfilePhone('');
     setProfileWebsite('');
-    setProfileLocation('');
     setProfileAddress('');
     setSocialFacebook('');
     setSocialGoogle('');
@@ -281,8 +307,12 @@ export default function Dashboard() {
     setSocialYoutube('');
     setSocialLinkedin('');
     setSocialX('');
+    setSocialWhatsapp('');
+    setSocialUPI('');
+    setSocialOrder(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
     setCustomLinks([]);
     setProfileDocuments([]);
+    setHeaderColor('gradient');
   };
 
   const handleSaveProfileForm = async () => {
@@ -331,13 +361,13 @@ export default function Dashboard() {
 
       // 2. Build payload to save in MongoDB
       const payload = {
-        selectedTheme,
+        profileLogo,
         qrUrl,
         qrColor,
+        headerColor,
         profileCompany,
         profileName,
         profileTitle,
-        profileLocation,
         profileAddress,
         profileBio,
         profileEmail,
@@ -349,7 +379,9 @@ export default function Dashboard() {
         socialYoutube,
         socialLinkedin,
         socialX,
-        customLinks,
+        socialWhatsapp,
+        socialUPI,
+        socialOrder,
         profileDocuments: updatedDocs.map((d) => ({
           id: d.id,
           label: d.label,
@@ -376,67 +408,69 @@ export default function Dashboard() {
     }
   };
 
-  // Themes Configuration
-  const themes = [
-    { id: 'midnight', name: 'Midnight Sleek', gradient: 'from-blue-600 to-indigo-600', ring: 'ring-blue-500' },
-    { id: 'emerald', name: 'Emerald Glow', gradient: 'from-emerald-600 to-teal-500', ring: 'ring-emerald-500' },
-    { id: 'sunset', name: 'Sunset Rose', gradient: 'from-rose-600 to-amber-500', ring: 'ring-rose-500' },
-    { id: 'cyber', name: 'Cyber Neon', gradient: 'from-fuchsia-600 to-cyan-500', ring: 'ring-fuchsia-500' },
-    { id: 'royal', name: 'Royal Gold', gradient: 'from-amber-600 via-yellow-500 to-amber-700', ring: 'ring-amber-500' }
-  ];
-
-  const getThemeClasses = () => {
-    switch (selectedTheme) {
-      case 'emerald':
-        return {
-          bg: 'bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/80',
-          text: 'text-emerald-400',
-          border: 'border-emerald-500/20',
-          avatar: 'from-emerald-600 to-teal-500',
-          tag: 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400',
-          buttonBg: 'bg-emerald-500/10 border-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300'
-        };
-      case 'sunset':
-        return {
-          bg: 'bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/80',
-          text: 'text-rose-400',
-          border: 'border-rose-500/20',
-          avatar: 'from-rose-600 to-amber-500',
-          tag: 'bg-rose-500/10 border-rose-500/25 text-rose-400',
-          buttonBg: 'bg-rose-500/10 border-rose-500/10 hover:bg-rose-500/20 text-rose-300'
-        };
-      case 'cyber':
-        return {
-          bg: 'bg-gradient-to-br from-[#0c051a] via-[#05020c] to-[#1a052e]',
-          text: 'text-fuchsia-400',
-          border: 'border-fuchsia-500/20',
-          avatar: 'from-fuchsia-600 to-cyan-500',
-          tag: 'bg-fuchsia-500/10 border-fuchsia-500/25 text-fuchsia-400',
-          buttonBg: 'bg-fuchsia-500/10 border-fuchsia-500/10 hover:bg-fuchsia-500/20 text-fuchsia-300'
-        };
-      case 'royal':
-        return {
-          bg: 'bg-gradient-to-br from-[#0a0805] via-[#050402] to-[#1e160a]',
-          text: 'text-amber-500',
-          border: 'border-amber-500/20',
-          avatar: 'from-amber-600 via-yellow-500 to-amber-700',
-          tag: 'bg-amber-500/10 border-amber-500/25 text-amber-500',
-          buttonBg: 'bg-amber-500/10 border-amber-500/10 hover:bg-amber-500/20 text-amber-300'
-        };
-      case 'midnight':
-      default:
-        return {
-          bg: 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/80',
-          text: 'text-blue-400',
-          border: 'border-blue-500/20',
-          avatar: 'from-blue-600 to-indigo-600',
-          tag: 'bg-blue-500/10 border-blue-500/25 text-blue-400',
-          buttonBg: 'bg-white/5 border-white/5 hover:bg-white/10 text-slate-300'
-        };
-    }
+  // Themes Configuration (Solid Light Mode)
+  const activeTheme = {
+    bg: 'bg-white text-slate-900',
+    text: 'text-slate-900',
+    border: 'border-slate-200 shadow-sm',
+    avatar: 'bg-slate-100 text-slate-800',
+    tag: 'bg-slate-100 border-slate-200 text-slate-800',
+    buttonBg: 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 shadow-sm',
+    bodyCard: 'bg-white border border-slate-200 shadow-xl text-slate-900',
+    headerText: 'text-slate-950 font-black',
+    subText: 'text-slate-500',
+    itemBg: 'bg-slate-50 border border-slate-200 hover:bg-slate-100',
+    labelBg: 'bg-slate-100 text-slate-700',
+    footerText: 'text-slate-500',
+    signatureText: 'text-slate-900 font-extrabold',
+    bioColor: 'text-slate-700',
+    detailLabel: 'text-slate-800',
+    detailVal: 'text-slate-500'
   };
 
-  const activeTheme = getThemeClasses();
+  const handleLaunchMobileDemo = () => {
+    const companyName = profileCompany || profileName || "demo-profile";
+    const companySlug = companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    const demoData = {
+      profileCompany,
+      profileName,
+      profileTitle,
+      profileAddress,
+      profileBio,
+      profileEmail,
+      profilePhone,
+      profileWebsite,
+      socialFacebook,
+      socialGoogle,
+      socialInstagram,
+      socialYoutube,
+      socialLinkedin,
+      socialX,
+      socialWhatsapp,
+      socialUPI,
+      socialOrder,
+      headerColor,
+      customLinks: customLinks.filter(link => link.label && link.url),
+      profileDocuments: profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).map(d => ({
+        id: d.id,
+        label: d.label,
+        filename: d.filename,
+        size: d.size,
+        url: d.url || (d.file ? URL.createObjectURL(d.file) : '')
+      }))
+    };
+
+    sessionStorage.setItem('oneqr_demo_profile_data', JSON.stringify(demoData));
+    sessionStorage.setItem('oneqr_demo_authorized', 'true');
+
+    // Launch beautiful standalone demo page in new tab
+    window.open('/' + companySlug, '_blank');
+  };
+
 
   // Mock telemetry data
   const stats = [
@@ -589,8 +623,8 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* Left Column: Configuration Forms (col-span-8) */}
-            <div className="lg:col-span-8 space-y-8">
+            {/* Left Column: Configuration Forms (col-span-8 / col-span-12) */}
+            <div className={`${isMobileView ? 'lg:col-span-12 w-full' : 'lg:col-span-8'} space-y-8`}>
               
               {/* 1. Digital Profile Builder */}
             <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl space-y-6">
@@ -616,31 +650,98 @@ export default function Dashboard() {
                   </button>
                 </div>
 
-                    {/* Dynamic Theme Circular Selector */}
-                    <div className="space-y-2 pt-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Profile Color Theme</label>
-                      <div className="flex flex-wrap items-center gap-4">
-                        {themes.map((theme) => (
-                          <button
-                            key={theme.id}
-                            onClick={() => setSelectedTheme(theme.id)}
-                             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/5 transition-all text-sm font-bold text-slate-300 hover:bg-white/5 cursor-pointer ${
-                               selectedTheme === theme.id ? 'bg-white/10 ring-2 ' + theme.ring + ' text-white' : ''
-                             }`}
-                          >
-                            <div className={`w-3.5 h-3.5 rounded-full bg-gradient-to-tr ${theme.gradient} border border-white/10`} />
-                            <span>{theme.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
 
                   {/* Core Profile Inputs */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* 1. Business / Company */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Business / Company</label>
+                    {/* 0. Business Logo */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Business Logo</label>
+                      <div className="flex items-center gap-4">
+                        {profileLogo ? (
+                          <div className="relative w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-white/5">
+                            <img src={profileLogo} alt="Logo" className="w-full h-full object-contain" />
+                            <button 
+                              onClick={() => setProfileLogo('')}
+                              className="absolute top-1 right-1 bg-red-500 rounded-full p-1 shadow-md hover:bg-red-600 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
+                        ) : profileCompany ? (
+                          <div className="relative w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white font-bold tracking-wider flex items-center justify-center text-sm select-none border border-white/10">
+                            {getAlphabeticalLogo(profileCompany)}
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-white/10 bg-white/5 flex items-center justify-center">
+                            <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">Logo</span>
+                          </div>
+                        )}
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const reader = new FileReader();
+                              reader.onload = (event) => setProfileLogo(event.target.result);
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }}
+                          className="text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Header Color Picker */}
+                    <div className="space-y-3 md:col-span-2 p-4 rounded-2xl bg-white/5 border border-white/5">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Header Banner Color</label>
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <div className="flex items-center gap-2 bg-[#0a0f1d] px-3 py-1.5 rounded-xl border border-white/10">
+                          <input 
+                            type="color" 
+                            value={headerColor && headerColor.startsWith('#') ? headerColor : '#4f46e5'}
+                            onChange={(e) => setHeaderColor(e.target.value)}
+                            className="w-8 h-8 rounded-lg border border-white/10 bg-transparent cursor-pointer p-0"
+                          />
+                          <span className="text-[11px] text-slate-300 font-mono uppercase">
+                            {headerColor === 'gradient' ? 'Default Gradient' : headerColor}
+                          </span>
+                        </div>
+                        
+                        <div className="flex gap-2 flex-wrap items-center">
+                          <button
+                            type="button"
+                            onClick={() => setHeaderColor('gradient')}
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                              headerColor === 'gradient'
+                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-white/20 text-white shadow-lg'
+                                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            Default Gradient
+                          </button>
+                          
+                          {/* Presets */}
+                          {['#4f46e5', '#0ea5e9', '#10b981', '#ef4444', '#f59e0b', '#ec4899', '#1f2937'].map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setHeaderColor(color)}
+                              style={{ backgroundColor: color }}
+                              className={`w-6 h-6 rounded-full border border-white/15 transition-all ${
+                                headerColor === color ? 'scale-115 ring-2 ring-blue-500 ring-offset-2 ring-offset-[#030712]' : 'hover:scale-105'
+                              }`}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 1. Business / Company */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Business / Company Name</label>
                       <input 
                         type="text"
                         value={profileCompany}
@@ -650,61 +751,7 @@ export default function Dashboard() {
                       />
                     </div>
 
-                    {/* 2. Owner Name */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Owner Name</label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input 
-                          type="text"
-                          value={profileName}
-                          onChange={(e) => setProfileName(e.target.value)}
-                          placeholder="Enter owner name"
-                          className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                        />
-                      </div>
-                    </div>
-
-                    {/* 3. Job Title */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Job Title</label>
-                      <input 
-                        type="text"
-                        value={profileTitle}
-                        onChange={(e) => setProfileTitle(e.target.value)}
-                        placeholder="Enter job title"
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                      />
-                    </div>
-
-                    {/* 4. City */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">City</label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input 
-                          type="text"
-                          value={profileLocation}
-                          onChange={(e) => setProfileLocation(e.target.value)}
-                          placeholder="Enter city"
-                          className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                        />
-                      </div>
-                    </div>
-
-                    {/* 5. Address */}
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Physical Address</label>
-                      <textarea 
-                        value={profileAddress}
-                        onChange={(e) => setProfileAddress(e.target.value)}
-                        rows={2}
-                        placeholder="Enter physical address"
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
-                      />
-                    </div>
-
-                    {/* 6. Short Description (Letters counter) */}
+                    {/* 3. Short Description */}
                     <div className="space-y-2 md:col-span-2">
                       <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Short Description</label>
@@ -715,9 +762,21 @@ export default function Dashboard() {
                       <textarea 
                         value={profileBio}
                         onChange={(e) => setProfileBio(e.target.value)}
-                        rows={2}
+                        rows={3}
                         placeholder="Enter short description..."
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40 resize-none leading-normal"
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40 resize-y leading-normal"
+                      />
+                    </div>
+
+                    {/* 4. Physical Address */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Physical Address</label>
+                      <textarea 
+                        value={profileAddress}
+                        onChange={(e) => setProfileAddress(e.target.value)}
+                        rows={2}
+                        placeholder="Enter physical address"
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
                       />
                     </div>
 
@@ -771,81 +830,63 @@ export default function Dashboard() {
 
                     {/* Social Networks Form Links */}
                     <div className="space-y-4 md:col-span-2 pt-4 border-t border-white/5">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Social Network URLs</label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                            <FaFacebook className="w-3 h-3 text-blue-500" /> Facebook
-                          </span>
-                          <input 
-                            type="url" 
-                            value={socialFacebook} 
-                            onChange={(e) => setSocialFacebook(e.target.value)}
-                            placeholder="e.g. https://facebook.com/yourusername" 
-                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                            <FaGoogle className="w-3 h-3 text-yellow-500" /> Google Review
-                          </span>
-                          <input 
-                            type="url" 
-                            value={socialGoogle} 
-                            onChange={(e) => setSocialGoogle(e.target.value)}
-                            placeholder="e.g. https://g.page/r/yourplace/review" 
-                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                            <FaInstagram className="w-3 h-3 text-pink-500" /> Instagram
-                          </span>
-                          <input 
-                            type="url" 
-                            value={socialInstagram} 
-                            onChange={(e) => setSocialInstagram(e.target.value)}
-                            placeholder="e.g. https://instagram.com/yourusername" 
-                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                            <FaYoutube className="w-3 h-3 text-rose-500" /> YouTube
-                          </span>
-                          <input 
-                            type="url" 
-                            value={socialYoutube} 
-                            onChange={(e) => setSocialYoutube(e.target.value)}
-                            placeholder="e.g. https://youtube.com/@yourchannel" 
-                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                            <FaLinkedin className="w-3 h-3 text-blue-400" /> LinkedIn
-                          </span>
-                          <input 
-                            type="url" 
-                            value={socialLinkedin} 
-                            onChange={(e) => setSocialLinkedin(e.target.value)}
-                            placeholder="e.g. https://linkedin.com/in/yourusername" 
-                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
-                            <FaTwitter className="w-3 h-3 text-slate-300" /> X (Twitter)
-                          </span>
-                          <input 
-                            type="url" 
-                            value={socialX} 
-                            onChange={(e) => setSocialX(e.target.value)}
-                            placeholder="e.g. https://x.com/yourusername" 
-                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
-                          />
-                        </div>
-                      </div>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Connect & Payment Links</label>
+                      <p className="text-[10px] text-slate-500 mb-2">Drag and drop to reorder the items.</p>
+                      <Reorder.Group 
+                        axis="y" 
+                        values={socialOrder} 
+                        onReorder={setSocialOrder} 
+                        className="space-y-3"
+                      >
+                        {socialOrder.map((key) => {
+                          const platforms = {
+                            facebook: { icon: FaFacebook, color: 'text-blue-500', label: 'Facebook', placeholder: 'e.g. https://facebook.com/yourusername', value: socialFacebook, setter: setSocialFacebook },
+                            google: { imgSrc: '/assets/google_review.png', label: 'Google Review', placeholder: 'e.g. https://g.page/r/yourplace/review', value: socialGoogle, setter: setSocialGoogle },
+                            instagram: { icon: FaInstagram, color: 'text-pink-500', label: 'Instagram', placeholder: 'e.g. https://instagram.com/yourusername', value: socialInstagram, setter: setSocialInstagram },
+                            youtube: { icon: FaYoutube, color: 'text-rose-500', label: 'YouTube', placeholder: 'e.g. https://youtube.com/@yourchannel', value: socialYoutube, setter: setSocialYoutube },
+                            linkedin: { icon: FaLinkedin, color: 'text-blue-400', label: 'LinkedIn', placeholder: 'e.g. https://linkedin.com/in/yourusername', value: socialLinkedin, setter: setSocialLinkedin },
+                            x: { icon: FaTwitter, color: 'text-black', label: 'X (Twitter)', placeholder: 'e.g. https://x.com/yourusername', value: socialX, setter: setSocialX },
+                            whatsapp: { icon: FaWhatsapp, color: 'text-green-500', label: 'WhatsApp', placeholder: 'e.g. https://wa.me/yournumber', value: socialWhatsapp, setter: setSocialWhatsapp },
+                            upi: { imgSrc: '/assets/upi.png', label: 'UPI Link', placeholder: 'e.g. upi://pay?pa=yourvpa@upi', value: socialUPI, setter: setSocialUPI },
+                          };
+                          const platform = platforms[key];
+                          if (!platform) return null;
+                          const Icon = platform.icon;
+
+                          return (
+                            <Reorder.Item 
+                              key={key} 
+                              value={key} 
+                              className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-grab active:cursor-grabbing hover:bg-white/10 transition-colors"
+                            >
+                              <div className="shrink-0 flex flex-col items-center gap-1 w-6">
+                                <div className="flex flex-col gap-0.5 opacity-50">
+                                  <div className="w-4 h-0.5 bg-slate-500 rounded-full"></div>
+                                  <div className="w-4 h-0.5 bg-slate-500 rounded-full"></div>
+                                  <div className="w-4 h-0.5 bg-slate-500 rounded-full"></div>
+                                </div>
+                              </div>
+                              <div className="shrink-0">
+                                {platform.imgSrc ? (
+                                  <img src={platform.imgSrc} alt={platform.label} className="w-5 h-5 object-contain" />
+                                ) : (
+                                  <Icon className={`w-5 h-5 ${platform.color}`} />
+                                )}
+                              </div>
+                              <div className="flex-grow space-y-1">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">{platform.label}</span>
+                                <input 
+                                  type="url" 
+                                  value={platform.value} 
+                                  onChange={(e) => platform.setter(e.target.value)}
+                                  placeholder={platform.placeholder} 
+                                  className="w-full bg-transparent text-white text-sm focus:outline-none placeholder-slate-600"
+                                />
+                              </div>
+                            </Reorder.Item>
+                          );
+                        })}
+                      </Reorder.Group>
                     </div>
 
                     {/* Dynamic Customized Links Creator */}
@@ -990,7 +1031,15 @@ export default function Dashboard() {
                     </div>
 
                     {/* Save and Clear Form Actions */}
-                    <div className="flex items-center justify-end gap-4 pt-6 border-t border-white/5 md:col-span-2">
+                    <div className="flex items-center justify-end gap-4 pt-6 border-t border-white/5 md:col-span-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleLaunchMobileDemo}
+                        className="px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Smartphone className="w-4 h-4" />
+                        View Demo
+                      </button>
                       <button
                         type="button"
                         onClick={handleClearProfileForm}
@@ -1133,7 +1182,8 @@ export default function Dashboard() {
               </div> {/* End of lg:col-span-8 */}
 
               {/* Right Column: Live Mobile Preview (col-span-4) - sticky */}
-              <div className="lg:col-span-4 lg:sticky lg:top-28 p-6 md:p-8 glass border border-white/5 rounded-3xl flex flex-col items-center w-full">
+              {!isMobileView && (
+                <div className="lg:col-span-4 lg:sticky lg:top-28 p-6 md:p-8 glass border border-white/5 rounded-3xl flex flex-col items-center w-full">
                   <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-6 block">Live Mobile Simulator</span>
                   
                   {/* Phone Body Container with Dynamic Theme Class */}
@@ -1145,153 +1195,142 @@ export default function Dashboard() {
                     </div>
 
                     {/* Live Content Panel */}
-                    <div className="flex-1 flex flex-col justify-between pt-10 pb-6 px-4 overflow-y-auto relative no-scrollbar">
-                      
-                      {/* Banner Gradient representing Active Theme */}
-                      <div className={`absolute -top-12 -left-12 w-32 h-32 rounded-full bg-gradient-to-tr ${activeTheme.avatar} opacity-20 blur-2xl pointer-events-none`} />
+                    <div className="flex-1 flex flex-col overflow-y-auto relative no-scrollbar pb-6">
 
-                      {/* Profile Info Header */}
-                      <div className="text-center pt-4">
-                        {profileName && (
-                          <div className={`w-18 h-18 rounded-2xl bg-gradient-to-tr ${activeTheme.avatar} border-2 border-white/10 shadow-lg flex items-center justify-center text-white font-black text-xl mx-auto transition-all`}>
-                            {getInitials(profileName)}
-                          </div>
-                        )}
-                        
-                        {profileName && (
-                          <h4 className="font-extrabold text-white text-sm mt-3 overflow-hidden text-ellipsis whitespace-nowrap px-1">
-                            {profileName}
-                          </h4>
-                        )}
-
-                        {profileTitle && (
-                          <span className={`text-[9px] ${activeTheme.text} font-bold tracking-wide uppercase block mt-0.5`}>
-                            {profileTitle}
-                          </span>
-                        )}
-
-                        {profileCompany && (
-                          <span className="text-[8px] text-slate-500 font-semibold uppercase block leading-tight mt-0.5">
-                            {profileCompany}
-                          </span>
-                        )}
-
-                        {profileLocation && (
-                          <div className="flex items-center justify-center gap-1 mt-2 text-[8px] font-medium text-slate-400">
-                            <MapPin className="w-2.5 h-2.5 text-slate-500" />
-                            <span>{profileLocation}</span>
-                          </div>
-                        )}
-
-                        {profileBio && (
-                          <p className="text-[9px] text-slate-400 leading-normal mt-3 px-3 italic font-medium">
-                            "{profileBio}"
-                          </p>
-                        )}
+                      {/* Decorative Top Banner */}
+                      <div 
+                        className={`relative z-0 w-full pt-16 pb-8 shrink-0 shadow-sm border-b border-indigo-400/20 ${
+                          !headerColor || headerColor === 'gradient' ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700' : ''
+                        }`}
+                        style={headerColor && headerColor !== 'gradient' ? { backgroundColor: headerColor } : {}}
+                      >
                       </div>
 
+                      {/* Padded Content Body */}
+                      <div className="px-4 flex flex-col flex-1 relative z-10">
+                        
+                        {/* Profile Logo and Company Name */}
+                        <div className="flex flex-col items-center -mt-8 mb-0 relative z-20">
+                          {profileLogo ? (
+                            <div className="p-1 bg-white rounded-full shadow-md ring-2 ring-white flex items-center justify-center overflow-hidden h-[56px] w-[56px] mb-2">
+                              <img src={profileLogo} alt="Logo" className="w-full h-full object-contain" />
+                            </div>
+                          ) : profileCompany ? (
+                            <div className="bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white font-bold tracking-wider rounded-full shadow-md ring-2 ring-white flex items-center justify-center h-[56px] w-[56px] mb-2 text-sm select-none">
+                              {getAlphabeticalLogo(profileCompany)}
+                            </div>
+                          ) : null}
+                          {profileCompany && (
+                            <h1 className="text-[12px] font-extrabold tracking-tight text-slate-900 leading-tight text-center px-2">
+                              {profileCompany}
+                            </h1>
+                          )}
+                          {profileBio && (
+                            <p className="text-[9px] font-bold text-indigo-500 text-center mt-1 px-3 max-w-[200px]">
+                              {profileBio}
+                            </p>
+                          )}
+                        </div>
+                        
                       {/* Core Details Grid (Hiding Blank Fields completely) */}
-                      <div className="space-y-2.5 my-5">
+                      <div className="space-y-2.5 mt-2 mb-4 z-10">
                         
                         {/* Multiline Address Container */}
                         {profileAddress && (
-                          <div className="w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-start gap-2 text-[9px] text-slate-300 font-semibold leading-relaxed">
-                            <MapPin className={`w-3.5 h-3.5 ${activeTheme.text} shrink-0 mt-0.5`} />
-                            <span className="text-left whitespace-pre-line">{profileAddress}</span>
+                          <div className={`w-full py-2 px-3 rounded-xl flex items-start justify-between gap-2 text-[9px] leading-relaxed ${activeTheme.itemBg}`}>
+                            <span className="flex items-start gap-2">
+                              <MapPin className={`w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5`} />
+                              <span className={`text-left whitespace-pre-line ${activeTheme.detailLabel}`}>{profileAddress}</span>
+                            </span>
+                            <ArrowUpRight className={`w-3.5 h-3.5 ${activeTheme.subText} opacity-50 shrink-0 mt-0.5`} />
                           </div>
                         )}
 
-                        {profileEmail && (
-                          <div className="w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] text-slate-300 font-semibold">
-                            <span className="flex items-center gap-1.5">
-                              <Mail className={`w-3.5 h-3.5 ${activeTheme.text}`} />
-                              Email Us
-                            </span>
-                            <span className="text-[8px] text-slate-500 font-medium overflow-hidden text-ellipsis max-w-[90px]">{profileEmail}</span>
-                          </div>
-                        )}
+                        {(() => {
+                          const actionCards = [];
+                          if (profilePhone) {
+                            actionCards.push({ id: 'call', icon: Phone, color: 'text-green-500', label: 'Call', isButton: false });
+                            actionCards.push({ id: 'save', icon: User, color: 'text-indigo-500', label: 'Save', isButton: true });
+                          }
+                          if (profileEmail) {
+                            actionCards.push({ id: 'email', icon: Mail, color: 'text-yellow-500', label: 'Email', isButton: false });
+                          }
+                          if (profileWebsite) {
+                            actionCards.push({ id: 'web', icon: Globe, color: 'text-blue-500', label: 'Web', isButton: false });
+                          }
 
-                        {profilePhone && (
-                          <div className="w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] text-slate-300 font-semibold">
-                            <span className="flex items-center gap-1.5">
-                              <Phone className={`w-3.5 h-3.5 ${activeTheme.text}`} />
-                              Call Office
-                            </span>
-                            <span className="text-[8px] text-slate-500 font-medium">{profilePhone}</span>
-                          </div>
-                        )}
+                          if (actionCards.length === 0) return null;
 
-                        {profileWebsite && (
-                          <div className="w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] text-slate-300 font-semibold">
-                            <span className="flex items-center gap-1.5">
-                              <Globe className={`w-3.5 h-3.5 ${activeTheme.text}`} />
-                              Website
-                            </span>
-                            <span className="text-[8px] text-slate-500 font-medium overflow-hidden text-ellipsis max-w-[90px]">{profileWebsite}</span>
-                          </div>
-                        )}
+                          return (
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                              {actionCards.map((card, idx) => {
+                                const isLastOdd = idx === actionCards.length - 1 && actionCards.length % 2 !== 0;
+                                const IconComponent = card.icon;
+                                const RightIcon = card.isButton ? Download : ArrowUpRight;
+                                
+                                return (
+                                  <div key={card.id} className={`w-full py-2 px-2.5 rounded-xl flex items-center justify-between text-[9px] font-bold ${activeTheme.itemBg} ${isLastOdd ? 'col-span-2' : ''}`}>
+                                    <span className={`flex items-center gap-1.5 ${activeTheme.detailLabel}`}>
+                                      <IconComponent className={`w-3 h-3 ${card.color}`} />
+                                      {card.label}
+                                    </span>
+                                    <RightIcon className={`w-3 h-3 ${activeTheme.subText} opacity-50`} />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* Social Buttons Container (Showing only Icon + Label, gating blanks) */}
-                      <div className="space-y-2 mb-6">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest block text-left mb-1.5">Social Channels</span>
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          {socialFacebook && (
-                            <div className={`py-1.5 px-2 bg-white/5 border border-white/5 rounded-xl flex items-center gap-1.5 text-[8px] text-slate-300 font-bold ${activeTheme.buttonBg}`}>
-                              <FaFacebook className="w-3 h-3 text-blue-500" />
-                              <span>Facebook</span>
+                      <div className="space-y-2 mb-2 z-10">
+                        {(socialFacebook || socialGoogle || socialInstagram || socialYoutube || socialLinkedin || socialX || socialWhatsapp || socialUPI) && (
+                          <>
+                            <span className={`text-[8px] font-black uppercase tracking-widest block text-left mb-1.5 ${activeTheme.subText}`}>Connect</span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {socialOrder.map(key => {
+                                const platforms = {
+                                  facebook: { icon: FaFacebook, color: 'text-blue-500', label: 'Facebook', value: socialFacebook },
+                                  google: { imgSrc: '/assets/google_review.png', label: 'Google Review', value: socialGoogle },
+                                  instagram: { icon: FaInstagram, color: 'text-pink-500', label: 'Instagram', value: socialInstagram },
+                                  youtube: { icon: FaYoutube, color: 'text-rose-500', label: 'YouTube', value: socialYoutube },
+                                  linkedin: { icon: FaLinkedin, color: 'text-blue-400', label: 'LinkedIn', value: socialLinkedin },
+                                  x: { icon: FaTwitter, color: 'text-black', label: 'X (Twitter)', value: socialX },
+                                  whatsapp: { icon: FaWhatsapp, color: 'text-green-500', label: 'WhatsApp', value: socialWhatsapp },
+                                  upi: { imgSrc: '/assets/upi.png', label: 'UPI', value: socialUPI },
+                                };
+                                const p = platforms[key];
+                                if (!p || !p.value) return null;
+                                const Icon = p.icon;
+                                return (
+                                  <div key={key} className={`py-1.5 px-2 rounded-xl flex items-center gap-1.5 text-[8px] font-bold ${activeTheme.buttonBg}`}>
+                                    {p.imgSrc ? (
+                                      <img src={p.imgSrc} alt={p.label} className="w-3 h-3 shrink-0 object-contain" />
+                                    ) : (
+                                      <Icon className={`w-3 h-3 shrink-0 ${p.color}`} />
+                                    )}
+                                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">{p.label}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
-                          )}
-
-                          {socialGoogle && (
-                            <div className={`py-1.5 px-2 bg-white/5 border border-white/5 rounded-xl flex items-center gap-1.5 text-[8px] text-slate-300 font-bold ${activeTheme.buttonBg}`}>
-                              <FaGoogle className="w-3 h-3 text-yellow-500" />
-                              <span>Google Review</span>
-                            </div>
-                          )}
-
-                          {socialInstagram && (
-                            <div className={`py-1.5 px-2 bg-white/5 border border-white/5 rounded-xl flex items-center gap-1.5 text-[8px] text-slate-300 font-bold ${activeTheme.buttonBg}`}>
-                              <FaInstagram className="w-3 h-3 text-pink-500" />
-                              <span>Instagram</span>
-                            </div>
-                          )}
-
-                          {socialYoutube && (
-                            <div className={`py-1.5 px-2 bg-white/5 border border-white/5 rounded-xl flex items-center gap-1.5 text-[8px] text-slate-300 font-bold ${activeTheme.buttonBg}`}>
-                              <FaYoutube className="w-3 h-3 text-rose-500" />
-                              <span>YouTube</span>
-                            </div>
-                          )}
-
-                          {socialLinkedin && (
-                            <div className={`py-1.5 px-2 bg-white/5 border border-white/5 rounded-xl flex items-center gap-1.5 text-[8px] text-slate-300 font-bold ${activeTheme.buttonBg}`}>
-                              <FaLinkedin className="w-3 h-3 text-blue-400" />
-                              <span>LinkedIn</span>
-                            </div>
-                          )}
-
-                          {socialX && (
-                            <div className={`py-1.5 px-2 bg-white/5 border border-white/5 rounded-xl flex items-center gap-1.5 text-[8px] text-slate-300 font-bold ${activeTheme.buttonBg}`}>
-                              <FaTwitter className="w-3 h-3 text-slate-300" />
-                              <span>X (Twitter)</span>
-                            </div>
-                          )}
-                        </div>
+                          </>
+                        )}
+                      </div>
 
                         {/* Dynamic Custom Links List (Gating blanks, showing Icon + Custom Label) */}
                         {customLinks.filter(link => link.label && link.url).length > 0 && (
-                          <div className="space-y-2 mt-4 pt-3 border-t border-white/5">
-                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest block text-left mb-1.5">Additional Links</span>
+                          <div className="space-y-2 mt-2 pt-3 border-t border-slate-200">
+                            <span className={`text-[8px] font-black uppercase tracking-widest block text-left mb-1.5 ${activeTheme.subText}`}>Additional Links</span>
                             <div className="space-y-1.5">
                               {customLinks.filter(link => link.label && link.url).map((link) => (
                                 <div 
                                   key={link.id} 
-                                  className={`w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] font-bold text-slate-300 transition-all ${activeTheme.buttonBg}`}
+                                  className={`w-full py-2 px-3 rounded-xl flex items-center justify-between text-[9px] font-bold transition-all ${activeTheme.buttonBg}`}
                                 >
-                                  <span className="flex items-center gap-1.5">
-                                    <Link2 className="w-3 h-3 text-blue-400" />
+                                  <span className={`flex items-center gap-1.5 ${activeTheme.detailLabel}`}>
+                                    <Link2 className="w-3 h-3 text-blue-400 shrink-0" />
                                     {link.label}
                                   </span>
                                   <ArrowUpRight className="w-3 h-3 text-slate-500" />
@@ -1303,7 +1342,7 @@ export default function Dashboard() {
 
                         {/* Documents / Catalogs List */}
                         {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).length > 0 && (
-                          <div className="space-y-2 mt-4 pt-3 border-t border-white/5">
+                          <div className="space-y-2 mt-4 pt-4 border-t border-slate-200">
                             <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest block text-left mb-1.5">Documents & Catalogs</span>
                             <div className="space-y-1.5">
                               {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).map((doc) => (
@@ -1324,19 +1363,26 @@ export default function Dashboard() {
                             </div>
                           </div>
                         )}
-                      </div>
 
                       {/* Brand Signature */}
-                      <div className="text-center pt-2 border-t border-white/5">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">
-                          Powered by <strong className="text-white font-extrabold">One<span className="text-blue-500">QR</span></strong>
+                      <div 
+                        className={`text-center py-2 mt-auto shrink-0 ${
+                          !headerColor || headerColor === 'gradient' ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700' : ''
+                        }`}
+                        style={headerColor && headerColor !== 'gradient' ? { backgroundColor: headerColor } : {}}
+                      >
+                        <span className="text-[8px] font-bold text-white/90 uppercase tracking-widest">
+                          Developed By <strong className="text-white font-extrabold">One<span className="text-blue-300">QR</span></strong>
                         </span>
                       </div>
 
+                      </div> {/* End of Padded Content Body */}
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+            </div>
           )}
       </div>
     </div>

@@ -25,6 +25,7 @@ router.get("/auth/me", protect, authController.getProfile);
 // Profile & QR management routes
 const profileRoutes = require("./profileRoutes");
 router.use("/profile", profileRoutes);
+router.get("/public/profile/:slug", require("../controllers/profileController").getPublicProfile);
 
 
 module.exports = router;

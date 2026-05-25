@@ -14,11 +14,16 @@ import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import Dashboard from './components/Dashboard';
+import DemoProfilePage from './components/DemoProfilePage';
 
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState('login'); // 'login' | 'signup'
   const [currentView, setCurrentView] = useState(() => {
+    const path = window.location.pathname;
+    if (path !== '/' && path !== '/index.html') {
+      return 'demo';
+    }
     const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
     const hash = window.location.hash;
     if (hash === '#dashboard' || hash === '#manage-qr') {
@@ -56,6 +61,12 @@ export default function App() {
   // Handle URL Hash-based Routing
   useEffect(() => {
     const handleHashChange = () => {
+      const path = window.location.pathname;
+      if (path !== '/' && path !== '/index.html') {
+        setCurrentView('demo');
+        return;
+      }
+
       const hash = window.location.hash;
       const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
 
@@ -89,6 +100,9 @@ export default function App() {
   // Listen to logout / auth change to auto-redirect from dashboard to landing page
   useEffect(() => {
     const handleAuthChange = () => {
+      const path = window.location.pathname;
+      if (path !== '/' && path !== '/index.html') return;
+
       const userJson = localStorage.getItem('oneqr_current_user');
       if (!userJson) {
         window.location.hash = '#home';
@@ -117,6 +131,10 @@ export default function App() {
       window.location.hash = '#home';
     }
   };
+
+  if (currentView === 'demo') {
+    return <DemoProfilePage />;
+  }
 
   return (
     <div className="relative min-h-screen bg-[#030712] selection:bg-blue-500/30 selection:text-white">
