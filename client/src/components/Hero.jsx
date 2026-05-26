@@ -43,16 +43,17 @@ export default function Hero({ onOpenAuth }) {
           {/* Badge */}
           <motion.div
             variants={itemVariants}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/5 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6 hover:bg-blue-500/10 transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-50/50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6 hover:bg-blue-100 dark:hover:bg-blue-500/10 transition-colors"
           >
             <Cpu className="w-3.5 h-3.5 animate-spin-slow" />
             <span>Next-Gen Identity Platform</span>
           </motion.div>
 
+
           {/* Heading */}
           <motion.h1
             variants={itemVariants}
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-white"
+            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-slate-900 dark:text-white"
           >
             OneQR — Smart <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400">
@@ -64,7 +65,7 @@ export default function Hero({ onOpenAuth }) {
           {/* Subheadline */}
           <motion.p
             variants={itemVariants}
-            className="text-lg sm:text-xl text-slate-400 font-normal leading-relaxed max-w-xl mb-10"
+            className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 font-normal leading-relaxed max-w-xl mb-10"
           >
             Create interactive QR and NFC business experiences for your customers. Share contact cards, catalogs, social links, and capture leads instantly in one tap.
           </motion.p>
@@ -89,7 +90,7 @@ export default function Hero({ onOpenAuth }) {
 
             <a
               href="#showcase"
-              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-slate-300 hover:text-white glass-light hover:bg-white/5 transition-all w-full sm:w-auto text-center"
+              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white glass-light hover:bg-slate-100 dark:hover:bg-white/5 transition-all w-full sm:w-auto text-center"
             >
               <span className="relative flex items-center justify-center gap-2">
                 View Demo
@@ -100,18 +101,18 @@ export default function Hero({ onOpenAuth }) {
           {/* Stats Bar */}
           <motion.div
             variants={itemVariants}
-            className="grid grid-cols-3 gap-8 mt-12 pt-10 border-t border-white/5 w-full max-w-lg"
+            className="grid grid-cols-3 gap-8 mt-12 pt-10 border-t border-slate-200 dark:border-white/5 w-full max-w-lg"
           >
             <div>
-              <div className="text-2xl font-bold text-white">10K+</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">10K+</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Businesses</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">1.5M+</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">1.5M+</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">NFC Scans</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">99.9%</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">99.9%</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Uptime SLA</div>
             </div>
           </motion.div>
@@ -188,14 +189,14 @@ export default function Hero({ onOpenAuth }) {
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-10 -left-10 sm:-left-16 glass p-4 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-3.5 z-20"
+            className="absolute top-10 -left-10 sm:-left-16 glass p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl flex items-center gap-3.5 z-20"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
               <QrCode className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-semibold text-slate-400 block leading-none">Weekly Scans</span>
-              <span className="text-lg font-bold text-white mt-1 block">4,289</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block leading-none">Weekly Scans</span>
+              <span className="text-lg font-bold text-slate-900 dark:text-white mt-1 block">4,289</span>
             </div>
           </motion.div>
 
@@ -203,14 +204,14 @@ export default function Hero({ onOpenAuth }) {
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            className="absolute bottom-12 -right-6 sm:-right-10 glass p-3.5 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-3 z-20"
+            className="absolute bottom-12 -right-6 sm:-right-10 glass p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl flex items-center gap-3 z-20"
           >
             <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 animate-pulse">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block leading-none">NFC Tap Active</span>
-              <span className="text-[11px] font-medium text-slate-300 mt-1 block">Instant contact shared</span>
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block leading-none">NFC Tap Active</span>
+              <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1 block">Instant contact shared</span>
             </div>
           </motion.div>
 

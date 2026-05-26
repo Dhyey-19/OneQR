@@ -30,7 +30,7 @@ export default function Testimonials() {
   ];
 
   return (
-    <section id="testimonials" className="relative py-24 border-t border-white/5 overflow-hidden">
+    <section id="testimonials" className="relative py-24 border-t border-slate-200 dark:border-white/5 overflow-hidden">
       {/* Background radial blobs */}
       <div className="absolute top-[30%] left-[-10vw] w-[35vw] h-[35vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[-10vw] w-[30vw] h-[30vw] rounded-full bg-cyan-600/5 blur-[100px] pointer-events-none" />
@@ -44,17 +44,18 @@ export default function Testimonials() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-blue-500 text-sm font-extrabold uppercase tracking-widest">
+            <span className="text-blue-600 dark:text-blue-500 text-sm font-extrabold uppercase tracking-widest">
               Success Stories
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-3 mb-6">
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3 mb-6">
               Loved by Local Business Owners
             </h2>
-            <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed">
               See how local transport companies, service shops, and retailers are using OneQR to grow their businesses.
             </p>
           </motion.div>
         </div>
+
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -65,7 +66,7 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: idx * 0.1 }}
-              className="group relative p-8 bg-slate-900/40 border border-white/5 hover:border-white/10 hover:bg-slate-900/60 rounded-3xl transition-all duration-300 shadow-glass flex flex-col justify-between overflow-hidden"
+              className="group relative p-8 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 hover:border-blue-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-900/60 rounded-3xl transition-all duration-300 shadow-sm dark:shadow-glass flex flex-col justify-between overflow-hidden"
             >
               {/* Colored Glow Backdrop */}
               <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${rev.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
@@ -78,23 +79,23 @@ export default function Testimonials() {
                       <Star key={i} className="w-4 h-4 fill-amber-400" />
                     ))}
                   </div>
-                  <Quote className="w-7 h-7 text-slate-700 group-hover:text-blue-500/20 transition-colors" />
+                  <Quote className="w-7 h-7 text-slate-300 dark:text-slate-700 group-hover:text-blue-500/20 transition-colors" />
                 </div>
 
                 {/* Quote Text */}
-                <p className="text-slate-300 text-sm sm:text-base leading-relaxed italic mb-8">
+                <p className="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed italic mb-8">
                   "{rev.quote}"
                 </p>
               </div>
 
               {/* Reviewer Details Row */}
-              <div className="flex items-center gap-4 mt-6 pt-6 border-t border-white/5">
+              <div className="flex items-center gap-4 mt-6 pt-6 border-t border-slate-200 dark:border-white/5">
                 {/* Avatar with gradient glow */}
                 <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border border-white/15 flex items-center justify-center font-extrabold text-sm text-white shrink-0 shadow-lg shadow-blue-500/10">
                   {rev.avatar}
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-white block leading-none">{rev.name}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white block leading-none">{rev.name}</span>
                   <span className="text-[10px] text-slate-500 font-semibold block mt-1.5 uppercase tracking-wider">{rev.role}</span>
                 </div>
               </div>

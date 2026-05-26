@@ -144,7 +144,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         transition={{ type: 'spring', duration: 0.5 }}
-        className="relative w-full max-w-md glass rounded-3xl p-8 border border-white/10 shadow-2xl overflow-hidden z-10"
+        className="relative w-full max-w-md glass rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-lg dark:shadow-2xl overflow-hidden z-10"
       >
         {/* Background Blob inside modal */}
         <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
@@ -153,7 +153,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-white/5 border border-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -163,13 +163,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white font-extrabold text-sm">
             OQ
           </div>
-          <span className="font-extrabold text-lg text-white">
+          <span className="font-extrabold text-lg text-slate-900 dark:text-white">
             One<span className="text-blue-500">QR</span>
           </span>
         </div>
 
         {/* Tabs Selector */}
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/5 border border-white/5 rounded-xl mb-8">
+        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl mb-8">
           <button
             onClick={() => {
               setActiveTab('login');
@@ -179,7 +179,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'login'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             Sign In
@@ -193,12 +193,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
             className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'signup'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             Create Account
           </button>
         </div>
+
 
         {/* Dynamic Tabs Content */}
         <div className="min-h-[290px] flex flex-col justify-between">
@@ -214,7 +215,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               >
                 {/* Mobile Input */}
                 <div>
-                  <label htmlFor="login-phone" className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  <label htmlFor="login-phone" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                     Mobile Number
                   </label>
                   <div className="relative">
@@ -225,14 +226,14 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={loginPhone}
                       onChange={(e) => setLoginPhone(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder="e.g. 9876543210"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Password Input */}
                 <div>
-                  <label htmlFor="login-pass" className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  <label htmlFor="login-pass" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                     Password
                   </label>
                   <div className="relative">
@@ -243,7 +244,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                     />
                     <button
                       type="button"
@@ -261,17 +262,18 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
 
                 {/* Remember me & forgot details row */}
                 <div className="flex items-center justify-between text-xs pt-1">
-                  <label className="flex items-center gap-2 text-slate-400 cursor-pointer select-none">
+                  <label className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded border-white/10 bg-white/5 text-blue-600 focus:ring-0 focus:ring-offset-0 w-3.5 h-3.5"
+                      className="rounded border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-blue-600 focus:ring-0 focus:ring-offset-0 w-3.5 h-3.5"
                     />
                     <span>Remember me</span>
                   </label>
-                  <span className="text-blue-500 hover:underline cursor-pointer">Forgot password?</span>
+                  <span className="text-blue-600 dark:text-blue-500 hover:underline cursor-pointer">Forgot password?</span>
                 </div>
+
 
                 {/* Submit Button */}
                 <button
@@ -303,7 +305,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               >
                 {/* Mobile Input */}
                 <div>
-                  <label htmlFor="signup-phone" className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  <label htmlFor="signup-phone" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                     Mobile Number
                   </label>
                   <div className="relative">
@@ -314,14 +316,14 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={signupPhone}
                       onChange={(e) => setSignupPhone(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder="e.g. 9876543210"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Password Input */}
                 <div>
-                  <label htmlFor="signup-pass" className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  <label htmlFor="signup-pass" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                     Create Password
                   </label>
                   <div className="relative">
@@ -332,7 +334,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
                       placeholder="At least 6 characters"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                     />
                     <button
                       type="button"
@@ -350,7 +352,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
 
                 {/* Confirm Password Input */}
                 <div>
-                  <label htmlFor="signup-confirm" className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  <label htmlFor="signup-confirm" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -361,7 +363,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={signupConfirmPassword}
                       onChange={(e) => setSignupConfirmPassword(e.target.value)}
                       placeholder="Repeat password"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                     />
                     <button
                       type="button"
@@ -376,6 +378,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                     </button>
                   </div>
                 </div>
+
 
                 {/* Submit Button */}
                 <button

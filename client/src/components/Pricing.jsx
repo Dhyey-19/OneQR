@@ -24,8 +24,8 @@ export default function Pricing({ onSelectPlan }) {
       bestFor: 'Small shops, freelancers, students, tuition classes, local services, and first-time users.',
       cta: 'Choose Starter',
       isPopular: false,
-      glow: 'from-slate-800 to-slate-900',
-      buttonStyle: 'glass-light hover:bg-white/5 text-white border-white/10'
+      glow: 'from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900',
+      buttonStyle: 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white border-slate-200 dark:border-white/10'
     },
     {
       name: 'Pro Plan',
@@ -45,13 +45,14 @@ export default function Pricing({ onSelectPlan }) {
       bestFor: 'Restaurants, cafes, salons, gyms, retail stores, agencies, real estate businesses, and growing brands.',
       cta: 'Upgrade to Pro',
       isPopular: true,
-      glow: 'from-blue-600/20 via-indigo-600/10 to-[#030712]',
+      glow: 'from-blue-100/50 via-indigo-50/30 to-white dark:from-blue-600/20 dark:via-indigo-600/10 dark:to-[#030712]',
       buttonStyle: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-cyan-400'
     }
+
   ];
 
   return (
-    <section id="pricing" className="relative py-24 border-t border-white/5 overflow-hidden">
+    <section id="pricing" className="relative py-24 border-t border-slate-200 dark:border-white/5 overflow-hidden">
       {/* Background glowing effects */}
       <div className="absolute top-[20%] left-[-10vw] w-[35vw] h-[35vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[-10vw] w-[30vw] h-[30vw] rounded-full bg-cyan-600/5 blur-[100px] pointer-events-none" />
@@ -65,27 +66,27 @@ export default function Pricing({ onSelectPlan }) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-blue-500 text-sm font-extrabold uppercase tracking-widest">
+            <span className="text-blue-600 dark:text-blue-500 text-sm font-extrabold uppercase tracking-widest">
               Flexible Subscriptions
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-3 mb-6">
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3 mb-6">
               Plans Built for Every Growth Phase
             </h2>
-            <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed">
               Equip yourself or your business with physical and digital smart integrations. Choose the tier that matches your network demands.
             </p>
           </motion.div>
 
           {/* Billing Period Toggle Slider */}
           <div className="flex items-center justify-center gap-4 mt-10">
-            <span className={`text-xs sm:text-sm font-bold ${billingPeriod === 'monthly' ? 'text-white' : 'text-slate-500'} transition-colors`}>
+            <span className={`text-xs sm:text-sm font-bold ${billingPeriod === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
               Billed Monthly
             </span>
             
             {/* Sliding Switch */}
             <div 
               onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
-              className="w-14 h-7 rounded-full bg-white/5 border border-white/10 p-0.5 cursor-pointer relative flex items-center justify-between"
+              className="w-14 h-7 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-0.5 cursor-pointer relative flex items-center justify-between"
             >
               <motion.div 
                 layout
@@ -97,7 +98,7 @@ export default function Pricing({ onSelectPlan }) {
               />
             </div>
 
-            <span className={`text-xs sm:text-sm font-bold flex items-center gap-1.5 ${billingPeriod === 'yearly' ? 'text-white' : 'text-slate-500'} transition-colors`}>
+            <span className={`text-xs sm:text-sm font-bold flex items-center gap-1.5 ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
               Billed Annually
               <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
                 Save 20%
@@ -105,6 +106,7 @@ export default function Pricing({ onSelectPlan }) {
             </span>
           </div>
         </div>
+
 
         {/* Pricing Cards Grid - Centered 2-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
@@ -117,59 +119,60 @@ export default function Pricing({ onSelectPlan }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
-                className={`group relative rounded-3xl p-8 bg-slate-900/40 border ${
-                  plan.isPopular 
-                    ? 'border-blue-500/50 shadow-glass-glow' 
-                    : 'border-white/5 hover:border-white/10'
-                } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
-              >
-                {/* Custom Colored Glow Layer */}
-                <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
+                className={`group relative rounded-3xl p-8 bg-white dark:bg-slate-900/40 border ${
+                plan.isPopular 
+                  ? 'border-blue-500/50 shadow-lg dark:shadow-glass-glow' 
+                  : 'border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10'
+              } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
+            >
+              {/* Custom Colored Glow Layer */}
+              <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
 
-                <div>
-                  {/* Card Popular Tag Header */}
-                  <div className="flex justify-between items-center mb-6">
-                    <span className="text-xl font-bold text-white">{plan.name}</span>
-                    {plan.isPopular && (
-                      <div className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
-                        <Star className="w-2.5 h-2.5 fill-blue-400 animate-spin-slow" />
-                        <span>Most Popular</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
-                    {plan.description}
-                  </p>
-
-                  {/* Price */}
-                  <div className="flex items-baseline gap-1.5 mb-6 border-b border-white/5 pb-6">
-                    <span className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
-                      ₹{price}
-                    </span>
-                    <span className="text-slate-500 text-xs sm:text-sm font-semibold">
-                      / {billingPeriod === 'monthly' ? 'month' : 'year'}
-                    </span>
-                  </div>
-
-                  {/* Feature check list */}
-                  <ul className="space-y-4 mb-10">
-                    {plan.features.map((feat) => {
-                      const isHeaderFeature = feat.includes('Everything in Starter');
-                      return (
-                        <li key={feat} className="flex items-start gap-3">
-                          <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
-                            <Check className="w-3 h-3" />
-                          </div>
-                          <span className={`text-xs sm:text-sm leading-normal ${isHeaderFeature ? 'text-white font-bold italic' : 'text-slate-300'}`}>
-                            {feat}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+              <div>
+                {/* Card Popular Tag Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</span>
+                  {plan.isPopular && (
+                    <div className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
+                      <Star className="w-2.5 h-2.5 fill-blue-500 dark:fill-blue-400 animate-spin-slow" />
+                      <span>Most Popular</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Description */}
+                <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+                  {plan.description}
+                </p>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-1.5 mb-6 border-b border-slate-200 dark:border-white/5 pb-6">
+                  <span className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    ₹{price}
+                  </span>
+                  <span className="text-slate-500 text-xs sm:text-sm font-semibold">
+                    / {billingPeriod === 'monthly' ? 'month' : 'year'}
+                  </span>
+                </div>
+
+                {/* Feature check list */}
+                <ul className="space-y-4 mb-10">
+                  {plan.features.map((feat) => {
+                    const isHeaderFeature = feat.includes('Everything in Starter');
+                    return (
+                      <li key={feat} className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
+                          <Check className="w-3 h-3" />
+                        </div>
+                        <span className={`text-xs sm:text-sm leading-normal ${isHeaderFeature ? 'text-slate-900 dark:text-white font-bold italic' : 'text-slate-600 dark:text-slate-300'}`}>
+                          {feat}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
 
                 {/* Checkout CTA */}
                 <button

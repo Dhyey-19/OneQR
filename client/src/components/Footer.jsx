@@ -33,14 +33,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative border-t border-white/5 bg-[#02050f]/80 backdrop-blur-xl overflow-hidden py-16">
+    <footer className="relative border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#02050f]/80 backdrop-blur-xl overflow-hidden py-16">
       {/* Background glowing blobs */}
       <div className="absolute bottom-[-10vw] left-[10vw] w-[30vw] h-[30vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Top Grid Area */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-16 border-b border-white/5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-16 border-b border-slate-200 dark:border-white/5">
           
           {/* Logo Column */}
           <div className="lg:col-span-4 space-y-6">
@@ -48,12 +48,13 @@ export default function Footer() {
               <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-all duration-300">
                 <Layers className="w-4.5 h-4.5 text-white" />
               </div>
-              <span className="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400">
+              <span className="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400">
                 One<span className="text-blue-500">QR</span>
               </span>
             </a>
             
-            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-sm">
+            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed max-w-sm">
+
               Connecting physical spaces to instant digital presence. Build next-gen landing cards, custom NFC tags, and boost business reviews.
             </p>
 
@@ -68,7 +69,7 @@ export default function Footer() {
                 <a
                   key={soc.name}
                   href={soc.href}
-                  className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:border-blue-500/30 hover:bg-blue-500/5 transition-all shadow-sm"
+                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-blue-500/30 hover:bg-blue-500/5 transition-all shadow-sm"
                   aria-label={soc.name}
                 >
                   {soc.icon}
@@ -89,7 +90,7 @@ export default function Footer() {
                     <li key={link.name}>
                       <a
                         href={link.href}
-                        className="text-xs font-semibold text-slate-400 hover:text-white hover:underline decoration-blue-500 underline-offset-4 transition-colors"
+                        className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:underline decoration-blue-500 underline-offset-4 transition-colors"
                       >
                         {link.name}
                       </a>
@@ -105,14 +106,14 @@ export default function Footer() {
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
               Subscribe to Newsletter
             </span>
-            <p className="text-slate-400 text-xs leading-normal">
+            <p className="text-slate-600 dark:text-slate-400 text-xs leading-normal">
               Stay ahead of digital networking. Receive weekly vCard tips and chip releases.
             </p>
             <div className="flex gap-2">
               <input
                 type="email"
                 placeholder="Enter email"
-                className="w-full px-3 py-2 text-xs rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                className="w-full px-3 py-2 text-xs rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
               />
               <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors">
                 Join

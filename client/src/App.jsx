@@ -154,7 +154,7 @@ export default function App() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#030712] selection:bg-blue-500/30 selection:text-white">
+    <div className="relative min-h-screen bg-transparent selection:bg-blue-500/30 selection:text-slate-900 dark:selection:text-white transition-colors duration-300">
       {/* Structural Global Background Glows */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-blue-600/5 blur-[120px]" />

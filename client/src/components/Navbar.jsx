@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard } from 'lucide-react';
+import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon } from 'lucide-react';
 import { authService } from '../services/authService';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate }) {
+  const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+
   const [scrolled, setScrolled] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -60,17 +63,17 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
       <div className="relative z-50" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all shadow-glass cursor-pointer select-none"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-200 dark:hover:bg-white/10 transition-all shadow-sm dark:shadow-glass cursor-pointer select-none"
         >
           <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white font-extrabold text-xs shadow-inner">
             <User className="w-3.5 h-3.5" />
           </div>
           {!isMobile && (
-            <span className="text-xs font-bold text-slate-300 max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
               {currentUser.phone}
             </span>
           )}
-          <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-300 ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3.5 h-3.5 text-slate-500 dark:text-slate-400 transition-transform duration-300 ${profileDropdownOpen ? 'rotate-180' : ''}`} />
         </button>
 
         <AnimatePresence>
@@ -80,10 +83,10 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-48 rounded-2xl border border-white/10 bg-[#070b19]/95 backdrop-blur-xl p-2 shadow-2xl overflow-hidden"
+              className="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#070b19]/95 backdrop-blur-xl p-2 shadow-2xl overflow-hidden"
             >
               {isMobile && (
-                <div className="px-3 py-2 border-b border-white/5 text-[9px] font-bold text-slate-400 uppercase tracking-wide">
+                <div className="px-3 py-2 border-b border-slate-100 dark:border-white/5 text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                   Acc: {currentUser.phone}
                 </div>
               )}
@@ -94,7 +97,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                     setProfileDropdownOpen(false);
                     onNavigate('manage-qr');
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
                 >
                   <User className="w-3.5 h-3.5 text-blue-400" />
                   <span>My Profile</span>
@@ -106,7 +109,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                   setProfileDropdownOpen(false);
                   onNavigate('dashboard');
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
               >
                 <Grid className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Dashboard</span>
@@ -117,20 +120,20 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                   setProfileDropdownOpen(false);
                   onNavigate('billing');
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
               >
                 <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Billing & Plans</span>
               </button>
 
-              <div className="h-px bg-white/5 my-1" />
+              <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
 
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
                   handleLogout();
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5 text-rose-500" />
                 <span>Log Out</span>
@@ -150,7 +153,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled 
-            ? 'py-4 bg-[#030712]/70 backdrop-blur-md border-b border-white/5' 
+            ? 'py-4 bg-white/70 dark:bg-[#030712]/70 backdrop-blur-md border-b border-slate-200 dark:border-white/5 shadow-sm' 
             : 'py-6 bg-transparent'
         }`}
       >
@@ -169,7 +172,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/45 transition-all duration-300">
               <Layers className="w-5 h-5 text-white" />
             </div>
-            <span className="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400">
+            <span className="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400">
               One<span className="text-blue-500">QR</span>
             </span>
           </a>
@@ -189,7 +192,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                     }, 100);
                   }
                 }}
-                className="text-sm font-medium transition-colors duration-200 text-slate-400 hover:text-white relative group"
+                className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
               >
                 {link.name}
                 <span className="absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 w-0 group-hover:w-full transition-all duration-300" />
@@ -199,6 +202,19 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
 
           {/* Desktop Action Buttons / Profile Trigger */}
           <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm shadow-black/5 flex items-center justify-center mr-1"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-600" />
+              )}
+            </button>
+
             {/* Desktop-only auth buttons / Profile dropdown */}
             <div className="hidden md:flex items-center gap-4">
               {currentUser ? (
@@ -207,7 +223,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                 <>
                   <button
                     onClick={() => onOpenAuth('login')}
-                    className="text-sm font-semibold text-slate-300 hover:text-white transition-colors duration-200 px-4 py-2 cursor-pointer"
+                    className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 px-4 py-2 cursor-pointer"
                   >
                     Login
                   </button>
@@ -253,7 +269,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-[72px] z-40 md:hidden glass border-b border-white/5 py-6 px-6 shadow-2xl"
+            className="fixed inset-x-0 top-[72px] z-40 md:hidden glass border-b border-slate-200 dark:border-white/5 py-6 px-6 shadow-2xl"
           >
             <div className="flex flex-col gap-5">
               {navLinks.map((link) => (
@@ -270,7 +286,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                       }, 100);
                     }
                   }}
-                  className="text-base font-semibold text-slate-300 hover:text-white transition-colors"
+                  className="text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   {link.name}
                 </a>
@@ -278,11 +294,11 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               
               {!currentUser && (
                 <>
-                  <div className="h-px bg-white/5 my-2" />
+                  <div className="h-px bg-slate-200/50 dark:bg-white/5 my-2" />
                   <div className="flex flex-col gap-3">
                     <button 
                       onClick={() => { setIsOpen(false); onOpenAuth('login'); }}
-                      className="w-full text-center py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                      className="w-full text-center py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer"
                     >
                       Login
                     </button>

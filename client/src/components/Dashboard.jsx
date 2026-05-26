@@ -44,7 +44,7 @@ function FilePreview({ doc }) {
 
   if (!url) {
     return (
-      <div className="w-16 h-16 rounded-xl bg-slate-900/60 border border-dashed border-white/10 flex items-center justify-center text-slate-600 shrink-0">
+      <div className="w-16 h-16 rounded-xl bg-slate-200/60 dark:bg-slate-900/60 border border-dashed border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-600 shrink-0">
         <Smartphone className="w-6 h-6 opacity-30 animate-pulse" />
       </div>
     );
@@ -52,7 +52,7 @@ function FilePreview({ doc }) {
 
   if (isImage()) {
     return (
-      <div className="w-16 h-16 rounded-xl bg-slate-900 border border-white/10 overflow-hidden shrink-0 relative group/thumb cursor-pointer">
+      <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 overflow-hidden shrink-0 relative group/thumb cursor-pointer">
         <img 
           src={url} 
           alt={doc.filename} 
@@ -88,7 +88,7 @@ function FilePreview({ doc }) {
   }
 
   return (
-    <div className="w-16 h-16 rounded-xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center text-slate-400 shrink-0 relative group/thumb cursor-pointer">
+    <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 shrink-0 relative group/thumb cursor-pointer">
       <span className="text-[9px] font-bold tracking-wider uppercase mb-1 text-slate-500">FILE</span>
       <a 
         href={url} 
@@ -276,7 +276,7 @@ export default function Dashboard() {
     return (
       <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
         {/* Header banner */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 glass border border-white/10 rounded-3xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
           <div>
             <div className="flex items-center gap-2">
@@ -285,17 +285,17 @@ export default function Dashboard() {
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Billing & Subscription</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
               Manage Subscription Plan
             </h1>
-            <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
+            <p className="text-slate-650 dark:text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
               Upgrade your profile capabilities, unlock analytics, and manage digital integrations.
             </p>
           </div>
           <div>
             <button
               onClick={() => { window.location.hash = '#dashboard'; }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-350 dark:hover:border-white/20 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
             >
               &larr; Back to Dashboard
             </button>
@@ -303,17 +303,17 @@ export default function Dashboard() {
         </div>
 
         {/* Current Plan Overview Card */}
-        <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl relative overflow-hidden">
+        <div className="p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-indigo-500/5 to-transparent blur-2xl pointer-events-none" />
-          <h3 className="text-base font-bold text-white mb-4">Subscription Overview</h3>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Subscription Overview</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+            <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Current Account Plan</span>
-              <span className="text-lg font-extrabold text-white mt-1 block uppercase tracking-tight">
+              <span className="text-lg font-extrabold text-slate-900 dark:text-white mt-1 block uppercase tracking-tight">
                 {currentPlanId === 'free' ? 'Free Plan' : currentPlanId.replace('_', ' ')}
               </span>
             </div>
-            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+            <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Subscription Status</span>
               <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border mt-2 ${
                 isSubscribed 
@@ -324,9 +324,9 @@ export default function Dashboard() {
                 {isSubscribed ? 'Active' : 'Inactive / Expired'}
               </span>
             </div>
-            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+            <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Valid Until</span>
-              <span className="text-sm font-bold text-slate-300 mt-1.5 block">
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-1.5 block">
                 {isSubscribed && currentUser?.subscriptionExpiresAt 
                   ? formatDate(currentUser.subscriptionExpiresAt) 
                   : 'N/A'}
@@ -337,30 +337,30 @@ export default function Dashboard() {
 
         {/* Pricing Selection Tiers */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Available Subscriptions (₹1 special promo)
           </h2>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             Activate premium layout features, catalog uploads, and rich profile metrics instantly.
           </p>
 
           {/* Toggle Switch */}
           <div className="flex items-center justify-center gap-4 pt-4">
-            <span className={`text-xs font-bold ${billingPeriod === 'monthly' ? 'text-white' : 'text-slate-500'} transition-colors`}>
+            <span className={`text-xs font-bold ${billingPeriod === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
               Billed Monthly
             </span>
             <div 
               onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
-              className="w-12 h-6 rounded-full bg-white/5 border border-white/10 p-0.5 cursor-pointer relative flex items-center"
+              className="w-12 h-6 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-0.5 cursor-pointer relative flex items-center"
             >
               <div 
-                className="w-5 h-5 rounded-full bg-blue-500 absolute transition-all duration-300"
+                className="w-5 h-5 rounded-full bg-blue-500 absolute transition-all duration-305"
                 style={{
                   left: billingPeriod === 'monthly' ? '2px' : 'calc(100% - 22px)'
                 }}
               />
             </div>
-            <span className={`text-xs font-bold flex items-center gap-1.5 ${billingPeriod === 'yearly' ? 'text-white' : 'text-slate-500'} transition-colors`}>
+            <span className={`text-xs font-bold flex items-center gap-1.5 ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
               Billed Annually
               <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
                 Save 20%
@@ -379,19 +379,19 @@ export default function Dashboard() {
             return (
               <div
                 key={plan.id}
-                className={`group relative rounded-3xl p-8 bg-slate-900/40 border ${
+                className={`group relative rounded-3xl p-8 bg-white dark:bg-slate-900/40 border ${
                   isActivePlan 
                     ? 'border-emerald-500/50 shadow-glass-glow' 
                     : plan.id === 'pro' 
                       ? 'border-blue-500/30' 
-                      : 'border-white/5 hover:border-white/10'
+                      : 'border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10'
                 } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
               >
                 <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
 
                 <div>
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-lg font-bold text-white">{plan.name}</span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">{plan.name}</span>
                     {isActivePlan ? (
                       <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 text-[9px] font-extrabold uppercase tracking-widest">
                         Current Plan
@@ -403,12 +403,12 @@ export default function Dashboard() {
                     ) : null}
                   </div>
 
-                  <p className="text-slate-400 text-xs leading-relaxed mb-6">
+                  <p className="text-slate-650 dark:text-slate-400 text-xs leading-relaxed mb-6">
                     {plan.description}
                   </p>
 
-                  <div className="flex items-baseline gap-1.5 mb-6 border-b border-white/5 pb-6">
-                    <span className="text-4xl font-extrabold text-white tracking-tight">
+                  <div className="flex items-baseline gap-1.5 mb-6 border-b border-slate-100 dark:border-white/5 pb-6">
+                    <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                       ₹{price}
                     </span>
                     <span className="text-slate-500 text-xs font-semibold">
@@ -422,7 +422,7 @@ export default function Dashboard() {
                         <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
                           <Check className="w-3 h-3" />
                         </div>
-                        <span className="text-xs text-slate-300 leading-normal">
+                        <span className="text-xs text-slate-600 dark:text-slate-300 leading-normal">
                           {feat}
                         </span>
                       </li>
@@ -439,7 +439,7 @@ export default function Dashboard() {
                       ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default' 
                       : plan.id === 'pro'
                         ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white border-transparent'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                        : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white hover:text-slate-900'
                   }`}
                 >
                   {isPaymentLoading ? 'Processing...' : isActivePlan ? 'Active Subscribed' : 'Upgrade to Plan'}
@@ -853,7 +853,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#030712] pt-28 pb-16 px-4 md:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent pt-28 pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900 dark:text-white transition-colors duration-300">
       {/* Background Glows */}
       <div className="absolute top-[10%] left-[-10vw] w-[40vw] h-[40vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[-10vw] w-[35vw] h-[35vw] rounded-full bg-indigo-600/5 blur-[110px] pointer-events-none" />
@@ -863,19 +863,19 @@ export default function Dashboard() {
         {subView === 'overview' && (
           <>
             {/* Welcome Top Banner */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 glass border border-white/10 rounded-3xl relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden">
               <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                  <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                     <Sparkles className="w-4 h-4" />
                   </span>
-                  <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Workspace Dashboard</span>
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Workspace Dashboard</span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-2">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
                   Welcome back!
                 </h1>
-                <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
                   Monitor scans, check connected hardware devices, and manage your dynamic OneQR profiles.
                 </p>
               </div>
@@ -890,12 +890,12 @@ export default function Dashboard() {
             {/* Core Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {stats.map((stat) => (
-                <div key={stat.name} className="p-6 glass border border-white/5 hover:border-white/10 rounded-2xl transition-all shadow-glass flex flex-col justify-between">
+                <div key={stat.name} className="p-6 glass border border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10 rounded-2xl transition-all shadow-sm dark:shadow-glass flex flex-col justify-between">
                   <div>
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{stat.name}</span>
-                    <span className="text-2xl sm:text-3xl font-extrabold text-white mt-2 block tracking-tight">{stat.value}</span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 block tracking-tight">{stat.value}</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-medium mt-3 block">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-3 block">
                     <strong className={stat.color}>{stat.change}</strong>
                   </span>
                 </div>
@@ -908,7 +908,7 @@ export default function Dashboard() {
         {subView === 'overview' ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Manage QR Option (Large, Beautiful, Premium Card) - Span 7 */}
-            <div className="lg:col-span-7 p-8 glass border border-white/10 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-blue-500/30 transition-all duration-300">
+            <div className="lg:col-span-7 p-8 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-blue-500/30 transition-all duration-300">
               {/* Background gradient lights */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent rounded-full blur-3xl pointer-events-none transition-all duration-500 group-hover:from-blue-600/20" />
               
@@ -918,29 +918,29 @@ export default function Dashboard() {
                     <QrCode className="w-7 h-7" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Manage Dynamic QR & Profile</h3>
-                    <p className="text-slate-400 text-xs mt-1">Configure your destination links and digital business card themes.</p>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Manage Dynamic QR & Profile</h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-xs mt-1">Configure your destination links and digital business card themes.</p>
                   </div>
                 </div>
 
-                <div className="h-px bg-white/5" />
+                <div className="h-px bg-slate-200 dark:bg-white/5" />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">Live QR Redirection</span>
-                    <p className="text-xs text-slate-300">Update the landing URL at any time without changing or re-printing the QR code.</p>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Live QR Redirection</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Update the landing URL at any time without changing or re-printing the QR code.</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">{"NFC / Digital Profile"}</span>
-                    <p className="text-xs text-slate-300">Build an elegant responsive micro-website for networking, social channels, and lead capture.</p>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">{"NFC / Digital Profile"}</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Build an elegant responsive micro-website for networking, social channels, and lead capture.</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">Responsive Simulator</span>
-                    <p className="text-xs text-slate-300">Preview changes in real-time inside the interactive visual mobile phone simulator.</p>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">Responsive Simulator</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Preview changes in real-time inside the interactive visual mobile phone simulator.</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Harmonious Themes</span>
-                    <p className="text-xs text-slate-300">Switch styles instantly with pre-curated color systems like Midnight, Sunset, and Cyber.</p>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Harmonious Themes</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Switch styles instantly with pre-curated color systems like Midnight, Sunset, and Cyber.</p>
                   </div>
                 </div>
               </div>
@@ -971,22 +971,22 @@ export default function Dashboard() {
             </div>
 
             {/* Right Column (NFC Cards & Standees) - Span 5 */}
-            <div className="lg:col-span-5 p-8 glass border border-white/5 rounded-3xl space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+            <div className="lg:col-span-5 p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-base">NFC Cards & Standees</h3>
-                  <span className="text-[10px] text-slate-400">Manage connected physical accessories</span>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">NFC Cards & Standees</h3>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Manage connected physical accessories</span>
                 </div>
               </div>
 
               <div className="space-y-4">
                 {devices.map((dev) => (
-                  <div key={dev.id} className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between hover:border-white/10 transition-colors">
+                  <div key={dev.id} className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl flex items-center justify-between hover:border-slate-350 dark:hover:border-white/10 transition-colors">
                     <div>
-                      <span className="text-xs font-bold text-white block">{dev.name}</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">{dev.name}</span>
                       <span className="text-[9px] font-bold text-slate-500 block uppercase tracking-wider mt-1">{dev.type} ({dev.id})</span>
                     </div>
                     <span className="px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-[9px] font-bold text-emerald-400">
@@ -1006,135 +1006,135 @@ export default function Dashboard() {
             <div className={`${isMobileView ? 'lg:col-span-12 w-full' : 'lg:col-span-8'} space-y-8`}>
               
               {/* 1. Digital Profile Builder */}
-            <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl space-y-6">
-              
-              {/* Header & Theme Selection */}
-              <div className="pb-6 border-b border-white/5 space-y-6">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                      <User className="w-5 h-5" />
+              <div className="p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl space-y-6">
+                
+                {/* Header & Theme Selection */}
+                <div className="pb-6 border-b border-slate-200 dark:border-white/5 space-y-6">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-lg">Digital Profile Builder</h3>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Select active themes and enter contact info</span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-white text-lg">Digital Profile Builder</h3>
-                      <span className="text-xs text-slate-400">Select active themes and enter contact info</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { window.location.hash = '#dashboard'; }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
+                    >
+                      &larr; Back to Dashboard
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { window.location.hash = '#dashboard'; }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
-                  >
-                    &larr; Back to Dashboard
-                  </button>
+
                 </div>
 
-                  </div>
-
-                  {/* Core Profile Inputs */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* 1. Business / Company */}
-                    {/* 0. Business Logo */}
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Business Logo</label>
-                      <div className="flex items-center gap-4">
-                        {profileLogo ? (
-                          <div className="relative w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-white/5">
-                            <img src={profileLogo} alt="Logo" className="w-full h-full object-contain" />
-                            <button 
-                              onClick={() => setProfileLogo('')}
-                              className="absolute top-1 right-1 bg-red-500 rounded-full p-1 shadow-md hover:bg-red-600 cursor-pointer"
-                            >
-                              <Trash2 className="w-3 h-3 text-white" />
-                            </button>
-                          </div>
-                        ) : profileCompany ? (
-                          <div className="relative w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white font-bold tracking-wider flex items-center justify-center text-sm select-none border border-white/10">
-                            {getAlphabeticalLogo(profileCompany)}
-                          </div>
-                        ) : (
-                          <div className="w-16 h-16 rounded-xl border-2 border-dashed border-white/10 bg-white/5 flex items-center justify-center">
-                            <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">Logo</span>
-                          </div>
-                        )}
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              const reader = new FileReader();
-                              reader.onload = (event) => setProfileLogo(event.target.result);
-                              reader.readAsDataURL(e.target.files[0]);
-                            }
-                          }}
-                          className="text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Header Color Picker */}
-                    <div className="space-y-3 md:col-span-2 p-4 rounded-2xl bg-white/5 border border-white/5">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Header Banner Color</label>
-                      <div className="flex items-center gap-4 flex-wrap">
-                        <div className="flex items-center gap-2 bg-[#0a0f1d] px-3 py-1.5 rounded-xl border border-white/10">
-                          <input 
-                            type="color" 
-                            value={headerColor && headerColor.startsWith('#') ? headerColor : '#4f46e5'}
-                            onChange={(e) => setHeaderColor(e.target.value)}
-                            className="w-8 h-8 rounded-lg border border-white/10 bg-transparent cursor-pointer p-0"
-                          />
-                          <span className="text-[11px] text-slate-300 font-mono uppercase">
-                            {headerColor === 'gradient' ? 'Default Gradient' : headerColor}
-                          </span>
-                        </div>
-                        
-                        <div className="flex gap-2 flex-wrap items-center">
-                          <button
-                            type="button"
-                            onClick={() => setHeaderColor('gradient')}
-                            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
-                              headerColor === 'gradient'
-                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-white/20 text-white shadow-lg'
-                                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-                            }`}
+                {/* Core Profile Inputs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* 1. Business / Company */}
+                  {/* 0. Business Logo */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Business Logo</label>
+                    <div className="flex items-center gap-4">
+                      {profileLogo ? (
+                        <div className="relative w-16 h-16 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-slate-50 dark:bg-white/5">
+                          <img src={profileLogo} alt="Logo" className="w-full h-full object-contain" />
+                          <button 
+                            onClick={() => setProfileLogo('')}
+                            className="absolute top-1 right-1 bg-red-500 rounded-full p-1 shadow-md hover:bg-red-600 cursor-pointer"
                           >
-                            Default Gradient
+                            <Trash2 className="w-3 h-3 text-white" />
                           </button>
-                          
-                          {/* Presets */}
-                          {['#4f46e5', '#0ea5e9', '#10b981', '#ef4444', '#f59e0b', '#ec4899', '#1f2937'].map((color) => (
-                            <button
-                              key={color}
-                              type="button"
-                              onClick={() => setHeaderColor(color)}
-                              style={{ backgroundColor: color }}
-                              className={`w-6 h-6 rounded-full border border-white/15 transition-all ${
-                                headerColor === color ? 'scale-115 ring-2 ring-blue-500 ring-offset-2 ring-offset-[#030712]' : 'hover:scale-105'
-                              }`}
-                              title={color}
-                            />
-                          ))}
                         </div>
-                      </div>
-                    </div>
-
-                    {/* 1. Business / Company */}
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Business / Company Name</label>
+                      ) : profileCompany ? (
+                        <div className="relative w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white font-bold tracking-wider flex items-center justify-center text-sm select-none border border-slate-200 dark:border-white/10">
+                          {getAlphabeticalLogo(profileCompany)}
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-center">
+                          <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Logo</span>
+                        </div>
+                      )}
                       <input 
-                        type="text"
-                        value={profileCompany}
-                        onChange={(e) => setProfileCompany(e.target.value)}
-                        placeholder="Enter business / company name"
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => setProfileLogo(event.target.result);
+                            reader.readAsDataURL(e.target.files[0]);
+                          }
+                        }}
+                        className="text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-slate-100 dark:file:bg-white/10 file:text-slate-700 dark:file:text-white hover:file:bg-slate-200 dark:hover:file:bg-white/20 cursor-pointer"
                       />
                     </div>
+                  </div>
+
+                  {/* Header Color Picker */}
+                  <div className="space-y-3 md:col-span-2 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Header Banner Color</label>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0a0f1d] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                        <input 
+                          type="color" 
+                          value={headerColor && headerColor.startsWith('#') ? headerColor : '#4f46e5'}
+                          onChange={(e) => setHeaderColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg border border-slate-200 dark:border-white/10 bg-transparent cursor-pointer p-0"
+                        />
+                        <span className="text-[11px] text-slate-700 dark:text-slate-300 font-mono uppercase">
+                          {headerColor === 'gradient' ? 'Default Gradient' : headerColor}
+                        </span>
+                      </div>
+                      
+                      <div className="flex gap-2 flex-wrap items-center">
+                        <button
+                          type="button"
+                          onClick={() => setHeaderColor('gradient')}
+                          className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                            headerColor === 'gradient'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-white/20 text-white shadow-lg'
+                              : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          Default Gradient
+                        </button>
+                        
+                        {/* Presets */}
+                        {['#4f46e5', '#0ea5e9', '#10b981', '#ef4444', '#f59e0b', '#ec4899', '#1f2937'].map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setHeaderColor(color)}
+                            style={{ backgroundColor: color }}
+                            className={`w-6 h-6 rounded-full border border-white/15 transition-all ${
+                              headerColor === color ? 'scale-115 ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-[#030712]' : 'hover:scale-105'
+                            }`}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 1. Business / Company */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Business / Company Name</label>
+                    <input 
+                      type="text"
+                      value={profileCompany}
+                      onChange={(e) => setProfileCompany(e.target.value)}
+                      placeholder="Enter business / company name"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                    />
+                  </div>
 
                     {/* 3. Short Description */}
                     <div className="space-y-2 md:col-span-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Short Description</label>
-                        <span className="text-xs font-semibold text-slate-500">
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Short Description</label>
+                        <span className="text-xs font-semibold text-slate-550 dark:text-slate-500">
                           Letters written: {profileBio ? profileBio.length : 0} characters
                         </span>
                       </div>
@@ -1143,19 +1143,19 @@ export default function Dashboard() {
                         onChange={(e) => setProfileBio(e.target.value)}
                         rows={3}
                         placeholder="Enter short description..."
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40 resize-y leading-normal"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 resize-y leading-normal transition-all"
                       />
                     </div>
 
                     {/* 4. Physical Address */}
                     <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Physical Address</label>
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Physical Address</label>
                       <textarea 
                         value={profileAddress}
                         onChange={(e) => setProfileAddress(e.target.value)}
                         rows={2}
                         placeholder="Enter physical address"
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 resize-none leading-relaxed transition-all"
                       />
                     </div>
 
@@ -1163,7 +1163,7 @@ export default function Dashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:col-span-2">
                       {/* 7. Email Address */}
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Email Address</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Email Address</label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                           <input 
@@ -1171,14 +1171,14 @@ export default function Dashboard() {
                             value={profileEmail}
                             onChange={(e) => setProfileEmail(e.target.value)}
                             placeholder="Enter email address"
-                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                           />
                         </div>
                       </div>
 
                       {/* 8. Phone Number */}
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Phone Number</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Phone Number</label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                           <input 
@@ -1186,14 +1186,14 @@ export default function Dashboard() {
                             value={profilePhone}
                             onChange={(e) => setProfilePhone(e.target.value)}
                             placeholder="Enter phone number"
-                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                           />
                         </div>
                       </div>
 
                       {/* Website URL */}
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Website URL</label>
+                        <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-wider block">Website URL</label>
                         <div className="relative">
                           <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                           <input 
@@ -1201,16 +1201,16 @@ export default function Dashboard() {
                             value={profileWebsite}
                             onChange={(e) => setProfileWebsite(e.target.value)}
                             placeholder="Enter website URL"
-                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Social Networks Form Links */}
-                    <div className="space-y-4 md:col-span-2 pt-4 border-t border-white/5">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Connect & Payment Links</label>
-                      <p className="text-[10px] text-slate-500 mb-2">Drag and drop to reorder the items.</p>
+                    <div className="space-y-4 md:col-span-2 pt-4 border-t border-slate-200 dark:border-white/5">
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Connect & Payment Links</label>
+                      <p className="text-[10px] text-slate-550 dark:text-slate-500 mb-2">Drag and drop to reorder the items.</p>
                       <Reorder.Group 
                         axis="y" 
                         values={socialOrder} 
@@ -1236,7 +1236,7 @@ export default function Dashboard() {
                             <Reorder.Item 
                               key={key} 
                               value={key} 
-                              className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-grab active:cursor-grabbing hover:bg-white/10 transition-colors"
+                              className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl cursor-grab active:cursor-grabbing hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                             >
                               <div className="shrink-0 flex flex-col items-center gap-1 w-6">
                                 <div className="flex flex-col gap-0.5 opacity-50">
@@ -1259,7 +1259,7 @@ export default function Dashboard() {
                                   value={platform.value} 
                                   onChange={(e) => platform.setter(e.target.value)}
                                   placeholder={platform.placeholder} 
-                                  className="w-full bg-transparent text-white text-sm focus:outline-none placeholder-slate-600"
+                                  className="w-full bg-transparent text-slate-900 dark:text-white text-sm focus:outline-none placeholder-slate-400 dark:placeholder-slate-650"
                                 />
                               </div>
                             </Reorder.Item>
@@ -1269,9 +1269,9 @@ export default function Dashboard() {
                     </div>
 
                     {/* Dynamic Customized Links Creator */}
-                    <div className="space-y-4 md:col-span-2 pt-4 border-t border-white/5">
+                    <div className="space-y-4 md:col-span-2 pt-4 border-t border-slate-200 dark:border-white/5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Custom Links (Dynamic Panels)</label>
+                        <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-wider block">Custom Links (Dynamic Panels)</label>
                         <button
                           type="button"
                           onClick={addCustomLink}
@@ -1284,7 +1284,7 @@ export default function Dashboard() {
 
                       <div className="space-y-3">
                         {customLinks.map((link) => (
-                          <div key={link.id} className="p-4 bg-white/5 border border-white/5 rounded-2xl flex flex-col sm:flex-row items-center gap-3 relative group">
+                          <div key={link.id} className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col sm:flex-row items-center gap-3 relative group">
                             
                             {/* Remove Link Button */}
                             <button
@@ -1303,7 +1303,7 @@ export default function Dashboard() {
                                 value={link.label}
                                 onChange={(e) => updateCustomLink(link.id, 'label', e.target.value)}
                                 placeholder="Enter button label"
-                                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500/40"
                               />
                             </div>
 
@@ -1314,7 +1314,7 @@ export default function Dashboard() {
                                 value={link.url}
                                 onChange={(e) => updateCustomLink(link.id, 'url', e.target.value)}
                                 placeholder="Enter destination URL"
-                                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500/40"
                               />
                             </div>
                           </div>
@@ -1323,10 +1323,10 @@ export default function Dashboard() {
                     </div>
 
                     {/* Documents, Menus & Images Catalog Uploader */}
-                    <div className="space-y-4 md:col-span-2 pt-6 border-t border-white/5">
+                    <div className="space-y-4 md:col-span-2 pt-6 border-t border-slate-200 dark:border-white/5">
                       <div className="flex items-center justify-between">
                         <div>
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Product Catalogs, Menus & Images</label>
+                          <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-wider block">Product Catalogs, Menus & Images</label>
                           <span className="text-xs text-slate-500">Upload PDF menus, price lists, brochures, or store images</span>
                         </div>
                         <button
@@ -1341,7 +1341,7 @@ export default function Dashboard() {
 
                       <div className="space-y-3">
                         {profileDocuments.map((doc) => (
-                          <div key={doc.id} className="p-4 bg-white/5 border border-white/5 rounded-2xl flex flex-col md:flex-row items-center gap-4 relative group">
+                          <div key={doc.id} className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col md:flex-row items-center gap-4 relative group">
                             
                             {/* Remove Document Button */}
                             <button
@@ -1364,7 +1364,7 @@ export default function Dashboard() {
                                 value={doc.label}
                                 onChange={(e) => updateDocument(doc.id, 'label', e.target.value)}
                                 placeholder="Enter document label"
-                                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-blue-500/40"
+                                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500/40"
                               />
                             </div>
 
@@ -1372,7 +1372,7 @@ export default function Dashboard() {
                             <div className="w-full md:w-[53%] space-y-1">
                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Upload / File Attachment</span>
                               <div className="flex items-center gap-3">
-                                <div className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-sm text-slate-400 flex items-center justify-between overflow-hidden">
+                                <div className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 text-sm text-slate-700 dark:text-slate-400 flex items-center justify-between overflow-hidden">
                                   {doc.url ? (
                                     <a 
                                       href={doc.url} 
@@ -1385,9 +1385,9 @@ export default function Dashboard() {
                                   ) : (
                                     <span className="truncate">{doc.filename}</span>
                                   )}
-                                  <span className="text-xs font-bold text-slate-500 shrink-0">({doc.size})</span>
+                                  <span className="text-xs font-bold text-slate-550 dark:text-slate-500 shrink-0">({doc.size})</span>
                                 </div>
-                                <label className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer select-none">
+                                <label className="px-3 py-2 bg-slate-250 hover:bg-slate-300 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300 dark:border-white/10 dark:hover:border-white/20 text-slate-705 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer select-none">
                                   Browse
                                   <input 
                                     type="file" 
@@ -1410,7 +1410,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Save and Clear Form Actions */}
-                    <div className="flex items-center justify-end gap-4 pt-6 border-t border-white/5 md:col-span-2 flex-wrap">
+                    <div className="flex items-center justify-end gap-4 pt-6 border-t border-slate-200 dark:border-white/5 md:col-span-2 flex-wrap">
                       <button
                         type="button"
                         onClick={handleLaunchMobileDemo}
@@ -1452,18 +1452,16 @@ export default function Dashboard() {
                     </div>
 
                   </div>
-                </div>
-
-                {/* 2. Dynamic QR Code Generator */}
-                <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl space-y-6">
-                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                </div>                {/* 2. Dynamic QR Code Generator */}
+                <div className="p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl space-y-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                         <QrCode className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-white text-lg">Dynamic QR Generator</h3>
-                        <span className="text-xs text-slate-400">Update destinations and color highlights</span>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-lg">Dynamic QR Generator</h3>
+                        <span className="text-xs text-slate-650 dark:text-slate-400">Update destinations and color highlights</span>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/25 px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -1475,7 +1473,7 @@ export default function Dashboard() {
                     {/* Inputs */}
                     <div className="md:col-span-7 space-y-5">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Destination URL</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Destination URL</label>
                         <div className="relative">
                           <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                           <input 
@@ -1483,19 +1481,19 @@ export default function Dashboard() {
                             value={qrUrl}
                             onChange={(e) => setQrUrl(e.target.value)}
                             placeholder="Enter destination URL"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">QR Code Color</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">QR Code Color</label>
                         <div className="flex items-center gap-3">
                           <input 
                             type="color" 
                             value={`#${qrColor}`}
                             onChange={(e) => setQrColor(e.target.value)}
-                            className="w-10 h-10 rounded-xl border border-white/10 bg-transparent cursor-pointer p-0.5"
+                            className="w-10 h-10 rounded-xl border border-slate-200 dark:border-white/10 bg-transparent cursor-pointer p-0.5"
                           />
                           <div className="flex flex-wrap gap-2">
                             {['000000', '2563eb', '0891b2', '4f46e5', '059669', 'e11d48'].map((col) => (
@@ -1503,7 +1501,7 @@ export default function Dashboard() {
                                 key={col}
                                 onClick={() => setQrColor(col)}
                                 style={{ backgroundColor: `#${col}` }}
-                                className={`w-6 h-6 rounded-full border border-white/10 transition-transform ${qrColor === col ? 'scale-110 ring-2 ring-blue-500' : 'hover:scale-105'}`}
+                                className={`w-6 h-6 rounded-full border border-slate-200 dark:border-white/10 transition-transform ${qrColor === col ? 'scale-110 ring-2 ring-blue-500' : 'hover:scale-105'}`}
                                 title={`#${col}`}
                               />
                             ))}
@@ -1514,7 +1512,7 @@ export default function Dashboard() {
                       <div className="flex gap-3 pt-2">
                         <button
                           onClick={handleCopyLink}
-                          className="flex-1 py-2.5 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-355 dark:hover:border-white/20 text-slate-700 dark:text-white hover:text-slate-900 text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           {isCopied ? (
                             <>
@@ -1530,7 +1528,7 @@ export default function Dashboard() {
                         </button>
                         <button
                           onClick={handleDownloadQr}
-                          className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 border border-white/10 cursor-pointer hover:from-blue-500 hover:to-indigo-500"
+                          className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 border border-transparent dark:border-white/10 cursor-pointer hover:from-blue-500 hover:to-indigo-500"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>Download QR</span>
@@ -1539,7 +1537,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* QR Display Preview */}
-                    <div className="md:col-span-5 flex flex-col items-center justify-center p-4 bg-slate-950/40 border border-white/5 rounded-2xl relative overflow-hidden group">
+                    <div className="md:col-span-5 flex flex-col items-center justify-center p-4 bg-slate-100/50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 rounded-2xl relative overflow-hidden group">
                       {qrGeneratedUrl ? (
                         <div className="relative p-3 bg-white rounded-2xl shadow-xl">
                           <img 
@@ -1550,7 +1548,7 @@ export default function Dashboard() {
                           <div className="absolute inset-0 bg-blue-500/5 rounded-2xl border border-blue-500/10 pointer-events-none" />
                         </div>
                       ) : (
-                        <div className="w-32 h-32 bg-white/5 rounded-2xl border border-dashed border-white/10 flex items-center justify-center">
+                        <div className="w-32 h-32 bg-slate-200/50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-305 dark:border-white/10 flex items-center justify-center">
                           <RefreshCw className="w-6 h-6 text-slate-500 animate-spin" />
                         </div>
                       )}
@@ -1562,7 +1560,7 @@ export default function Dashboard() {
 
               {/* Right Column: Live Mobile Preview (col-span-4) - sticky */}
               {!isMobileView && (
-                <div className="lg:col-span-4 lg:sticky lg:top-28 p-6 md:p-8 glass border border-white/5 rounded-3xl flex flex-col items-center w-full">
+                <div className="lg:col-span-4 lg:sticky lg:top-28 p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl flex flex-col items-center w-full">
                   <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-6 block">Live Mobile Simulator</span>
                   
                   {/* Phone Body Container with Dynamic Theme Class */}
@@ -1771,21 +1769,21 @@ export default function Dashboard() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-[#0b0f19] border border-white/10 rounded-3xl p-6 shadow-2xl relative space-y-6 animate-fade-in"
+            className="w-full max-w-md bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl relative space-y-6 animate-fade-in"
           >
             {/* Header banner */}
-            <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
                 <Sparkles className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <h4 className="font-extrabold text-white text-base">Razorpay Payment Sandbox</h4>
+                <h4 className="font-extrabold text-slate-900 dark:text-white text-base">Razorpay Payment Sandbox</h4>
                 <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Simulation Mode</span>
               </div>
             </div>
 
             {/* Note text */}
-            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl text-xs text-slate-300 leading-relaxed space-y-2">
+            <div className="p-4 bg-amber-500/5 border border-amber-500/15 rounded-2xl text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-2">
               <p>
                 <strong>Notice:</strong> Your Razorpay credentials (<code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code>) are not yet configured in the server's <code>.env</code> file.
               </p>
@@ -1795,18 +1793,18 @@ export default function Dashboard() {
             </div>
 
             {/* Invoice summary */}
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-3">
+            <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl p-4 space-y-3">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium">Selected Plan</span>
-                <span className="text-white font-bold">{mockPaymentData.planName}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Selected Plan</span>
+                <span className="text-slate-900 dark:text-white font-bold">{mockPaymentData.planName}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium">Amount to Pay</span>
-                <span className="text-white font-extrabold">₹{(mockPaymentData.amount / 100).toFixed(2)}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Amount to Pay</span>
+                <span className="text-slate-900 dark:text-white font-extrabold">₹{(mockPaymentData.amount / 100).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium">Order ID</span>
-                <span className="text-slate-300 font-mono text-[10px]">{mockPaymentData.orderId}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Order ID</span>
+                <span className="text-slate-700 dark:text-slate-300 font-mono text-[10px]">{mockPaymentData.orderId}</span>
               </div>
             </div>
 
@@ -1815,7 +1813,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => { setShowMockModal(false); setMockPaymentData(null); }}
-                className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-slate-400 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white text-xs font-bold transition-all cursor-pointer"
               >
                 Cancel Transaction
               </button>
@@ -1838,7 +1836,7 @@ export default function Dashboard() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-full max-w-md bg-[#070b19] border border-emerald-500/20 rounded-3xl p-8 shadow-2xl relative text-center space-y-6 overflow-hidden animate-fade-in"
+            className="w-full max-w-md bg-white dark:bg-[#070b19] border border-slate-200 dark:border-emerald-500/20 rounded-3xl p-8 shadow-2xl relative text-center space-y-6 overflow-hidden animate-fade-in"
           >
             {/* Background Glows */}
             <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
@@ -1851,20 +1849,20 @@ export default function Dashboard() {
 
             {/* Copy/Content block */}
             <div className="space-y-2">
-              <h3 className="text-2xl font-extrabold text-white tracking-tight">Subscription Activated!</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
+              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Subscription Activated!</h3>
+              <p className="text-slate-655 dark:text-slate-400 text-xs leading-relaxed">
                 Thank you for upgrading! Your premium dynamic QR features, customized links, and design customizer are now fully unlocked.
               </p>
             </div>
 
             {/* Plan Details Summary Box */}
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-2 text-left">
+            <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl p-4 space-y-2 text-left">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium">Activated Plan</span>
-                <span className="text-white font-bold">{successPlanName || 'Premium Plan'}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Activated Plan</span>
+                <span className="text-slate-900 dark:text-white font-bold">{successPlanName || 'Premium Plan'}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400 font-medium">Status</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Status</span>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
                   Active (Subscribed)
                 </span>
@@ -1879,7 +1877,7 @@ export default function Dashboard() {
                   setShowSuccessModal(false);
                   window.location.hash = '#manage-qr';
                 }}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm transition-all border border-white/10 shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 group"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm transition-all border border-transparent dark:border-white/10 shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 group"
               >
                 <span>Manage QR & Profile</span>
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
