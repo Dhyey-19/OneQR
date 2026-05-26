@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Star, ArrowRight } from 'lucide-react';
 
-export default function Pricing({ onOpenAuth }) {
+export default function Pricing({ onSelectPlan }) {
   const [billingPeriod, setBillingPeriod] = useState('monthly'); // 'monthly' or 'yearly'
 
   const plans = [
     {
       name: 'Starter Plan',
       description: 'Perfect for small shops and personal businesses starting their digital presence.',
-      monthlyPrice: 99,
-      yearlyPrice: 999,
+      monthlyPrice: 1,
+      yearlyPrice: 1,
       features: [
         'Create your own digital business profile page',
         'Share one smart QR code with customers',
@@ -30,8 +30,8 @@ export default function Pricing({ onOpenAuth }) {
     {
       name: 'Pro Plan',
       description: 'Best for growing businesses that want more customers, reviews, and better branding.',
-      monthlyPrice: 199,
-      yearlyPrice: 1999,
+      monthlyPrice: 1,
+      yearlyPrice: 1,
       features: [
         'Everything in Starter, plus:',
         'See how many people scanned your QR code',
@@ -173,7 +173,12 @@ export default function Pricing({ onOpenAuth }) {
 
                 {/* Checkout CTA */}
                 <button
-                  onClick={() => onOpenAuth(plan.name.includes('Starter') ? 'signup' : 'login')}
+                  onClick={() => {
+                    const planKey = plan.name.toLowerCase().includes('starter') ? `starter_${billingPeriod}` : `pro_${billingPeriod}`;
+                    if (onSelectPlan) {
+                      onSelectPlan(planKey);
+                    }
+                  }}
                   className={`w-full py-3.5 rounded-2xl font-bold text-sm text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${plan.buttonStyle}`}
                 >
                   <span>{plan.cta}</span>

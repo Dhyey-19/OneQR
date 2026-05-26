@@ -78,6 +78,9 @@ class UserResponseDto {
   constructor(user) {
     this.id = user._id || user.id;
     this.phone = user.phone;
+    this.plan = user.plan || 'free';
+    this.subscriptionStatus = user.subscriptionStatus || 'inactive';
+    this.subscriptionExpiresAt = user.subscriptionExpiresAt || null;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
   }

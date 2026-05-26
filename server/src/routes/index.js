@@ -27,6 +27,9 @@ const profileRoutes = require("./profileRoutes");
 router.use("/profile", profileRoutes);
 router.get("/public/profile/:slug", require("../controllers/profileController").getPublicProfile);
 
+// Payment & Subscription routes
+const paymentRoutes = require("./paymentRoutes");
+router.use("/payment", paymentRoutes);
 
 module.exports = router;
 

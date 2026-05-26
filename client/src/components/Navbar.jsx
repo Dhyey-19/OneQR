@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate }) {
@@ -88,16 +88,18 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                 </div>
               )}
               
-              <button
-                onClick={() => {
-                  setProfileDropdownOpen(false);
-                  onNavigate('manage-qr');
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
-              >
-                <User className="w-3.5 h-3.5 text-blue-400" />
-                <span>My Profile</span>
-              </button>
+              {currentUser?.subscriptionStatus === 'active' && (
+                <button
+                  onClick={() => {
+                    setProfileDropdownOpen(false);
+                    onNavigate('manage-qr');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5 text-blue-400" />
+                  <span>My Profile</span>
+                </button>
+              )}
 
               <button
                 onClick={() => {
@@ -108,6 +110,17 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               >
                 <Grid className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Dashboard</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  onNavigate('billing');
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Billing & Plans</span>
               </button>
 
               <div className="h-px bg-white/5 my-1" />

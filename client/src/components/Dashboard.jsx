@@ -106,6 +106,352 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [subView, setSubView] = useState('overview'); // 'overview' | 'manage-qr'
 
+  // Payment integration states
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [showMockModal, setShowMockModal] = useState(false);
+  const [mockPaymentData, setMockPaymentData] = useState(null);
+  const [billingPeriod, setBillingPeriod] = useState('monthly'); // 'monthly' | 'yearly'
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successPlanName, setSuccessPlanName] = useState('');
+
+  const pricingPlans = [
+    {
+      id: 'starter',
+      name: 'Starter Plan',
+      description: 'Perfect for small shops and personal businesses starting their digital presence.',
+      monthlyPrice: 1,
+      yearlyPrice: 1,
+      features: [
+        'Create your own digital business profile page',
+        'Share one smart QR code with customers',
+        'Add WhatsApp, Instagram, Facebook, and other links',
+        'Let customers save your contact in one click',
+        'Add shop name, address, phone number, and timings',
+        'Simple colors and design customization',
+        'Easy mobile-friendly page for all customers',
+        'Update your business information anytime'
+      ],
+      glow: 'from-slate-800 to-slate-900',
+      buttonStyle: 'glass-light hover:bg-white/5 text-white border-white/10'
+    },
+    {
+      id: 'pro',
+      name: 'Pro Plan',
+      description: 'Best for growing businesses that want more customers, reviews, and better branding.',
+      monthlyPrice: 1,
+      yearlyPrice: 1,
+      features: [
+        'Everything in Starter, plus:',
+        'See how many people scanned your QR code',
+        'Track customer visits and link clicks',
+        'Upload PDF menus, brochures, and product catalogs',
+        'Send customers directly to your Google Review page',
+        'Remove OneQR branding from your profile',
+        'Create a more professional business experience',
+        'Better customization and premium business tools'
+      ],
+      glow: 'from-blue-600/20 via-indigo-600/10 to-[#030712]',
+      buttonStyle: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-cyan-400'
+    }
+  ];
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  const handleUpgrade = async (planId) => {
+    setIsPaymentLoading(true);
+    try {
+      const res = await apiRequest('/payment/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ planId }),
+      });
+
+      if (res.status === 'success' && res.data) {
+        const orderData = res.data;
+
+        if (orderData.isMock) {
+          setMockPaymentData({
+            planId,
+            orderId: orderData.orderId,
+            planName: orderData.planName,
+            amount: orderData.amount,
+          });
+          setShowMockModal(true);
+        } else {
+          const options = {
+            key: orderData.keyId,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            name: "OneQR Platforms",
+            description: orderData.planName,
+            order_id: orderData.orderId,
+            handler: async function (response) {
+              try {
+                const verifyRes = await apiRequest('/payment/verify-payment', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpayOrderId: response.razorpay_order_id,
+                    razorpaySignature: response.razorpay_signature,
+                    planId,
+                  }),
+                });
+
+                if (verifyRes.status === 'success') {
+                  const updatedUser = await authService.getProfile();
+                  setCurrentUser(updatedUser);
+                  setSuccessPlanName(orderData.planName);
+                  setShowSuccessModal(true);
+                } else {
+                  alert(verifyRes.message || 'Payment verification failed.');
+                }
+              } catch (err) {
+                console.error('Payment verification error:', err);
+                alert(err.message || 'Error verifying payment signature.');
+              }
+            },
+            prefill: {
+              contact: currentUser?.phone || '',
+            },
+            theme: {
+              color: "#2563eb",
+            },
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        }
+      }
+    } catch (err) {
+      console.error('Error initiating subscription:', err);
+      alert(err.message || 'Failed to initiate checkout. Please try again.');
+    } finally {
+      setIsPaymentLoading(false);
+    }
+  };
+
+  const handleCompleteMockPayment = async () => {
+    if (!mockPaymentData) return;
+    setIsPaymentLoading(true);
+    try {
+      const verifyRes = await apiRequest('/payment/verify-payment', {
+        method: 'POST',
+        body: JSON.stringify({
+          razorpayPaymentId: `mock_pay_${Date.now()}`,
+          razorpayOrderId: mockPaymentData.orderId,
+          razorpaySignature: "mock_signature",
+          planId: mockPaymentData.planId,
+        }),
+      });
+
+      if (verifyRes.status === 'success') {
+        const updatedUser = await authService.getProfile();
+        setCurrentUser(updatedUser);
+        setShowMockModal(false);
+        setMockPaymentData(null);
+        setSuccessPlanName(mockPaymentData.planName);
+        setShowSuccessModal(true);
+      } else {
+        alert(verifyRes.message || 'Mock verification failed.');
+      }
+    } catch (err) {
+      console.error('Mock verification error:', err);
+      alert(err.message || 'Error during simulated payment verification.');
+    } finally {
+      setIsPaymentLoading(false);
+    }
+  };
+
+  const renderBillingView = () => {
+    const currentPlanId = currentUser?.plan || 'free';
+    const isSubscribed = currentUser?.subscriptionStatus === 'active';
+
+    return (
+      <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
+        {/* Header banner */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 glass border border-white/10 rounded-3xl relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <CreditCard className="w-4 h-4" />
+              </span>
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Billing & Subscription</span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-2">
+              Manage Subscription Plan
+            </h1>
+            <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
+              Upgrade your profile capabilities, unlock analytics, and manage digital integrations.
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={() => { window.location.hash = '#dashboard'; }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
+            >
+              &larr; Back to Dashboard
+            </button>
+          </div>
+        </div>
+
+        {/* Current Plan Overview Card */}
+        <div className="p-6 md:p-8 glass border border-white/5 rounded-3xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-indigo-500/5 to-transparent blur-2xl pointer-events-none" />
+          <h3 className="text-base font-bold text-white mb-4">Subscription Overview</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Current Account Plan</span>
+              <span className="text-lg font-extrabold text-white mt-1 block uppercase tracking-tight">
+                {currentPlanId === 'free' ? 'Free Plan' : currentPlanId.replace('_', ' ')}
+              </span>
+            </div>
+            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Subscription Status</span>
+              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border mt-2 ${
+                isSubscribed 
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                  : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isSubscribed ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                {isSubscribed ? 'Active' : 'Inactive / Expired'}
+              </span>
+            </div>
+            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Valid Until</span>
+              <span className="text-sm font-bold text-slate-300 mt-1.5 block">
+                {isSubscribed && currentUser?.subscriptionExpiresAt 
+                  ? formatDate(currentUser.subscriptionExpiresAt) 
+                  : 'N/A'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Selection Tiers */}
+        <div className="text-center max-w-3xl mx-auto space-y-4">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Available Subscriptions (₹1 special promo)
+          </h2>
+          <p className="text-slate-400 text-sm">
+            Activate premium layout features, catalog uploads, and rich profile metrics instantly.
+          </p>
+
+          {/* Toggle Switch */}
+          <div className="flex items-center justify-center gap-4 pt-4">
+            <span className={`text-xs font-bold ${billingPeriod === 'monthly' ? 'text-white' : 'text-slate-500'} transition-colors`}>
+              Billed Monthly
+            </span>
+            <div 
+              onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
+              className="w-12 h-6 rounded-full bg-white/5 border border-white/10 p-0.5 cursor-pointer relative flex items-center"
+            >
+              <div 
+                className="w-5 h-5 rounded-full bg-blue-500 absolute transition-all duration-300"
+                style={{
+                  left: billingPeriod === 'monthly' ? '2px' : 'calc(100% - 22px)'
+                }}
+              />
+            </div>
+            <span className={`text-xs font-bold flex items-center gap-1.5 ${billingPeriod === 'yearly' ? 'text-white' : 'text-slate-500'} transition-colors`}>
+              Billed Annually
+              <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                Save 20%
+              </span>
+            </span>
+          </div>
+        </div>
+
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+          {pricingPlans.map((plan) => {
+            const planKey = `${plan.id}_${billingPeriod}`;
+            const isActivePlan = currentPlanId === planKey && isSubscribed;
+            const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+            
+            return (
+              <div
+                key={plan.id}
+                className={`group relative rounded-3xl p-8 bg-slate-900/40 border ${
+                  isActivePlan 
+                    ? 'border-emerald-500/50 shadow-glass-glow' 
+                    : plan.id === 'pro' 
+                      ? 'border-blue-500/30' 
+                      : 'border-white/5 hover:border-white/10'
+                } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
+              >
+                <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
+
+                <div>
+                  <div className="flex justify-between items-center mb-6">
+                    <span className="text-lg font-bold text-white">{plan.name}</span>
+                    {isActivePlan ? (
+                      <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 text-[9px] font-extrabold uppercase tracking-widest">
+                        Current Plan
+                      </span>
+                    ) : plan.id === 'pro' ? (
+                      <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
+                        Most Popular
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="text-slate-400 text-xs leading-relaxed mb-6">
+                    {plan.description}
+                  </p>
+
+                  <div className="flex items-baseline gap-1.5 mb-6 border-b border-white/5 pb-6">
+                    <span className="text-4xl font-extrabold text-white tracking-tight">
+                      ₹{price}
+                    </span>
+                    <span className="text-slate-500 text-xs font-semibold">
+                      / {billingPeriod === 'monthly' ? 'month' : 'year'}
+                    </span>
+                  </div>
+
+                  <ul className="space-y-4 mb-10">
+                    {plan.features.map((feat) => (
+                      <li key={feat} className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+                          <Check className="w-3 h-3" />
+                        </div>
+                        <span className="text-xs text-slate-300 leading-normal">
+                          {feat}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isActivePlan || isPaymentLoading}
+                  onClick={() => handleUpgrade(planKey)}
+                  className={`w-full py-3 rounded-xl font-bold text-xs text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                    isActivePlan 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default' 
+                      : plan.id === 'pro'
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white border-transparent'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                  }`}
+                >
+                  {isPaymentLoading ? 'Processing...' : isActivePlan ? 'Active Subscribed' : 'Upgrade to Plan'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   // Profile Theme Selection State
   const [profileLogo, setProfileLogo] = useState(''); // Base64 or URL
   const [headerColor, setHeaderColor] = useState('gradient');
@@ -218,8 +564,18 @@ export default function Dashboard() {
   useEffect(() => {
     const handleHashSync = () => {
       const hash = window.location.hash;
+      const user = authService.getCurrentUser() || currentUser;
+      const isSubscribed = user?.subscriptionStatus === 'active';
+
       if (hash === '#manage-qr') {
-        setSubView('manage-qr');
+        if (!isSubscribed) {
+          window.location.hash = '#billing';
+          setSubView('billing');
+        } else {
+          setSubView('manage-qr');
+        }
+      } else if (hash === '#billing') {
+        setSubView('billing');
       } else if (hash === '#dashboard' || hash === '#overview') {
         setSubView('overview');
       }
@@ -230,7 +586,18 @@ export default function Dashboard() {
     handleHashSync();
 
     return () => window.removeEventListener('hashchange', handleHashSync);
-  }, []);
+  }, [currentUser]);
+
+  // Trigger pending plan auto-upgrades when navigating to billing view
+  useEffect(() => {
+    if (subView === 'billing' && currentUser) {
+      const pendingPlan = localStorage.getItem('pending_plan_checkout');
+      if (pendingPlan) {
+        localStorage.removeItem('pending_plan_checkout');
+        handleUpgrade(pendingPlan);
+      }
+    }
+  }, [subView, currentUser]);
 
   // Scroll to top instantly on subView changes
   useEffect(() => {
@@ -583,13 +950,23 @@ export default function Dashboard() {
                   <Sparkles className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
                   No code required
                 </span>
-                <button
-                  onClick={() => { window.location.hash = '#manage-qr'; }}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm hover:from-blue-500 hover:to-indigo-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-white/10 flex items-center gap-2 cursor-pointer"
-                >
-                  <span>Manage QR & Profile</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </button>
+                {currentUser?.subscriptionStatus === 'active' ? (
+                  <button
+                    onClick={() => { window.location.hash = '#manage-qr'; }}
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm hover:from-blue-500 hover:to-indigo-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-white/10 flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Manage QR & Profile</span>
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { window.location.hash = '#billing'; }}
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 text-white font-bold text-sm hover:from-amber-500 hover:to-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition-all border border-white/10 flex items-center gap-2 cursor-pointer shadow-lg shadow-orange-500/10"
+                  >
+                    <span>Unlock with a Premium Plan</span>
+                    <ArrowUpRight className="w-4 h-4 animate-pulse" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -620,6 +997,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        ) : subView === 'billing' ? (
+          renderBillingView()
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
@@ -1385,6 +1764,130 @@ export default function Dashboard() {
             </div>
           )}
       </div>
+
+      {/* Mock Sandbox Payment Modal Overlay */}
+      {showMockModal && mockPaymentData && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-[#0b0f19] border border-white/10 rounded-3xl p-6 shadow-2xl relative space-y-6 animate-fade-in"
+          >
+            {/* Header banner */}
+            <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-white text-base">Razorpay Payment Sandbox</h4>
+                <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Simulation Mode</span>
+              </div>
+            </div>
+
+            {/* Note text */}
+            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl text-xs text-slate-300 leading-relaxed space-y-2">
+              <p>
+                <strong>Notice:</strong> Your Razorpay credentials (<code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code>) are not yet configured in the server's <code>.env</code> file.
+              </p>
+              <p>
+                The gateway has loaded this sandbox modal to allow you to simulate a successful checkout and verify your subscription workflow end-to-end.
+              </p>
+            </div>
+
+            {/* Invoice summary */}
+            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Selected Plan</span>
+                <span className="text-white font-bold">{mockPaymentData.planName}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Amount to Pay</span>
+                <span className="text-white font-extrabold">₹{(mockPaymentData.amount / 100).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Order ID</span>
+                <span className="text-slate-300 font-mono text-[10px]">{mockPaymentData.orderId}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => { setShowMockModal(false); setMockPaymentData(null); }}
+                className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-slate-400 hover:text-white text-xs font-bold transition-all cursor-pointer"
+              >
+                Cancel Transaction
+              </button>
+              <button
+                type="button"
+                onClick={handleCompleteMockPayment}
+                disabled={isPaymentLoading}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold transition-all cursor-pointer hover:from-emerald-500 hover:to-teal-400 shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-1.5"
+              >
+                {isPaymentLoading ? 'Verifying...' : 'Authorize Payment'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Customized App Theme Premium Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-md bg-[#070b19] border border-emerald-500/20 rounded-3xl p-8 shadow-2xl relative text-center space-y-6 overflow-hidden animate-fade-in"
+          >
+            {/* Background Glows */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full bg-blue-500/5 blur-2xl pointer-events-none" />
+
+            {/* Success Pulsing Checkmark Ring */}
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/5">
+              <Check className="w-8 h-8 animate-bounce" />
+            </div>
+
+            {/* Copy/Content block */}
+            <div className="space-y-2">
+              <h3 className="text-2xl font-extrabold text-white tracking-tight">Subscription Activated!</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Thank you for upgrading! Your premium dynamic QR features, customized links, and design customizer are now fully unlocked.
+              </p>
+            </div>
+
+            {/* Plan Details Summary Box */}
+            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-2 text-left">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Activated Plan</span>
+                <span className="text-white font-bold">{successPlanName || 'Premium Plan'}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 font-medium">Status</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                  Active (Subscribed)
+                </span>
+              </div>
+            </div>
+
+            {/* Call to Action Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  window.location.hash = '#manage-qr';
+                }}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm transition-all border border-white/10 shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 group"
+              >
+                <span>Manage QR & Profile</span>
+                <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

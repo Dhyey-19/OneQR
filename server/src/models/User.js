@@ -15,6 +15,25 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
     },
+    plan: {
+      type: String,
+      enum: ['free', 'starter_monthly', 'starter_yearly', 'pro_monthly', 'pro_yearly'],
+      default: 'free',
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'inactive',
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
   },
   {
     timestamps: true,

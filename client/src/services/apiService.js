@@ -32,6 +32,11 @@ export const apiRequest = async (endpoint, options = {}) => {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('oneqr_token');
+      localStorage.removeItem('oneqr_current_user');
+      window.dispatchEvent(new Event('auth-state-change'));
+    }
     throw new Error(data.message || 'Network response was not OK. Please try again.');
   }
 

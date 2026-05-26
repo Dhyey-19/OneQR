@@ -26,7 +26,7 @@ export default function App() {
     }
     const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
     const hash = window.location.hash;
-    if (hash === '#dashboard' || hash === '#manage-qr') {
+    if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing') {
       return isLoggedIn ? 'dashboard' : 'landing';
     }
     return 'landing';
@@ -70,7 +70,7 @@ export default function App() {
       const hash = window.location.hash;
       const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
 
-      if (hash === '#dashboard' || hash === '#manage-qr') {
+      if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing') {
         if (isLoggedIn) {
           setCurrentView('dashboard');
         } else {
@@ -108,7 +108,12 @@ export default function App() {
         window.location.hash = '#home';
         setCurrentView('landing');
       } else {
-        window.location.hash = '#dashboard';
+        const pendingPlan = localStorage.getItem('pending_plan_checkout');
+        if (pendingPlan) {
+          window.location.hash = '#billing';
+        } else {
+          window.location.hash = '#dashboard';
+        }
         setCurrentView('dashboard');
       }
     };
@@ -127,8 +132,20 @@ export default function App() {
       window.location.hash = '#dashboard';
     } else if (view === 'manage-qr') {
       window.location.hash = '#manage-qr';
+    } else if (view === 'billing') {
+      window.location.hash = '#billing';
     } else {
       window.location.hash = '#home';
+    }
+  };
+
+  const handleSelectPlan = (planKey) => {
+    const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
+    localStorage.setItem('pending_plan_checkout', planKey);
+    if (isLoggedIn) {
+      window.location.hash = '#billing';
+    } else {
+      openAuthModal('signup');
     }
   };
 
@@ -163,7 +180,7 @@ export default function App() {
               <Features />
               
               {/* 3. Pricing Section */}
-              <Pricing onOpenAuth={openAuthModal} />
+              <Pricing onSelectPlan={handleSelectPlan} />
               
               {/* 4. Testimonials */}
               <Testimonials />
