@@ -31,5 +31,9 @@ router.get("/public/profile/:slug", require("../controllers/profileController").
 const paymentRoutes = require("./paymentRoutes");
 router.use("/payment", paymentRoutes);
 
+// Admin routes
+const adminRoutes = require("./adminRoutes");
+router.use("/admin", adminRoutes);
+
 module.exports = router;
 

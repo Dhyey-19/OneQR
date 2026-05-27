@@ -1,0 +1,17 @@
+const express = require("express");
+const router = express.Router();
+const adminController = require("../controllers/adminController");
+const { adminProtect } = require("../middleware/adminAuthMiddleware");
+
+// Public routes
+router.post("/auth/login", adminController.login);
+
+// Protected routes (Admin only)
+router.get("/auth/me", adminProtect, adminController.getProfile);
+router.get("/stats", adminProtect, adminController.getDashboardStats);
+router.get("/users", adminProtect, adminController.getAllUsers);
+router.get("/qrs", adminProtect, adminController.getQrCodes);
+router.post("/qrs/generate", adminProtect, adminController.generateQrCode);
+router.post("/qrs/assign", adminProtect, adminController.assignQrCode);
+
+module.exports = router;
