@@ -77,13 +77,13 @@ export default function Hero({ onOpenAuth }) {
           >
             <button
               onClick={() => onOpenAuth('signup')}
-              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
+              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white !text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600" />
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <span className="relative flex items-center justify-center gap-2 z-10">
+              <span className="absolute inset-0 w-full h-full bg-blue-600" />
+              <span className="absolute inset-0 w-full h-full bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative flex items-center justify-center gap-2 z-10 text-white !text-white">
                 Get Started Free
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="w-4 h-4 text-white !text-white group-hover:translate-x-1 transition-transform duration-300" />
               </span>
               <span className="absolute -inset-px rounded-2xl border border-white/20 pointer-events-none" />
             </button>
@@ -123,7 +123,7 @@ export default function Hero({ onOpenAuth }) {
           initial={{ opacity: 0, scale: 0.9, y: 50 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-          className="lg:col-span-5 relative flex items-center justify-center"
+          className="lg:col-span-5 relative hidden lg:flex items-center justify-center"
         >
           {/* Glowing backplate for phone */}
           <div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none animate-pulse-subtle" />

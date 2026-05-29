@@ -26,6 +26,7 @@
   --animate-float-medium: float 4s ease-in-out infinite;
   --animate-pulse-subtle: pulseSubtle 4s ease-in-out infinite;
   --animate-spin-slow: spin 20s linear infinite;
+  --animate-scan: scan 3s ease-in-out infinite;
 
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
   --shadow-glass-glow: 0 8px 32px 0 rgba(37, 99, 235, 0.15);
@@ -48,6 +49,10 @@
   @keyframes pulseSubtle {
     0%, 100% { opacity: 0.25; }
     50% { opacity: 0.5; }
+  }
+  @keyframes scan {
+    0%, 100% { top: 0%; opacity: 0.8; }
+    50% { top: 100%; opacity: 1; }
   }
 }
 

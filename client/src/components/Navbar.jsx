@@ -220,26 +220,17 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               {currentUser ? (
                 <ProfileDropdown isMobile={false} />
               ) : (
-                <>
-                  <button
-                    onClick={() => onOpenAuth('login')}
-                    className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 px-4 py-2 cursor-pointer"
-                  >
+                <button
+                  onClick={() => onOpenAuth('login')}
+                  className="relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm text-white !text-white overflow-hidden group cursor-pointer shadow-md"
+                >
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-cyan-500" />
+                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <span className="relative flex items-center gap-2 z-10 text-white !text-white">
                     Login
-                  </button>
-                  <button
-                    onClick={() => onOpenAuth('signup')}
-                    className="relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm text-white overflow-hidden group cursor-pointer"
-                  >
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600" />
-                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <span className="relative flex items-center gap-2 z-10">
-                      Get Started
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                    </span>
-                    <span className="absolute -inset-px rounded-xl border border-white/20 pointer-events-none" />
-                  </button>
-                </>
+                  </span>
+                  <span className="absolute -inset-px rounded-xl border border-white/20 pointer-events-none" />
+                </button>
               )}
             </div>
 
@@ -296,17 +287,11 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                 <>
                   <div className="h-px bg-slate-200/50 dark:bg-white/5 my-2" />
                   <div className="flex flex-col gap-3">
-                    <button 
+                    <button
                       onClick={() => { setIsOpen(false); onOpenAuth('login'); }}
-                      className="w-full text-center py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer"
+                      className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-semibold text-white !text-white hover:from-blue-500 hover:to-cyan-400 transition-all shadow-lg shadow-blue-500/25 cursor-pointer"
                     >
                       Login
-                    </button>
-                    <button
-                      onClick={() => { setIsOpen(false); onOpenAuth('signup'); }}
-                      className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-semibold text-white hover:from-blue-500 hover:to-cyan-400 transition-all shadow-lg shadow-blue-500/20 cursor-pointer"
-                    >
-                      Get Started
                     </button>
                   </div>
                 </>

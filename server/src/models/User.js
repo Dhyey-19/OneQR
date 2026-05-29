@@ -15,6 +15,13 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
     },
+    email: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
     plan: {
       type: String,
       enum: ['free', 'starter_monthly', 'starter_yearly', 'pro_monthly', 'pro_yearly'],

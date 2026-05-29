@@ -6,7 +6,6 @@ const ProfileSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
     },
 
     profileLogo: {
@@ -120,5 +119,7 @@ const ProfileSchema = new mongoose.Schema(
     collection: "PROFILES",
   }
 );
+
+ProfileSchema.index({ user: 1, slug: 1 }, { unique: true });
 
 module.exports = mongoose.model("Profile", ProfileSchema);

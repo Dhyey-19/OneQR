@@ -81,3 +81,31 @@ exports.getProfile = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Authenticate or register user with Google account
+ * @route   POST /api/auth/google-login
+ * @access  Public
+ */
+exports.googleLogin = async (req, res) => {
+  try {
+    const { token: googleToken } = req.body;
+
+    const { user, token } = await authService.googleLogin({ token: googleToken });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Successfully signed up and logged in with Google!",
+      data: {
+        user: UserResponseDto.transform(user),
+        token,
+      },
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    return res.status(error.status || 500).json({
+      status: "error",
+      message: error.message || "Server error occurred during Google sign in.",
+    });
+  }
+};

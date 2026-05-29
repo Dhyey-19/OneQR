@@ -25,6 +25,23 @@ const connectDB = async () => {
       await newAdmin.save();
       console.log("Admin user seeded successfully!");
     }
+
+    // Safely drop old unique index on profile user field if it exists
+    try {
+      const db = conn.connection.db;
+      const collections = await db.listCollections({ name: 'PROFILES' }).toArray();
+      if (collections.length > 0) {
+        const indexes = await db.collection('PROFILES').indexes();
+        const userIndex = indexes.find(idx => idx.name === 'user_1' && idx.unique);
+        if (userIndex) {
+          console.log("Dropping old unique index 'user_1' on PROFILES...");
+          await db.collection('PROFILES').dropIndex('user_1');
+          console.log("Dropped old unique index successfully.");
+        }
+      }
+    } catch (indexErr) {
+      console.error("Index cleanup error (safe to ignore):", indexErr.message);
+    }
   } catch (error) {
     console.error(`Database connection failed: ${error.message}`);
     console.log("Continuing server execution without database connection...");

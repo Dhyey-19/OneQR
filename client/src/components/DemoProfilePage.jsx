@@ -16,6 +16,7 @@ export default function DemoProfilePage() {
   const [isOwnerPreview, setIsOwnerPreview] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [inactive, setInactive] = useState(false);
 
   useEffect(() => {
     // 1. Verify if this session is authorized to view the demo
@@ -37,9 +38,23 @@ export default function DemoProfilePage() {
       if (slug && slug !== 'index.html') {
         apiRequest(`/public/profile/${slug}`)
           .then(res => {
-            if (res.status === 'success' && res.data?.profile) {
-              setProfileData(res.data.profile);
+            if (res.status === 'inactive') {
+              setInactive(true);
+            } else if (res.status === 'success' && res.data?.profile) {
+              const profile = res.data.profile;
+              setProfileData(profile);
               setAuthorized(true);
+              
+              // Change URL path to slugified company name
+              const companyName = profile.profileCompany || profile.profileName || "profile";
+              const companySlug = companyName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+              
+              if (companySlug && companySlug !== slug) {
+                window.history.replaceState(null, '', '/' + companySlug);
+              }
             }
             setLoading(false);
           })
@@ -108,6 +123,51 @@ export default function DemoProfilePage() {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (inactive) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Decorative Glows */}
+        <div className="absolute top-[20%] left-[-10vw] w-[45vw] h-[45vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[20%] right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-cyan-600/5 blur-[120px] pointer-events-none" />
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', duration: 0.6 }}
+          className="w-full max-w-md p-8 glass border border-white/10 rounded-3xl text-center space-y-6 relative z-10 backdrop-blur-xl bg-slate-950/40"
+        >
+          <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 text-[#2563eb] rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/10">
+            <Smartphone className="w-8 h-8 animate-pulse" />
+          </div>
+          
+          <div className="space-y-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+              QR Code Not Activated
+            </h1>
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+              This dynamic QR code has not been claimed or activated by any user yet.
+            </p>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-left text-xs text-slate-400 space-y-2 leading-normal">
+            <strong className="text-slate-300 block">Are you the owner?</strong>
+            <p className="text-slate-400">
+              Please log in to your OneQR dashboard and use the **Claim / Scan QR** feature to activate this QR code and link it to your digital business card.
+            </p>
+          </div>
+
+          <button
+            onClick={() => { window.location.href = '/'; }}
+            className="w-full py-3 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-sm shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/10"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Go to OneQR Home</span>
+          </button>
+        </motion.div>
       </div>
     );
   }
@@ -414,7 +474,7 @@ export default function DemoProfilePage() {
 
       {/* Signature Footer */}
       <footer 
-        className={`text-center py-6 mt-8 relative z-10 shrink-0 ${
+        className={`text-center py-3 mt-6 relative z-10 shrink-0 ${
           !profileData?.headerColor || profileData.headerColor === 'gradient' ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700' : ''
         }`}
         style={profileData?.headerColor && profileData.headerColor !== 'gradient' ? { backgroundColor: profileData.headerColor } : {}}

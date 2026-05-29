@@ -19,5 +19,7 @@ router.use(protect);
 router.get("/", profileController.getProfile);
 router.put("/", profileController.updateProfile);
 router.post("/upload", upload.single("file"), profileController.uploadFile);
+router.get("/qrs", profileController.getUserQrCodes);
+router.post("/qrs/claim", profileController.claimQrCode);
 
 module.exports = router;

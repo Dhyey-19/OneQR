@@ -4,11 +4,482 @@ import {
   QrCode, Smartphone, BarChart2, Sparkles, Link2, User, 
   Mail, Globe, Phone, Download, Check, RefreshCw, 
   MapPin, CreditCard, Star, Plus, Trash2, ArrowUpRight,
-  Sun, Moon
+  Sun, Moon, Scan, Camera
 } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle, FaWhatsapp, FaMoneyBillWave } from 'react-icons/fa';
 import { authService } from '../services/authService';
 import { apiRequest } from '../services/apiService';
+import { Html5Qrcode } from 'html5-qrcode';
+
+const downloadFlyer = (qrUrl, qrId) => {
+  return new Promise((resolve, reject) => {
+    const cleanColor = '000000';
+    const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&color=${cleanColor}&data=${encodeURIComponent(qrUrl)}`;
+    
+    const qrImg = new Image();
+    qrImg.crossOrigin = "anonymous";
+    qrImg.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 1200;
+      const ctx = canvas.getContext('2d');
+      
+      // Background: White
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 1200, 1200);
+
+      // --- 1. Top Left Wave Accents ---
+      // Light blue shadow wave
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(450, 0);
+      ctx.quadraticCurveTo(220, 220, 0, 450);
+      ctx.closePath();
+      ctx.fill();
+
+      // Primary royal blue wave
+      const waveGrad1 = ctx.createLinearGradient(0, 0, 300, 300);
+      waveGrad1.addColorStop(0, '#0252cc');
+      waveGrad1.addColorStop(1, '#0084ff');
+      ctx.fillStyle = waveGrad1;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(340, 0);
+      ctx.bezierCurveTo(180, 80, 80, 180, 0, 340);
+      ctx.closePath();
+      ctx.fill();
+
+      // Deep navy accent at top-left edge
+      ctx.fillStyle = '#0a2540';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(160, 0);
+      ctx.bezierCurveTo(90, 40, 40, 90, 0, 160);
+      ctx.closePath();
+      ctx.fill();
+
+      // --- 2. Bottom Right Wave Accents ---
+      // Light blue shadow wave
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(1200, 1200);
+      ctx.lineTo(750, 1200);
+      ctx.quadraticCurveTo(980, 980, 1200, 750);
+      ctx.closePath();
+      ctx.fill();
+
+      // Royal blue gradient wave
+      const waveGrad2 = ctx.createLinearGradient(850, 850, 1200, 1200);
+      waveGrad2.addColorStop(0, '#0252cc');
+      waveGrad2.addColorStop(1, '#007dfc');
+      ctx.fillStyle = waveGrad2;
+      ctx.beginPath();
+      ctx.moveTo(1200, 1200);
+      ctx.lineTo(860, 1200);
+      ctx.bezierCurveTo(1020, 1120, 1120, 1020, 1200, 860);
+      ctx.closePath();
+      ctx.fill();
+
+      // --- 3. Dot Grid Patterns ---
+      // Top Right Grid
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+          ctx.beginPath();
+          ctx.arc(1040 + i * 22, 60 + j * 22, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Bottom Left Grid
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+          ctx.beginPath();
+          ctx.arc(50 + i * 22, 940 + j * 22, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // --- 4. Header Section (OneQR Branding) ---
+      // Bracket logo
+      ctx.save();
+      ctx.strokeStyle = '#0052cc';
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const logoX = 405;
+      const logoY = 75;
+      const logoSize = 56;
+      const r = 12;
+      
+      // Top-Left bracket
+      ctx.beginPath(); ctx.moveTo(logoX + r, logoY); ctx.lineTo(logoX, logoY); ctx.lineTo(logoX, logoY + r); ctx.stroke();
+      // Top-Right bracket
+      ctx.beginPath(); ctx.moveTo(logoX + logoSize - r, logoY); ctx.lineTo(logoX + logoSize, logoY); ctx.lineTo(logoX + logoSize, logoY + r); ctx.stroke();
+      // Bottom-Left bracket
+      ctx.beginPath(); ctx.moveTo(logoX + r, logoY + logoSize); ctx.lineTo(logoX, logoY + logoSize); ctx.lineTo(logoX, logoY + logoSize - r); ctx.stroke();
+      // Bottom-Right bracket
+      ctx.beginPath(); ctx.moveTo(logoX + logoSize - r, logoY + logoSize); ctx.lineTo(logoX + logoSize, logoY + logoSize); ctx.lineTo(logoX + logoSize, logoY + logoSize - r); ctx.stroke();
+      
+      // Scanner inner squares
+      ctx.fillStyle = '#0052cc';
+      ctx.fillRect(logoX + 13, logoY + 13, 11, 11);
+      ctx.fillRect(logoX + 32, logoY + 13, 11, 11);
+      ctx.fillRect(logoX + 13, logoY + 32, 11, 11);
+      ctx.fillRect(logoX + 32, logoY + 32, 11, 11);
+      ctx.restore();
+
+      // Brand Text: OneQR
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 74px "Inter", "Helvetica Neue", sans-serif';
+      ctx.fillStyle = '#0a2540';
+      ctx.fillText('One', 478, 105);
+      ctx.fillStyle = '#0052cc';
+      ctx.fillText('QR', 612, 105);
+
+      // Subtitle
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 22px "Inter", sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.fillText('Scan • Connect • Discover', 600, 168);
+
+      // Headline Text: SCAN TO CONNECT WITH US
+      ctx.textAlign = 'center';
+      ctx.font = '900 82px "Inter", sans-serif';
+      ctx.fillStyle = '#0a2540';
+      ctx.fillText('SCAN TO CONNECT', 600, 265);
+      ctx.fillStyle = '#0052cc';
+      ctx.fillText('— WITH US! —', 600, 350);
+
+      // Banner Pill: One Scan. Unlimited Connections.
+      ctx.save();
+      ctx.fillStyle = '#093c8f';
+      ctx.beginPath();
+      ctx.roundRect(280, 400, 640, 64, 32);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 28px "Inter", sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('One Scan. Unlimited Connections.', 600, 442);
+
+      // --- 5. Centered QR Code Card with Shadow ---
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
+      ctx.shadowBlur = 32;
+      ctx.shadowOffsetY = 12;
+      
+      // White Board
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(355, 500, 490, 490, 42);
+      ctx.fill();
+      ctx.restore();
+
+      // Outer blue border
+      ctx.strokeStyle = '#0052cc';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(362, 507, 476, 476, 36);
+      ctx.stroke();
+
+      // Draw QR Image
+      ctx.drawImage(qrImg, 395, 540, 410, 410);
+
+      // Center Scan badge inside QR code
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(560, 705, 80, 80, 16);
+      ctx.fill();
+      // Little blue scanner icon
+      ctx.strokeStyle = '#0052cc';
+      ctx.lineWidth = 4.5;
+      ctx.lineCap = 'round';
+      const cX = 575;
+      const cY = 720;
+      const cSize = 50;
+      const cRad = 10;
+      ctx.beginPath(); ctx.moveTo(cX + cRad, cY); ctx.lineTo(cX, cY); ctx.lineTo(cX, cY + cRad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cX + cSize - cRad, cY); ctx.lineTo(cX + cSize, cY); ctx.lineTo(cX + cSize, cY + cRad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cX + cRad, cY + cSize); ctx.lineTo(cX, cY + cSize); ctx.lineTo(cX, cY + cSize - cRad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cX + cSize - cRad, cY + cSize); ctx.lineTo(cX + cSize, cY + cSize); ctx.lineTo(cX + cSize, cY + cSize - cRad); ctx.stroke();
+      ctx.fillStyle = '#0052cc';
+      ctx.fillRect(cX + 12, cY + 12, 8, 8);
+      ctx.fillRect(cX + 30, cY + 12, 8, 8);
+      ctx.fillRect(cX + 12, cY + 30, 8, 8);
+      ctx.fillRect(cX + 30, cY + 30, 8, 8);
+      ctx.restore();
+
+      // --- 6. Hand-Drawn Accent Arrows & Sparkles ---
+      ctx.strokeStyle = '#0052cc';
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = 'round';
+      
+      // Top Left sparkle
+      ctx.beginPath();
+      ctx.moveTo(330, 495); ctx.lineTo(345, 510);
+      ctx.moveTo(345, 485); ctx.lineTo(355, 500);
+      ctx.stroke();
+      
+      // Top Right sparkle
+      ctx.beginPath();
+      ctx.moveTo(870, 495); ctx.lineTo(855, 510);
+      ctx.moveTo(855, 485); ctx.lineTo(845, 500);
+      ctx.stroke();
+
+      // Left curved pointing arrow
+      ctx.beginPath();
+      ctx.arc(230, 660, 80, -Math.PI * 0.15, Math.PI * 0.12);
+      ctx.stroke();
+      ctx.fillStyle = '#0052cc';
+      ctx.beginPath();
+      ctx.moveTo(315, 692); ctx.lineTo(294, 686); ctx.lineTo(307, 705);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right curved pointing arrow
+      ctx.beginPath();
+      ctx.arc(970, 660, 80, Math.PI * 1.15, Math.PI * 0.88, true);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(885, 692); ctx.lineTo(906, 686); ctx.lineTo(893, 705);
+      ctx.closePath();
+      ctx.fill();
+
+      // --- 7. Left Column: Circular Blue Icons with Labels ---
+      const drawLeftIcon = (key, x, y) => {
+        const radius = 25;
+        ctx.save();
+        ctx.translate(x, y);
+        
+        ctx.fillStyle = '#093c8f';
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        if (key === 'whatsapp') {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(0, -1, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(-8, 4); ctx.lineTo(-11, 11); ctx.lineTo(-4, 8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#093c8f';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(1.5, 1.5, 5.5, -Math.PI * 0.4, Math.PI * 0.9);
+          ctx.stroke();
+        } 
+        else if (key === 'instagram') {
+          ctx.beginPath();
+          ctx.roundRect(-11, -11, 22, 22, 6);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0, 0, 5, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(5.5, -5.5, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        } 
+        else if (key === 'website') {
+          ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-11, 0); ctx.lineTo(11, 0); ctx.stroke();
+          ctx.beginPath(); ctx.ellipse(0, 0, 5, 11, 0, 0, Math.PI * 2); ctx.stroke();
+        } 
+        else if (key === 'email') {
+          ctx.beginPath();
+          ctx.roundRect(-11, -7, 22, 14, 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-11, -7); ctx.lineTo(0, 1); ctx.lineTo(11, -7);
+          ctx.stroke();
+        } 
+        else if (key === 'location') {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(0, -3, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(-6, -3);
+          ctx.quadraticCurveTo(-6, 3, 0, 10);
+          ctx.quadraticCurveTo(6, 3, 6, -3);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = '#093c8f';
+          ctx.beginPath(); ctx.arc(0, -3, 2.5, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+      };
+
+      const leftX = 135;
+      const leftItems = [
+        { key: 'whatsapp', label: 'WhatsApp', y: 550 },
+        { key: 'instagram', label: 'Instagram', y: 645 },
+        { key: 'website', label: 'Website', y: 740 },
+        { key: 'email', label: 'Email', y: 835 },
+        { key: 'location', label: 'Location', y: 930 }
+      ];
+
+      leftItems.forEach(item => {
+        drawLeftIcon(item.key, leftX, item.y);
+        ctx.fillStyle = '#0a2540';
+        ctx.font = 'bold 16px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.label, leftX, item.y + 40);
+      });
+
+      // --- 8. Right Column: Value Props Stack ---
+      const drawRightIcon = (key, x, y) => {
+        ctx.save();
+        ctx.translate(x, y);
+        if (key === 'lightning') {
+          ctx.fillStyle = '#0052cc';
+          ctx.beginPath();
+          ctx.moveTo(0, -18); ctx.lineTo(10, -3); ctx.lineTo(2, -3); ctx.lineTo(5, 18); ctx.lineTo(-10, 3); ctx.lineTo(-2, 3);
+          ctx.closePath();
+          ctx.fill();
+        } 
+        else if (key === 'shield') {
+          ctx.fillStyle = '#0052cc';
+          ctx.beginPath();
+          ctx.moveTo(0, -16);
+          ctx.quadraticCurveTo(12, -16, 12, -4);
+          ctx.quadraticCurveTo(12, 8, 0, 16);
+          ctx.quadraticCurveTo(-12, 8, -12, -4);
+          ctx.quadraticCurveTo(-12, -16, 0, -16);
+          ctx.fill();
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 2.8;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(-5, 0); ctx.lineTo(-1, 4); ctx.lineTo(5, -3);
+          ctx.stroke();
+        } 
+        else if (key === 'link') {
+          ctx.strokeStyle = '#0052cc';
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(4, -4); ctx.lineTo(-3, 3); ctx.stroke();
+          ctx.beginPath(); ctx.arc(3.5, 3.5, 6, -Math.PI * 0.25, Math.PI * 0.75); ctx.stroke();
+          ctx.beginPath(); ctx.arc(-3.5, -3.5, 6, Math.PI * 0.75, Math.PI * 1.75); ctx.stroke();
+        } 
+        else if (key === 'user') {
+          ctx.fillStyle = '#0052cc';
+          ctx.beginPath(); ctx.arc(0, -7, 6.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(0, 12, 13, Math.PI, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+      };
+
+      const rightX = 1065;
+      const rightItems = [
+        { key: 'lightning', lines: ['INSTANT', 'ACCESS'], y: 550 },
+        { key: 'shield', lines: ['SAFE &', 'SECURE'], y: 645 },
+        { key: 'link', lines: ['ALL LINKS', 'IN ONE PLACE'], y: 740 },
+        { key: 'user', lines: ['TRUSTED', 'BY YOU'], y: 835 }
+      ];
+
+      rightItems.forEach((item, index) => {
+        drawRightIcon(item.key, rightX, item.y);
+        ctx.fillStyle = '#0a2540';
+        ctx.font = 'bold 15px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.lines[0], rightX, item.y + 36);
+        ctx.fillText(item.lines[1], rightX, item.y + 52);
+
+        // Separator line below value prop (except last one)
+        if (index < rightItems.length - 1) {
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(990, item.y + 70);
+          ctx.lineTo(1140, item.y + 70);
+          ctx.stroke();
+        }
+      });
+
+      // --- 9. Thank You & Appreciation Bottom Text ---
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#0052cc';
+      ctx.font = 'italic bold 44px Georgia, serif';
+      ctx.fillText('Thank You! ♡', 600, 1032);
+      ctx.fillStyle = '#475569';
+      ctx.font = 'bold 24px "Inter", sans-serif';
+      ctx.fillText('We appreciate your support.', 600, 1072);
+
+      // --- 10. Footer Section (Branded Signature & Scan banner) ---
+      // Developed by DTech signature line
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.fillText('Developed by DTech', 600, 1108);
+
+      // Dark Blue Banner
+      ctx.fillStyle = '#093c8f';
+      ctx.fillRect(0, 1125, 1200, 75);
+
+      // Mobile phone icon circle
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(280, 1162, 22, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Phone graphic path
+      ctx.strokeStyle = '#093c8f';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(271, 1149, 18, 26, 4);
+      ctx.stroke();
+      ctx.fillStyle = '#093c8f';
+      ctx.beginPath();
+      ctx.arc(280, 1171, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#093c8f';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(273, 1152); ctx.lineTo(287, 1152);
+      ctx.moveTo(273, 1168); ctx.lineTo(287, 1168);
+      ctx.stroke();
+
+      // Scan connect grow banner texts
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px "Inter", sans-serif';
+      ctx.fillText('SCAN • CONNECT • GROW', 320, 1172);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.font = 'bold 20px "Inter", sans-serif';
+      ctx.fillText('— Stay connected. Stay ahead.', 675, 1171);
+
+      // Trigger high-res image download
+      try {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `oneqr_flyer_${qrId}_${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    };
+    qrImg.onerror = (err) => reject(err);
+    qrImg.src = qrImageSrc;
+  });
+};
 
 // Dynamic file preview helper component (handles ObjectURL memory leak safety)
 function FilePreview({ doc }) {
@@ -102,9 +573,118 @@ function FilePreview({ doc }) {
   );
 }
 
+// Local helper component for rendering allocated QR cards
+// Local helper component for rendering allocated QR cards
+function AllocatedQrCard({ qr, onManage }) {
+  const [isCopied, setIsCopied] = useState(false);
+  const cleanColor = '000000'; // Default black color
+  const qrGeneratedUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=${cleanColor}&data=${encodeURIComponent(qr.qrUrl)}`;
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(qr.qrUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+    try {
+      await downloadFlyer(qr.qrUrl, qr.qrId);
+    } catch (err) {
+      window.open(qrGeneratedUrl, '_blank');
+    }
+  };
+
+  return (
+    <div 
+      onClick={onManage}
+      className="p-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-blue-500/50 dark:hover:border-blue-500/50 rounded-2xl flex flex-col items-center justify-between gap-4 transition-all duration-300 group shadow-sm cursor-pointer hover:shadow-md"
+    >
+      <div className="w-full flex items-center justify-between gap-2">
+        <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-blue-600 dark:text-blue-400">
+          ID: {qr.qrId}
+        </span>
+        <span className="px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-[9px] font-bold text-emerald-400">
+          Active
+        </span>
+      </div>
+
+      <div className="relative p-3 bg-white rounded-2xl shadow-md transition-transform duration-300 group-hover:scale-102">
+        <img 
+          src={qrGeneratedUrl} 
+          alt={`QR Code ${qr.qrId}`} 
+          className="w-32 h-32 select-none"
+        />
+        <div className="absolute inset-0 bg-blue-500/5 rounded-2xl border border-blue-500/10 pointer-events-none" />
+      </div>
+
+      <div className="w-full space-y-3">
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Redirect Destination</span>
+          <a 
+            href={qr.qrUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline truncate block"
+          >
+            {qr.qrUrl}
+          </a>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleCopy}
+            className="flex-1 py-2 px-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white hover:text-slate-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            {isCopied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="text-emerald-500">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Link2 className="w-3.5 h-3.5" />
+                <span>Copy Link</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleDownload}
+            className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-transparent dark:border-white/10 cursor-pointer hover:from-blue-500 hover:to-indigo-500"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download</span>
+          </button>
+        </div>
+
+        <button
+          onClick={onManage}
+          className="w-full py-2.5 px-3 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer border border-transparent dark:border-white/10 shadow-sm"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Manage Profile</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [subView, setSubView] = useState('overview'); // 'overview' | 'manage-qr'
+  const [allocatedQrs, setAllocatedQrs] = useState([]);
+  const [isLoadingQrs, setIsLoadingQrs] = useState(false);
+
+  // QR Claiming & Scanner States
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [claimTab, setClaimTab] = useState('scan'); // 'scan' | 'manual'
+  const [manualQrId, setManualQrId] = useState('');
+  const [claimStatus, setClaimStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
+  const [claimMessage, setClaimMessage] = useState('');
+  const [cameraError, setCameraError] = useState('');
+  const [activeQrId, setActiveQrId] = useState(null);
 
   // Payment integration states
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
@@ -514,20 +1094,186 @@ export default function Dashboard() {
     return cleanName.slice(0, 2).toUpperCase();
   };
 
-  // Load current user details and fetch profile
+  const parseQrIdFromScannedText = (text) => {
+    if (!text) return '';
+    try {
+      let cleanText = text.trim();
+      if (!cleanText) return '';
+      
+      if (cleanText.toLowerCase().startsWith('http://') || cleanText.toLowerCase().startsWith('https://')) {
+        const url = new URL(cleanText);
+        const parts = url.pathname.split('/').filter(Boolean);
+        if (parts.length > 0) {
+          return parts[parts.length - 1];
+        }
+      }
+      
+      if (cleanText.includes('/')) {
+        const parts = cleanText.split('/').filter(Boolean);
+        if (parts.length > 0) {
+          return parts[parts.length - 1];
+        }
+      }
+      
+      return cleanText;
+    } catch (e) {
+      console.error("Error parsing QR ID from scan:", e);
+      return text.trim();
+    }
+  };
+
+  const handleQrClaim = async (inputVal) => {
+    const qrId = parseQrIdFromScannedText(inputVal);
+    if (!qrId) {
+      setClaimStatus('error');
+      setClaimMessage('Invalid QR Code input.');
+      return;
+    }
+
+    setClaimStatus('loading');
+    setClaimMessage('Verifying QR Code status...');
+
+    try {
+      const response = await apiRequest('/profile/qrs/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ qrId })
+      });
+
+      if (response.status === 'success') {
+        setClaimStatus('success');
+        setClaimMessage(response.message || 'QR Code successfully allocated!');
+        
+        // Refresh the list of allocated QR codes
+        const qrRes = await apiRequest('/profile/qrs', { method: 'GET' });
+        if (qrRes.status === 'success' && qrRes.data?.qrs) {
+          setAllocatedQrs(qrRes.data.qrs);
+        }
+
+        setTimeout(() => {
+          setShowClaimModal(false);
+          // reset state
+          setClaimStatus('idle');
+          setClaimMessage('');
+          setManualQrId('');
+        }, 2000);
+      } else {
+        setClaimStatus('error');
+        setClaimMessage(response.message || 'Failed to claim QR code.');
+      }
+    } catch (err) {
+      console.error('Error claiming QR code:', err);
+      setClaimStatus('error');
+      setClaimMessage(err.message || 'An error occurred while claiming the QR code.');
+    }
+  };
+
+  // QR Code camera scanning lifecycle
+  useEffect(() => {
+    let html5QrcodeInstance = null;
+
+    if (showClaimModal && claimTab === 'scan') {
+      setCameraError('');
+      const timer = setTimeout(() => {
+        const scannerId = "qr-reader-container";
+        const container = document.getElementById(scannerId);
+        if (!container) {
+          console.error("Scanner element not found in DOM");
+          return;
+        }
+
+        html5QrcodeInstance = new Html5Qrcode(scannerId);
+        html5QrcodeInstance.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          (decodedText) => {
+            handleQrClaim(decodedText);
+            if (html5QrcodeInstance && html5QrcodeInstance.isScanning) {
+              html5QrcodeInstance.stop().catch(err => console.error("Error stopping scanner:", err));
+            }
+          },
+          (errorMessage) => {
+            // Verbose error, ignore
+          }
+        ).catch(err => {
+          console.error("Camera access/init error:", err);
+          setCameraError("Camera access denied or device is not available. Please verify permissions.");
+        });
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        if (html5QrcodeInstance && html5QrcodeInstance.isScanning) {
+          html5QrcodeInstance.stop()
+            .then(() => {
+              html5QrcodeInstance.clear();
+            })
+            .catch(err => console.error("Error clearing scanner on unmount:", err));
+        }
+      };
+    }
+  }, [showClaimModal, claimTab]);
+
+  // Load current user details, fetch profile, and allocated QR codes
+  const handleSelectAndManageQr = async (qrId) => {
+    setActiveQrId(qrId);
+    try {
+      const response = await apiRequest(`/profile?qrId=${qrId}`, { method: 'GET' });
+      if (response.status === 'success' && response.data?.profile) {
+        const profile = response.data.profile;
+        setProfileLogo(profile.profileLogo || '');
+        setHeaderColor(profile.headerColor || 'gradient');
+        setQrUrl(profile.qrUrl || `https://oneqr.dtechcode.in/${qrId}`);
+        setQrColor(profile.qrColor || '000000');
+        setProfileCompany(profile.profileCompany || '');
+        setProfileName(profile.profileName || '');
+        setProfileTitle(profile.profileTitle || '');
+        setProfileAddress(profile.profileAddress || '');
+        setProfileBio(profile.profileBio || '');
+        setProfileEmail(profile.profileEmail || '');
+        setProfilePhone(profile.profilePhone || profile.phone || '');
+        setProfileWebsite(profile.profileWebsite || '');
+        setSocialFacebook(profile.socialFacebook || '');
+        setSocialGoogle(profile.socialGoogle || '');
+        setSocialInstagram(profile.socialInstagram || '');
+        setSocialYoutube(profile.socialYoutube || '');
+        setSocialLinkedin(profile.socialLinkedin || '');
+        setSocialX(profile.socialX || '');
+        setSocialWhatsapp(profile.socialWhatsapp || '');
+        setSocialUPI(profile.socialUPI || '');
+        if (profile.socialOrder && profile.socialOrder.length > 0) {
+          setSocialOrder(profile.socialOrder);
+        }
+        setCustomLinks(profile.customLinks || []);
+        setProfileDocuments(profile.profileDocuments || []);
+
+        setSubView('manage-qr');
+        window.location.hash = '#manage-qr';
+      }
+    } catch (err) {
+      console.error('Error fetching profile settings:', err);
+    }
+  };
+
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (user) {
       setCurrentUser(user);
       
-      const fetchProfile = async () => {
+      const fetchProfile = async (targetQrId) => {
         try {
-          const response = await apiRequest('/profile', { method: 'GET' });
+          const url = targetQrId ? `/profile?qrId=${targetQrId}` : '/profile';
+          const response = await apiRequest(url, { method: 'GET' });
           if (response.status === 'success' && response.data?.profile) {
             const profile = response.data.profile;
             setProfileLogo(profile.profileLogo || '');
             setHeaderColor(profile.headerColor || 'gradient');
-            setQrUrl(profile.qrUrl || 'https://oneqr.co/user/profile');
+            setQrUrl(profile.qrUrl || (targetQrId ? `https://oneqr.dtechcode.in/${targetQrId}` : 'https://oneqr.co/user/profile'));
             setQrColor(profile.qrColor || '000000');
             setProfileCompany(profile.profileCompany || '');
             setProfileName(profile.profileName || '');
@@ -555,8 +1301,32 @@ export default function Dashboard() {
           console.error('Error fetching profile from server:', err);
         }
       };
+
+      const fetchQrsAndProfile = async () => {
+        setIsLoadingQrs(true);
+        try {
+          const response = await apiRequest('/profile/qrs', { method: 'GET' });
+          if (response.status === 'success' && response.data?.qrs) {
+            const qrs = response.data.qrs;
+            setAllocatedQrs(qrs);
+            if (qrs.length > 0) {
+              setActiveQrId(qrs[0].qrId);
+              fetchProfile(qrs[0].qrId);
+            } else {
+              fetchProfile();
+            }
+          } else {
+            fetchProfile();
+          }
+        } catch (err) {
+          console.error('Error fetching assigned QRs:', err);
+          fetchProfile();
+        } finally {
+          setIsLoadingQrs(false);
+        }
+      };
       
-      fetchProfile();
+      fetchQrsAndProfile();
     }
   }, []);
 
@@ -619,15 +1389,8 @@ export default function Dashboard() {
 
   const handleDownloadQr = async () => {
     try {
-      const response = await fetch(qrGeneratedUrl);
-      const blob = await response.blob();
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `oneqr_code_${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (e) {
+      await downloadFlyer(qrUrl, activeQrId || 'code');
+    } catch (err) {
       window.open(qrGeneratedUrl, '_blank');
     }
   };
@@ -757,6 +1520,8 @@ export default function Dashboard() {
           url: d.url || '',
           publicId: d.publicId || '',
         })),
+        customLinks: customLinks,
+        slug: activeQrId,
       };
 
       // 3. Save to MongoDB
@@ -764,6 +1529,16 @@ export default function Dashboard() {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
+
+      // Refresh allocated QRs so list matches database
+      try {
+        const response = await apiRequest('/profile/qrs', { method: 'GET' });
+        if (response.status === 'success' && response.data?.qrs) {
+          setAllocatedQrs(response.data.qrs);
+        }
+      } catch (qrRefreshErr) {
+        console.error('Error refreshing QRs after profile save:', qrRefreshErr);
+      }
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
@@ -879,8 +1654,21 @@ export default function Dashboard() {
                   Monitor scans, check connected hardware devices, and manage your dynamic OneQR profiles.
                 </p>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+              <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+                <button
+                  onClick={() => {
+                    setClaimStatus('idle');
+                    setClaimMessage('');
+                    setManualQrId('');
+                    setClaimTab('scan');
+                    setShowClaimModal(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#2563eb] text-white font-bold text-xs hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-transparent dark:border-white/10 flex items-center gap-2 cursor-pointer shadow-md"
+                >
+                  <Scan className="w-4 h-4" />
+                  <span>Claim / Scan QR</span>
+                </button>
+                <span className="px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Connected to OneQR DB
                 </span>
@@ -906,95 +1694,63 @@ export default function Dashboard() {
 
         {/* Main Work Area based on subView */}
         {subView === 'overview' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Manage QR Option (Large, Beautiful, Premium Card) - Span 7 */}
-            <div className="lg:col-span-7 p-8 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-blue-500/30 transition-all duration-300">
-              {/* Background gradient lights */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent rounded-full blur-3xl pointer-events-none transition-all duration-500 group-hover:from-blue-600/20" />
+          <div className="space-y-6">
+            {/* Allocated QR Codes Section */}
+            <div className="glass border border-slate-200 dark:border-white/10 rounded-3xl p-8 space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent rounded-full blur-3xl pointer-events-none" />
               
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white">
-                    <QrCode className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Manage Dynamic QR & Profile</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-xs mt-1">Configure your destination links and digital business card themes.</p>
-                  </div>
-                </div>
-
-                <div className="h-px bg-slate-200 dark:bg-white/5" />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Live QR Redirection</span>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">Update the landing URL at any time without changing or re-printing the QR code.</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">{"NFC / Digital Profile"}</span>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">Build an elegant responsive micro-website for networking, social channels, and lead capture.</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">Responsive Simulator</span>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">Preview changes in real-time inside the interactive visual mobile phone simulator.</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Harmonious Themes</span>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">Switch styles instantly with pre-curated color systems like Midnight, Sunset, and Cyber.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex items-center justify-between gap-4">
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
-                  No code required
-                </span>
-                {currentUser?.subscriptionStatus === 'active' ? (
-                  <button
-                    onClick={() => { window.location.hash = '#manage-qr'; }}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm hover:from-blue-500 hover:to-indigo-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-white/10 flex items-center gap-2 cursor-pointer"
-                  >
-                    <span>Manage QR & Profile</span>
-                    <ArrowUpRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => { window.location.hash = '#billing'; }}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 text-white font-bold text-sm hover:from-amber-500 hover:to-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition-all border border-white/10 flex items-center gap-2 cursor-pointer shadow-lg shadow-orange-500/10"
-                  >
-                    <span>Unlock with a Premium Plan</span>
-                    <ArrowUpRight className="w-4 h-4 animate-pulse" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column (NFC Cards & Standees) - Span 5 */}
-            <div className="lg:col-span-5 p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <CreditCard className="w-5 h-5" />
-                </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">NFC Cards & Standees</h3>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Manage connected physical accessories</span>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <QrCode className="w-6 h-6 text-blue-500" />
+                    Your Allocated QR Codes
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1">
+                    Manage and download the dynamic QR codes assigned to your workspace.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                    {allocatedQrs.length} Total QR{allocatedQrs.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {devices.map((dev) => (
-                  <div key={dev.id} className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl flex items-center justify-between hover:border-slate-350 dark:hover:border-white/10 transition-colors">
-                    <div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white block">{dev.name}</span>
-                      <span className="text-[9px] font-bold text-slate-500 block uppercase tracking-wider mt-1">{dev.type} ({dev.id})</span>
+              <div className="h-px bg-slate-200 dark:bg-white/5" />
+
+              {isLoadingQrs ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="p-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl animate-pulse space-y-4">
+                      <div className="h-4 bg-slate-300 dark:bg-white/10 rounded w-1/3" />
+                      <div className="h-32 bg-slate-300 dark:bg-white/10 rounded-xl w-32 mx-auto" />
+                      <div className="h-8 bg-slate-300 dark:bg-white/10 rounded w-full" />
                     </div>
-                    <span className="px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-[9px] font-bold text-emerald-400">
-                      {dev.status}
-                    </span>
+                  ))}
+                </div>
+              ) : allocatedQrs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                    <QrCode className="w-8 h-8 opacity-45 animate-pulse" />
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-1 max-w-sm">
+                    <h4 className="font-bold text-slate-800 dark:text-white text-base">No QR Codes Assigned</h4>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+                      You don't have any dynamic QR codes assigned to your account yet. Please contact the administrator to assign one.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {allocatedQrs.map((qr) => (
+                    <AllocatedQrCard 
+                      key={qr._id} 
+                      qr={qr} 
+                      onManage={() => handleSelectAndManageQr(qr.qrId)} 
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ) : subView === 'billing' ? (
@@ -1016,7 +1772,15 @@ export default function Dashboard() {
                         <User className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white text-lg">Digital Profile Builder</h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-slate-900 dark:text-white text-lg">Digital Profile Builder</h3>
+                          {activeQrId && (
+                            <span className="px-2 py-0.5 text-[10px] font-extrabold bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center gap-1">
+                              <QrCode className="w-3.5 h-3.5" />
+                              QR: {activeQrId}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-slate-500 dark:text-slate-400">Select active themes and enter contact info</span>
                       </div>
                     </div>
@@ -1886,6 +2650,161 @@ export default function Dashboard() {
           </motion.div>
         </div>
       )}
+
+      {/* Claim / Allocate New QR Code Modal */}
+      <AnimatePresence>
+        {showClaimModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Overlay background */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (claimStatus !== 'loading') setShowClaimModal(false);
+              }}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+
+            {/* Modal Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-6"
+            >
+              {/* Background light gradient */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-600/15 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Scan className="w-5 h-5 text-blue-500" />
+                    Claim New QR Code
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Link a dynamic QR code to your workspace.
+                  </p>
+                </div>
+                <button 
+                  disabled={claimStatus === 'loading'}
+                  onClick={() => setShowClaimModal(false)}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-5 h-5 rotate-45" />
+                </button>
+              </div>
+
+              {/* Tabs */}
+              {claimStatus !== 'loading' && claimStatus !== 'success' && (
+                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                  <button
+                    onClick={() => {
+                      setClaimTab('scan');
+                      setClaimStatus('idle');
+                      setClaimMessage('');
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      claimTab === 'scan' 
+                        ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-350'
+                    }`}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    Scan QR Code
+                  </button>
+                  <button
+                    onClick={() => {
+                      setClaimTab('manual');
+                      setClaimStatus('idle');
+                      setClaimMessage('');
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      claimTab === 'manual' 
+                        ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-350'
+                    }`}
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    Manual Entry
+                  </button>
+                </div>
+              )}
+
+              {/* Content Area based on Tab */}
+              <div className="space-y-4">
+                {claimStatus === 'loading' && (
+                  <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                    <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{claimMessage}</p>
+                  </div>
+                )}
+
+                {claimStatus === 'success' && (
+                  <div className="flex flex-col items-center justify-center py-8 space-y-3 text-center">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                      <Check className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-extrabold text-slate-900 dark:text-white text-base">Allocation Successful</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">{claimMessage}</p>
+                  </div>
+                )}
+
+                {claimStatus !== 'loading' && claimStatus !== 'success' && (
+                  <>
+                    {claimTab === 'scan' ? (
+                      <div className="space-y-4">
+                        <div className="relative w-full aspect-square max-w-[280px] mx-auto overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-black flex items-center justify-center">
+                          <div id="qr-reader-container" className="w-full h-full" />
+                          {cameraError && (
+                            <div className="absolute inset-0 p-6 flex flex-col items-center justify-center text-center bg-slate-950/90 text-white z-10 space-y-3">
+                              <Smartphone className="w-10 h-10 text-red-500 opacity-80" />
+                              <p className="text-[11px] text-slate-300 font-semibold leading-relaxed">{cameraError}</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center leading-relaxed max-w-xs mx-auto">
+                          Point your device camera at the dynamic OneQR code.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 text-left">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">QR Code ID</label>
+                          <input
+                            type="text"
+                            value={manualQrId}
+                            onChange={(e) => setManualQrId(e.target.value)}
+                            placeholder="e.g. 3szp61st"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:bg-white dark:focus:bg-slate-950 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={!manualQrId.trim()}
+                          onClick={() => handleQrClaim(manualQrId)}
+                          className="w-full py-3 rounded-xl bg-[#2563eb] text-white font-bold text-xs hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-transparent dark:border-white/10 flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span>Verify & Claim QR</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Error State Banner */}
+                    {claimStatus === 'error' && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 rounded-xl text-center text-xs font-bold leading-normal">
+                        {claimMessage}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

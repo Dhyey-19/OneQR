@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Phone, ArrowRight, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/authService';
@@ -122,6 +122,87 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     } catch (error) {
       console.error('Signup error:', error);
       setFeedbackMsg(error.message || 'An error occurred during registration. Please try again.');
+    }
+  };
+
+  // Initialize and render standard Google Sign-in button
+  useEffect(() => {
+    const initializeGoogleSignIn = () => {
+      if (typeof window === 'undefined' || !window.google || !window.google.accounts) return;
+
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredentialResponse,
+        });
+
+        // Render the official Google button inside the Login tab container
+        const loginContainer = document.getElementById('google-signin-btn-login');
+        if (loginContainer) {
+          window.google.accounts.id.renderButton(loginContainer, {
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'rectangular',
+            width: loginContainer.clientWidth || 360,
+          });
+        }
+
+        // Render the official Google button inside the Signup tab container
+        const signupContainer = document.getElementById('google-signin-btn-signup');
+        if (signupContainer) {
+          window.google.accounts.id.renderButton(signupContainer, {
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'rectangular',
+            width: signupContainer.clientWidth || 360,
+          });
+        }
+      } catch (err) {
+        console.error('Error initializing Google GSI:', err);
+      }
+    };
+
+    if (window.google && window.google.accounts) {
+      initializeGoogleSignIn();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google && window.google.accounts) {
+          initializeGoogleSignIn();
+          clearInterval(interval);
+        }
+      }, 300);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
+
+  // Handles authentic credentials returned by Google IDP
+  const handleGoogleCredentialResponse = async (response) => {
+    const credential = response.credential;
+    if (!credential) {
+      setFeedbackMsg('Google authentication did not return a valid credential.');
+      setStatus('error');
+      return;
+    }
+
+    setStatus('loading');
+    setFeedbackMsg('');
+
+    try {
+      const data = await authService.googleLogin(credential);
+
+      setStatus('success');
+      setFeedbackMsg(data.message || 'Successfully signed up and logged in with Google!');
+
+      setTimeout(() => {
+        onClose();
+      }, 1800);
+    } catch (error) {
+      console.error('Google OAuth error:', error);
+      setFeedbackMsg(error.message || 'Google authentication failed. Please try again.');
       setStatus('error');
     }
   };
@@ -293,6 +374,23 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                     </>
                   )}
                 </button>
+
+                {/* Divider */}
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+                  <span className="flex-shrink mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-wider">or</span>
+                  <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+                </div>
+
+                {/* Google Sign In Button */}
+                <div className="flex flex-col gap-2 w-full items-center">
+                  <div id="google-signin-btn-login" className="w-full flex justify-center min-h-[44px]"></div>
+                  {import.meta.env.VITE_GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' && (
+                    <div className="text-[10px] text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-center mt-1 font-medium max-w-xs">
+                      Please configure <code>VITE_GOOGLE_CLIENT_ID</code> in <code>client/.env</code>.
+                    </div>
+                  )}
+                </div>
               </motion.form>
             ) : (
               <motion.form
@@ -398,6 +496,23 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                     </>
                   )}
                 </button>
+
+                {/* Divider */}
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+                  <span className="flex-shrink mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-wider">or</span>
+                  <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+                </div>
+
+                {/* Google Sign In Button */}
+                <div className="flex flex-col gap-2 w-full items-center">
+                  <div id="google-signin-btn-signup" className="w-full flex justify-center min-h-[44px]"></div>
+                  {import.meta.env.VITE_GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' && (
+                    <div className="text-[10px] text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-center mt-1 font-medium max-w-xs">
+                      Please configure <code>VITE_GOOGLE_CLIENT_ID</code> in <code>client/.env</code>.
+                    </div>
+                  )}
+                </div>
               </motion.form>
             )}
           </AnimatePresence>
