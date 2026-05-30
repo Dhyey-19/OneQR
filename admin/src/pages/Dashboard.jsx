@@ -216,8 +216,8 @@ export default function Dashboard({ onLogout }) {
               <div className="section-header">
                 <h2 className="section-title">Registered Accounts</h2>
                 
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <div className="input-wrapper" style={{ minWidth: '240px' }}>
+                <div className="section-header-actions">
+                  <div className="input-wrapper">
                     <input
                       type="text"
                       placeholder="Search phone number..."
@@ -251,96 +251,51 @@ export default function Dashboard({ onLogout }) {
                     <p>No user accounts found matching your query.</p>
                   </div>
                 ) : (
-                  <>
-                    {/* Desktop Table View */}
-                    <table className="admin-table desktop-only">
-                      <thead>
-                        <tr>
-                          <th>Mobile Number</th>
-                          <th>Plan Level</th>
-                          <th>Status</th>
-                          <th>Expires At</th>
-                          <th>Profiles Created</th>
-                          <th>Registration Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredUsers.map((user) => (
-                          <tr key={user.id}>
-                            <td>
-                              <div className="user-phone-cell">
-                                <div className="user-avatar">
-                                  {user.phone ? user.phone.slice(-2) : 'U'}
-                                </div>
-                                <span>{user.phone}</span>
-                              </div>
-                            </td>
-                            <td>
-                              <span className={`badge ${getPlanBadgeClass(user.plan)}`}>
-                                {formatPlanName(user.plan)}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`badge ${user.subscriptionStatus === 'active' ? 'badge-status-active' : 'badge-status-inactive'}`}>
-                                {user.subscriptionStatus || 'inactive'}
-                              </span>
-                            </td>
-                            <td style={{ color: user.subscriptionExpiresAt ? '#fff' : 'var(--text-muted)' }}>
-                              {user.subscriptionExpiresAt ? formatDate(user.subscriptionExpiresAt) : 'Lifetime Free'}
-                            </td>
-                            <td style={{ fontWeight: '600', paddingLeft: '32px' }}>
-                              {user.profilesCount || 0}
-                            </td>
-                            <td style={{ color: 'var(--text-muted)' }}>
-                              {formatDate(user.createdAt)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-
-                    {/* Mobile Cards View */}
-                    <div className="mobile-only mobile-cards-grid">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Mobile Number</th>
+                        <th>Plan Level</th>
+                        <th>Status</th>
+                        <th>Expires At</th>
+                        <th>Profiles Created</th>
+                        <th>Registration Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                       {filteredUsers.map((user) => (
-                        <div key={user.id} className="mobile-user-card glass-panel">
-                          <div className="mobile-user-header">
+                        <tr key={user.id}>
+                          <td data-label="Mobile Number">
                             <div className="user-phone-cell">
                               <div className="user-avatar">
                                 {user.phone ? user.phone.slice(-2) : 'U'}
                               </div>
-                              <span className="font-bold text-white">{user.phone}</span>
+                              <span style={{ fontWeight: '600' }}>{user.phone}</span>
                             </div>
+                          </td>
+                          <td data-label="Plan Level">
                             <span className={`badge ${getPlanBadgeClass(user.plan)}`}>
                               {formatPlanName(user.plan)}
                             </span>
-                          </div>
-                          
-                          <div className="mobile-user-details">
-                            <div className="detail-row">
-                              <span className="detail-label">Status</span>
-                              <span className={`badge ${user.subscriptionStatus === 'active' ? 'badge-status-active' : 'badge-status-inactive'}`}>
-                                {user.subscriptionStatus || 'inactive'}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">Expires At</span>
-                              <span className="detail-val" style={{ color: user.subscriptionExpiresAt ? '#fff' : 'var(--text-muted)' }}>
-                                {user.subscriptionExpiresAt ? formatDate(user.subscriptionExpiresAt) : 'Lifetime Free'}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">Profiles Created</span>
-                              <span className="detail-val font-bold">{user.profilesCount || 0}</span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">Registration Date</span>
-                              <span className="detail-val text-sm">{formatDate(user.createdAt)}</span>
-                            </div>
-                          </div>
-                        </div>
+                          </td>
+                          <td data-label="Status">
+                            <span className={`badge ${user.subscriptionStatus === 'active' ? 'badge-status-active' : 'badge-status-inactive'}`}>
+                              {user.subscriptionStatus || 'inactive'}
+                            </span>
+                          </td>
+                          <td data-label="Expires At" style={{ color: user.subscriptionExpiresAt ? '#fff' : 'var(--text-muted)' }}>
+                            {user.subscriptionExpiresAt ? formatDate(user.subscriptionExpiresAt) : 'Lifetime Free'}
+                          </td>
+                          <td data-label="Profiles Created" style={{ fontWeight: '600' }}>
+                            {user.profilesCount || 0}
+                          </td>
+                          <td data-label="Registration Date" style={{ color: 'var(--text-muted)' }}>
+                            {formatDate(user.createdAt)}
+                          </td>
+                        </tr>
                       ))}
-                    </div>
-                  </>
+                    </tbody>
+                  </table>
                 )}
               </div>
             </section>

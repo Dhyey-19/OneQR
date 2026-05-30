@@ -20,7 +20,6 @@ router.post("/contact", contactController.sendContactEmail);
 
 router.post("/auth/signup", validate(UserSignupDto), authController.signup);
 router.post("/auth/login", validate(UserLoginDto), authController.login);
-router.post("/auth/google-login", authController.googleLogin);
 router.get("/auth/me", protect, authController.getProfile);
 
 // Profile & QR management routes

@@ -37,37 +37,6 @@ export const authService = {
   },
 
   /**
-   * Performs Google authentication / registration
-   * @param {string} googleToken - The Google ID Token
-   * @returns {Promise<Object>} containing logged-in user details
-   */
-  async googleLogin(googleToken) {
-    const responseData = await apiRequest('/auth/google-login', {
-      method: 'POST',
-      body: JSON.stringify({ token: googleToken }),
-    });
-
-    if (responseData.status === 'success' && responseData.data) {
-      const { user, token } = responseData.data;
-      
-      // Store session details
-      localStorage.setItem('oneqr_token', token);
-      localStorage.setItem('oneqr_current_user', JSON.stringify(user));
-
-      // Notify other modules of session changes
-      window.dispatchEvent(new Event('auth-state-change'));
-      
-      return {
-        user,
-        token,
-        message: responseData.message,
-      };
-    }
-
-    throw new Error(responseData.message || 'Google Authentication failed.');
-  },
-
-  /**
    * Performs user signup registration API request
    * @param {string} phone 
    * @param {string} password 

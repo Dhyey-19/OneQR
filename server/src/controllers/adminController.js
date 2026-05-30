@@ -344,3 +344,71 @@ exports.assignQrCode = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Delete a specific QR code
+ * @route   DELETE /api/admin/qrs/:id
+ * @access  Private (Admin)
+ */
+exports.deleteQrCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const qr = await OneQr.findById(id);
+    if (!qr) {
+      return res.status(404).json({
+        status: "error",
+        message: "QR code not found.",
+      });
+    }
+    
+    // Unlink from user profile if matched
+    if (qr.assignedTo) {
+      const profile = await Profile.findOne({ user: qr.assignedTo, slug: qr.qrId });
+      if (profile) {
+        profile.slug = null;
+        profile.qrUrl = null;
+        await profile.save();
+      }
+    }
+
+    await OneQr.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      status: "success",
+      message: "QR code successfully deleted.",
+    });
+  } catch (error) {
+    console.error("Delete QR code error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while deleting QR code.",
+    });
+  }
+};
+
+/**
+ * @desc    Delete all generated QR codes
+ * @route   DELETE /api/admin/qrs
+ * @access  Private (Admin)
+ */
+exports.deleteAllQrCodes = async (req, res) => {
+  try {
+    // Reset all profiles linked to QR codes by nullifying slug and qrUrl
+    await Profile.updateMany({}, { $set: { slug: null, qrUrl: null } });
+    
+    // Delete all QR codes
+    await OneQr.deleteMany({});
+
+    return res.status(200).json({
+      status: "success",
+      message: "All QR codes successfully deleted.",
+    });
+  } catch (error) {
+    console.error("Delete all QR codes error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while deleting all QR codes.",
+    });
+  }
+};
+

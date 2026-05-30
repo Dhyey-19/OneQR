@@ -13,5 +13,7 @@ router.get("/users", adminProtect, adminController.getAllUsers);
 router.get("/qrs", adminProtect, adminController.getQrCodes);
 router.post("/qrs/generate", adminProtect, adminController.generateQrCode);
 router.post("/qrs/assign", adminProtect, adminController.assignQrCode);
+router.delete("/qrs/:id", adminProtect, adminController.deleteQrCode);
+router.delete("/qrs", adminProtect, adminController.deleteAllQrCodes);
 
 module.exports = router;

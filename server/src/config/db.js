@@ -32,11 +32,19 @@ const connectDB = async () => {
       const collections = await db.listCollections({ name: 'PROFILES' }).toArray();
       if (collections.length > 0) {
         const indexes = await db.collection('PROFILES').indexes();
+        
         const userIndex = indexes.find(idx => idx.name === 'user_1' && idx.unique);
         if (userIndex) {
           console.log("Dropping old unique index 'user_1' on PROFILES...");
           await db.collection('PROFILES').dropIndex('user_1');
           console.log("Dropped old unique index successfully.");
+        }
+
+        const userSlugIndex = indexes.find(idx => idx.name === 'user_1_slug_1');
+        if (userSlugIndex && !userSlugIndex.partialFilterExpression) {
+          console.log("Dropping old unique index 'user_1_slug_1' on PROFILES to update index configuration...");
+          await db.collection('PROFILES').dropIndex('user_1_slug_1');
+          console.log("Dropped old unique index user_1_slug_1 successfully.");
         }
       }
     } catch (indexErr) {

@@ -128,6 +128,14 @@ const ProfileSchema = new mongoose.Schema(
   }
 );
 
-ProfileSchema.index({ user: 1, slug: 1 }, { unique: true });
+ProfileSchema.index(
+  { user: 1, slug: 1 },
+  { 
+    unique: true, 
+    partialFilterExpression: { 
+      slug: { $type: "string", $gt: "" } 
+    } 
+  }
+);
 
 module.exports = mongoose.model("Profile", ProfileSchema);

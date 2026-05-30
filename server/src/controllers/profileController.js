@@ -48,21 +48,7 @@ exports.getProfile = async (req, res, next) => {
 
     if (qrId) {
       profile = await Profile.findOne({ user: req.user.id, slug: qrId.trim() });
-      if (!profile) {
-        const templateProfile = await Profile.findOne({ user: req.user.id });
-        if (templateProfile) {
-          const rawTemplate = templateProfile.toObject();
-          delete rawTemplate._id;
-          delete rawTemplate.createdAt;
-          delete rawTemplate.updatedAt;
-          
-          profile = {
-            ...rawTemplate,
-            slug: qrId.trim(),
-            qrUrl: `https://oneqr.dtechcode.in/${qrId.trim()}`,
-          };
-        }
-      }
+
     } else {
       profile = await Profile.findOne({ user: req.user.id });
     }

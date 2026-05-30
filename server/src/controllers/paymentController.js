@@ -2,6 +2,7 @@ const config = require("../config/config");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const User = require("../models/User");
+const { UserResponseDto } = require("../dtos/userDto");
 
 // Initialize Razorpay instance if keys are configured
 let razorpayInstance = null;
@@ -14,10 +15,12 @@ if (config.RAZORPAY_KEY_ID && config.RAZORPAY_KEY_SECRET) {
 
 // Pricing plans configuration (All priced at 1 Rupee = 100 Paise)
 const plansConfig = {
-  starter_monthly: { amount: 100, name: "Starter Plan - Monthly", durationDays: 30 },
-  starter_yearly: { amount: 100, name: "Starter Plan - Yearly", durationDays: 365 },
-  pro_monthly: { amount: 100, name: "Pro Plan - Monthly", durationDays: 30 },
-  pro_yearly: { amount: 100, name: "Pro Plan - Yearly", durationDays: 365 },
+  basic_yearly: { amount: 49900, name: "Basic Plan - 1 Year", durationDays: 365 },
+  basic_3yearly: { amount: 99900, name: "Basic Plan - 3 Years", durationDays: 1095 },
+  premium_yearly: { amount: 99900, name: "Premium Plan - 1 Year", durationDays: 365 },
+  premium_3yearly: { amount: 199900, name: "Premium Plan - 3 Years", durationDays: 1095 },
+  enterprise_yearly: { amount: 249900, name: "Enterprise Plan - 1 Year", durationDays: 365 },
+  enterprise_3yearly: { amount: 499900, name: "Enterprise Plan - 3 Years", durationDays: 1095 },
 };
 
 /**
@@ -138,19 +141,28 @@ exports.verifyPayment = async (req, res) => {
       user.subscriptionStatus = "active";
       user.subscriptionExpiresAt = expiresAt;
       user.razorpayPaymentId = razorpayPaymentId || `mock_pay_${Date.now()}`;
+
+      // Record transaction history
+      if (!user.orderHistory) {
+        user.orderHistory = [];
+      }
+      user.orderHistory.push({
+        orderId: razorpayOrderId,
+        paymentId: razorpayPaymentId || `mock_pay_${Date.now()}`,
+        planId: planId,
+        planName: plan.name,
+        amount: plan.amount / 100,
+        status: "success",
+        paidAt: new Date(),
+      });
+
       await user.save();
 
       return res.status(200).json({
         status: "success",
         message: `Payment successful! Upgraded to ${plan.name}.`,
         data: {
-          user: {
-            id: user._id,
-            phone: user.phone,
-            plan: user.plan,
-            subscriptionStatus: user.subscriptionStatus,
-            subscriptionExpiresAt: user.subscriptionExpiresAt,
-          },
+          user: UserResponseDto.transform(user),
         },
       });
     } else {

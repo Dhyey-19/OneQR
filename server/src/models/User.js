@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: ['free', 'starter_monthly', 'starter_yearly', 'pro_monthly', 'pro_yearly'],
+      enum: ['free', 'basic_yearly', 'basic_3yearly', 'premium_yearly', 'premium_3yearly', 'enterprise_yearly', 'enterprise_3yearly'],
       default: 'free',
     },
     subscriptionStatus: {
@@ -41,6 +41,17 @@ const UserSchema = new mongoose.Schema(
     razorpayPaymentId: {
       type: String,
     },
+    orderHistory: [
+      {
+        orderId: { type: String },
+        paymentId: { type: String },
+        planId: { type: String },
+        planName: { type: String },
+        amount: { type: Number },
+        status: { type: String },
+        paidAt: { type: Date, default: Date.now },
+      }
+    ]
   },
   {
     timestamps: true,

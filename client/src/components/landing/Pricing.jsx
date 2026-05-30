@@ -3,52 +3,92 @@ import { motion } from 'framer-motion';
 import { Check, Star, ArrowRight } from 'lucide-react';
 
 export default function Pricing({ onSelectPlan }) {
-  const [billingPeriod, setBillingPeriod] = useState('monthly'); // 'monthly' or 'yearly'
+  const [billingPeriod, setBillingPeriod] = useState('yearly'); // 'yearly' or '3yearly'
 
   const plans = [
     {
-      name: 'Starter Plan',
-      description: 'Perfect for small shops and personal businesses starting their digital presence.',
-      monthlyPrice: 1,
-      yearlyPrice: 1,
+      id: 'basic',
+      name: 'Basic Plan',
+      description: 'Essential tools to create a digital business profile and launch your smart QR business card.',
+      yearlyPrice: 499,
+      yearlyOriginalPrice: 999,
+      threeYearlyPrice: 999,
+      threeYearlyOriginalPrice: 2999,
+      savings: {
+        yearly: 'Save ₹500 (50% Off)',
+        three_yearly: 'Save ₹2,000 (66% Off)'
+      },
       features: [
-        'Create your own digital business profile page',
-        'Share one smart QR code with customers',
-        'Add WhatsApp, Instagram, Facebook, and other links',
-        'Let customers save your contact in one click',
-        'Add shop name, address, phone number, and timings',
-        'Simple colors and design customization',
-        'Easy mobile-friendly page for all customers',
-        'Update your business information anytime'
+        'QR Standee : 4" x 4"',
+        'Unlimited Scans',
+        'Digital Business Page',
+        'Professional Dashboard',
+        'Limited Social Links'
       ],
-      bestFor: 'Small shops, freelancers, students, tuition classes, local services, and first-time users.',
-      cta: 'Choose Starter',
+      bestFor: 'Freelancers, local shops, and individuals starting their digital business card journey.',
+      cta: 'Choose Basic',
       isPopular: false,
+      isBestSeller: false,
       glow: 'from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900',
       buttonStyle: 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white border-slate-200 dark:border-white/10'
     },
     {
-      name: 'Pro Plan',
-      description: 'Best for growing businesses that want more customers, reviews, and better branding.',
-      monthlyPrice: 1,
-      yearlyPrice: 1,
+      id: 'premium',
+      name: 'Premium Plan',
+      description: 'Unlock detailed scan analytics, document sharing, and no watermarks (Best Seller & Most Popular).',
+      yearlyPrice: 999,
+      yearlyOriginalPrice: 1999,
+      threeYearlyPrice: 1999,
+      threeYearlyOriginalPrice: 5999,
+      savings: {
+        yearly: 'Save ₹1,000 (50% Off)',
+        three_yearly: 'Save ₹4,000 (66% Off)'
+      },
       features: [
-        'Everything in Starter, plus:',
-        'See how many people scanned your QR code',
-        'Track customer visits and link clicks',
-        'Upload PDF menus, brochures, and product catalogs',
-        'Send customers directly to your Google Review page',
-        'Remove OneQR branding from your profile',
-        'Create a more professional business experience',
-        'Better customization and premium business tools'
+        'Everything in Basic +',
+        'QR Standee : 6" x 4"',
+        'Customized Social Links',
+        'Theme Based QR',
+        'Digital Visiting Card',
+        'Documents Upload',
+        'AI Google Reviews'
       ],
-      bestFor: 'Restaurants, cafes, salons, gyms, retail stores, agencies, real estate businesses, and growing brands.',
-      cta: 'Upgrade to Pro',
+      bestFor: 'Restaurants, cafes, retail stores, gyms, agencies, and professional services.',
+      cta: 'Upgrade to Premium',
       isPopular: true,
+      isBestSeller: true,
       glow: 'from-blue-100/50 via-indigo-50/30 to-white dark:from-blue-600/20 dark:via-indigo-600/10 dark:to-[#030712]',
       buttonStyle: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-cyan-400'
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise Plan',
+      description: 'Advanced tools for larger brands requiring dedicated setups, custom links, and infinite scans.',
+      yearlyPrice: 2499,
+      yearlyOriginalPrice: 4999,
+      threeYearlyPrice: 4999,
+      threeYearlyOriginalPrice: 14999,
+      savings: {
+        yearly: 'Save ₹2,500 (50% Off)',
+        three_yearly: 'Save ₹10,000 (66% Off)'
+      },
+      features: [
+        'Everything in Premium +',
+        'QR Standee : Customized',
+        'Greetings Templates',
+        'Photo Gallery',
+        'Offers & Coupons',
+        'QR Scan Analytics',
+        'Link Analytics',
+        'Custom Form'
+      ],
+      bestFor: 'Hotels, large retail chains, enterprise teams, and multi-location businesses.',
+      cta: 'Choose Enterprise',
+      isPopular: false,
+      isBestSeller: false,
+      glow: 'from-amber-100/50 via-orange-50/30 to-white dark:from-amber-600/20 dark:via-orange-600/10 dark:to-[#030712]',
+      buttonStyle: 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white border-slate-200 dark:border-white/10'
     }
-
   ];
 
   return (
@@ -79,13 +119,13 @@ export default function Pricing({ onSelectPlan }) {
 
           {/* Billing Period Toggle Slider */}
           <div className="flex items-center justify-center gap-4 mt-10">
-            <span className={`text-xs sm:text-sm font-bold ${billingPeriod === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
-              Billed Monthly
+            <span className={`text-xs sm:text-sm font-bold ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
+              1 Year Plan
             </span>
             
             {/* Sliding Switch */}
             <div 
-              onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
+              onClick={() => setBillingPeriod(billingPeriod === 'yearly' ? '3yearly' : 'yearly')}
               className="w-14 h-7 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-0.5 cursor-pointer relative flex items-center justify-between"
             >
               <motion.div 
@@ -93,13 +133,13 @@ export default function Pricing({ onSelectPlan }) {
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 className="w-6 h-6 rounded-full bg-blue-500 absolute"
                 style={{
-                  left: billingPeriod === 'monthly' ? '2px' : 'calc(100% - 26px)'
+                  left: billingPeriod === 'yearly' ? '2px' : 'calc(100% - 26px)'
                 }}
               />
             </div>
 
-            <span className={`text-xs sm:text-sm font-bold flex items-center gap-1.5 ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
-              Billed Annually
+            <span className={`text-xs sm:text-sm font-bold flex items-center gap-1.5 ${billingPeriod === '3yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
+              3 Year Plan
               <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
                 Save 20%
               </span>
@@ -107,11 +147,13 @@ export default function Pricing({ onSelectPlan }) {
           </div>
         </div>
 
-
-        {/* Pricing Cards Grid - Centered 2-column layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+        {/* Pricing Cards Grid - Responsive 3-column layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-7xl mx-auto">
           {plans.map((plan, idx) => {
-            const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+            const price = billingPeriod === 'yearly' ? plan.yearlyPrice : plan.threeYearlyPrice;
+            const originalPrice = billingPeriod === 'yearly' ? plan.yearlyOriginalPrice : plan.threeYearlyOriginalPrice;
+            const savingsText = billingPeriod === 'yearly' ? plan.savings.yearly : plan.savings.three_yearly;
+            const hasStarBadge = plan.isPopular || plan.isBestSeller;
             return (
               <motion.div
                 key={plan.name}
@@ -120,64 +162,77 @@ export default function Pricing({ onSelectPlan }) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
                 className={`group relative rounded-3xl p-8 bg-white dark:bg-slate-900/40 border ${
-                plan.isPopular 
-                  ? 'border-blue-500/50 shadow-lg dark:shadow-glass-glow' 
-                  : 'border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10'
-              } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
-            >
-              {/* Custom Colored Glow Layer */}
-              <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
+                  plan.isPopular 
+                    ? 'border-blue-500/50 shadow-lg dark:shadow-glass-glow' 
+                    : 'border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10'
+                } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
+              >
+                {/* Custom Colored Glow Layer */}
+                <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
 
-              <div>
-                {/* Card Popular Tag Header */}
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</span>
-                  {plan.isPopular && (
-                    <div className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
-                      <Star className="w-2.5 h-2.5 fill-blue-500 dark:fill-blue-400 animate-spin-slow" />
-                      <span>Most Popular</span>
+                <div>
+                  {/* Card Popular Tag Header */}
+                  <div className="flex justify-between items-center mb-6">
+                    <span className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</span>
+                    {hasStarBadge && (
+                      <div className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
+                        <Star className="w-2.5 h-2.5 fill-blue-500 dark:fill-blue-400" />
+                        <span>Best Seller</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+                    {plan.description}
+                  </p>
+
+                  {/* Price */}
+                  <div className="flex flex-col mb-6 border-b border-slate-200 dark:border-white/5 pb-6">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        ₹{price}
+                      </span>
+                      <span className="text-slate-400 dark:text-slate-550 text-lg sm:text-xl font-medium line-through">
+                        ₹{originalPrice}
+                      </span>
                     </div>
-                  )}
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <span className="text-slate-555 text-xs font-semibold">
+                        Billed / {billingPeriod === 'yearly' ? '1 Year' : '3 Years'}
+                      </span>
+                      <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                        {savingsText}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Feature check list */}
+                  <ul className="space-y-4 mb-10">
+                    {plan.features.map((feat) => {
+                      const isHeaderFeature = feat.startsWith('Everything in');
+                      return (
+                        <li key={feat} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
+                            <Check className="w-3 h-3" />
+                          </div>
+                          <span className={`text-xs sm:text-sm leading-normal font-medium ${
+                            isHeaderFeature 
+                              ? 'text-blue-605 dark:text-white font-extrabold tracking-wide uppercase text-[10px]' 
+                              : 'text-slate-700 dark:text-white'
+                          }`}>
+                            {feat}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
-
-                {/* Description */}
-                <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
-                  {plan.description}
-                </p>
-
-                {/* Price */}
-                <div className="flex items-baseline gap-1.5 mb-6 border-b border-slate-200 dark:border-white/5 pb-6">
-                  <span className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    ₹{price}
-                  </span>
-                  <span className="text-slate-500 text-xs sm:text-sm font-semibold">
-                    / {billingPeriod === 'monthly' ? 'month' : 'year'}
-                  </span>
-                </div>
-
-                {/* Feature check list */}
-                <ul className="space-y-4 mb-10">
-                  {plan.features.map((feat) => {
-                    const isHeaderFeature = feat.includes('Everything in Starter');
-                    return (
-                      <li key={feat} className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
-                          <Check className="w-3 h-3" />
-                        </div>
-                        <span className={`text-xs sm:text-sm leading-normal ${isHeaderFeature ? 'text-slate-900 dark:text-white font-bold italic' : 'text-slate-600 dark:text-slate-300'}`}>
-                          {feat}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-
 
                 {/* Checkout CTA */}
                 <button
                   onClick={() => {
-                    const planKey = plan.name.toLowerCase().includes('starter') ? `starter_${billingPeriod}` : `pro_${billingPeriod}`;
+                    const planKey = `${plan.id}_${billingPeriod}`;
                     if (onSelectPlan) {
                       onSelectPlan(planKey);
                     }

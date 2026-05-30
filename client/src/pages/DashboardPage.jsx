@@ -94,6 +94,8 @@ export default function DashboardPage({ subViewProp }) {
         setSocialUPI(profile.socialUPI || '');
         if (profile.socialOrder && profile.socialOrder.length > 0) {
           setSocialOrder(profile.socialOrder);
+        } else {
+          setSocialOrder(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
         }
         setCustomLinks(profile.customLinks || []);
         setProfileDocuments(profile.profileDocuments || []);

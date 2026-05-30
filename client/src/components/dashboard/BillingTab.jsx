@@ -7,78 +7,125 @@ import {
 
 export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrade }) {
   const navigate = useNavigate();
-  const [billingPeriod, setBillingPeriod] = useState('monthly'); // 'monthly' | 'yearly'
+  const [billingPeriod, setBillingPeriod] = useState('yearly'); // 'yearly' | '3yearly'
   const [selectedPlanDetails, setSelectedPlanDetails] = useState(null);
 
   const pricingPlans = [
     {
-      id: 'starter',
-      name: 'Starter Plan',
-      description: 'Perfect for small shops and personal businesses starting their digital presence.',
-      monthlyPrice: 1,
-      yearlyPrice: 1,
-      validity: { monthly: '30 Days', yearly: '365 Days' },
-      keyBenefit: 'Smart QR Code',
+      id: 'basic',
+      name: 'Basic Plan',
+      description: 'Essential tools to create a digital business profile and launch your smart QR business card.',
+      yearlyPrice: 499,
+      yearlyOriginalPrice: 999,
+      threeYearlyPrice: 999,
+      threeYearlyOriginalPrice: 2999,
+      savings: {
+        yearly: 'Save ₹500 (50% Off)',
+        three_yearly: 'Save ₹2,000 (66% Off)'
+      },
+      validity: { yearly: '365 Days', three_yearly: '1095 Days' },
+      keyBenefit: '4" x 4" Standee',
       badge: 'Starter Package',
       features: [
-        'Create your own digital business profile page',
-        'Share one smart QR code with customers',
-        'Add WhatsApp, Instagram, Facebook, and other links',
-        'Let customers save your contact in one click',
-        'Add shop name, address, phone number, and timings',
-        'Simple colors and design customization',
-        'Easy mobile-friendly page for all customers',
-        'Update your business information anytime'
+        'QR Standee : 4" x 4"',
+        'Unlimited Scans',
+        'Digital Business Page',
+        'Professional Dashboard',
+        'Limited Social Links'
       ],
       apps: [
         { label: 'Profile Page', description: 'Digital Landing Page', icon: 'Globe' },
         { label: 'OneQR Code', description: 'Smart QR', icon: 'QrCode' },
-        { label: '1-Click Save', description: 'Contact Card (.vcf)', icon: 'Sparkles' }
+        { label: '4" x 4" Standee', description: 'Physical QR Standee', icon: 'Sparkles' }
       ],
       specs: [
-        { name: 'Pack validity', value: { monthly: '30 Days', yearly: '365 Days' } },
-        { name: 'Total Smart QRs', value: '1 QR Code' },
-        { name: 'Design Customization', value: 'Basic Colors' },
-        { name: 'Profile Watermark', value: 'OneQR Branding' },
-        { name: 'Visitor Analytics', value: 'Not Included' },
-        { name: 'PDF Document Upload', value: 'Not Included' }
+        { name: 'Pack validity', value: { yearly: '365 Days', three_yearly: '1095 Days' } },
+        { name: 'QR Standee', value: '4" x 4"' },
+        { name: 'Scans', value: 'Unlimited' },
+        { name: 'Social Links', value: 'Limited' },
+        { name: 'AI Google Reviews', value: 'Not Included' },
+        { name: 'Documents Upload', value: 'Not Included' }
       ],
       glow: 'from-slate-800 to-slate-900'
     },
     {
-      id: 'pro',
-      name: 'Pro Plan',
-      description: 'Best for growing businesses that want more customers, reviews, and better branding.',
-      monthlyPrice: 1,
-      yearlyPrice: 1,
-      validity: { monthly: '30 Days', yearly: '365 Days' },
-      keyBenefit: 'Analytics & PDFs',
-      badge: 'Best Value Choice',
+      id: 'premium',
+      name: 'Premium Plan',
+      description: 'Unlock detailed scan analytics, document sharing, and no watermarks (Best Seller & Most Popular).',
+      yearlyPrice: 999,
+      yearlyOriginalPrice: 1999,
+      threeYearlyPrice: 1999,
+      threeYearlyOriginalPrice: 5999,
+      savings: {
+        yearly: 'Save ₹1,000 (50% Off)',
+        three_yearly: 'Save ₹4,000 (66% Off)'
+      },
+      validity: { yearly: '365 Days', three_yearly: '1095 Days' },
+      keyBenefit: '6" x 4" Standee',
+      badge: 'Best Seller & Most Popular',
       features: [
-        'Everything in Starter, plus:',
-        'See how many people scanned your QR code',
-        'Track customer visits and link clicks',
-        'Upload PDF menus, brochures, and product catalogs',
-        'Send customers directly to your Google Review page',
-        'Remove OneQR branding from your profile',
-        'Create a more professional business experience',
-        'Better customization and premium business tools'
+        'Everything in Basic +',
+        'QR Standee : 6" x 4"',
+        'Customized Social Links',
+        'Theme Based QR',
+        'Digital Visiting Card',
+        'Documents Upload',
+        'AI Google Reviews'
       ],
       apps: [
-        { label: 'PDF Menu', description: 'Catalogs & Brochures', icon: 'FileText' },
-        { label: 'Analytics', description: 'Visits & Scans Tracker', icon: 'BarChart3' },
-        { label: 'Google Review', description: 'Direct Review Link', icon: 'Smile' },
-        { label: 'No Watermark', description: 'Remove branding', icon: 'Sparkles' }
+        { label: 'PDF Upload', description: 'Catalogs & Brochures', icon: 'FileText' },
+        { label: 'AI Reviews', description: 'Google Reviews booster', icon: 'Smile' },
+        { label: 'Theme Based QR', description: 'Bespoke QR themes', icon: 'QrCode' },
+        { label: 'Photo Gallery', description: 'Showcase products', icon: 'Sparkles' }
       ],
       specs: [
-        { name: 'Pack validity', value: { monthly: '30 Days', yearly: '365 Days' } },
-        { name: 'Total Smart QRs', value: '1 QR Code' },
-        { name: 'Design Customization', value: 'Premium Custom' },
-        { name: 'Profile Watermark', value: 'No Watermark' },
-        { name: 'Visitor Analytics', value: 'Included (Clicks/Visits)' },
-        { name: 'PDF Document Upload', value: 'Included (Up to 5 PDFs)' }
+        { name: 'Pack validity', value: { yearly: '365 Days', three_yearly: '1095 Days' } },
+        { name: 'QR Standee', value: '6" h x 4"' },
+        { name: 'Scans', value: 'Unlimited' },
+        { name: 'Social Links', value: 'Customized' },
+        { name: 'AI Google Reviews', value: 'Included' },
+        { name: 'Documents Upload', value: 'Included (Up to 10 PDFs)' }
       ],
       glow: 'from-blue-600/20 via-indigo-600/10 to-[#030712]'
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise Plan',
+      description: 'Advanced tools for larger brands requiring dedicated setups, custom links, and infinite scans.',
+      yearlyPrice: 2499,
+      yearlyOriginalPrice: 4999,
+      threeYearlyPrice: 4999,
+      threeYearlyOriginalPrice: 14999,
+      savings: {
+        yearly: 'Save ₹2,500 (50% Off)',
+        three_yearly: 'Save ₹10,000 (66% Off)'
+      },
+      validity: { yearly: '365 Days', three_yearly: '1095 Days' },
+      keyBenefit: 'Customized Standee',
+      badge: 'Enterprise Choice',
+      features: [
+        'Everything in Premium +',
+        'QR Standee : Customized',
+        'Greetings Templates',
+        'Photo Gallery',
+        'Offers & Coupons',
+        'QR Scan Analytics',
+        'Link Analytics',
+        'Custom Form'
+      ],
+      apps: [
+        { label: 'Analytics', description: 'QR & Link metrics', icon: 'BarChart3' },
+        { label: 'Custom Design', description: 'Bespoke designs', icon: 'Sparkles' },
+        { label: 'Custom Form', description: 'Interactive forms', icon: 'Globe' }
+      ],
+      specs: [
+        { name: 'Pack validity', value: { yearly: '365 Days', three_yearly: '1095 Days' } },
+        { name: 'QR Standee', value: 'Customized / Bespoke' },
+        { name: 'Scans', value: 'Unlimited' },
+        { name: 'Social Links', value: 'Customized' },
+        { name: 'Analytics Suite', value: 'QR & Link Analytics' }
+      ],
+      glow: 'from-amber-600/20 via-orange-600/10 to-[#030712]'
     }
   ];
 
@@ -87,8 +134,11 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN', {
       day: 'numeric',
-      month: 'long',
+      month: 'short',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     });
   };
 
@@ -129,7 +179,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
         <div className="w-full sm:w-auto">
           <button
             onClick={() => { navigate('/dashboard'); }}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-md"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-350 dark:hover:border-white/20 text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-md"
           >
             &larr; Back to Dashboard
           </button>
@@ -142,25 +192,25 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
         <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-4">Subscription Overview</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Current Plan</span>
+            <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Current Plan</span>
             <span className="text-sm sm:text-lg font-extrabold text-slate-900 dark:text-white block uppercase tracking-tight sm:mt-1">
               {currentPlanId === 'free' ? 'Free Plan' : currentPlanId.replace('_', ' ')}
             </span>
           </div>
           <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Status</span>
+            <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Status</span>
             <span className={`inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border sm:mt-2 ${
               isSubscribed 
                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                 : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isSubscribed ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isSubscribed ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-500'}`} />
               {isSubscribed ? 'Active' : 'Inactive / Expired'}
             </span>
           </div>
           <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Valid Until</span>
-            <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block sm:mt-1.5">
+            <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Valid Until</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 block sm:mt-1.5">
               {isSubscribed && currentUser?.subscriptionExpiresAt 
                 ? formatDate(currentUser.subscriptionExpiresAt) 
                 : 'N/A'}
@@ -172,7 +222,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
       {/* Pricing Selection Tiers */}
       <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 px-2">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-          Available Subscriptions (₹1 special promo)
+          Choose Your Subscription Plan
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
           Activate premium layout features, catalog uploads, and rich profile metrics instantly.
@@ -180,22 +230,22 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
 
         {/* Toggle Switch */}
         <div className="flex items-center justify-center gap-2.5 sm:gap-4 pt-2 sm:pt-4">
-          <span className={`text-[11px] sm:text-xs font-bold ${billingPeriod === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
-            Billed Monthly
+          <span className={`text-[11px] sm:text-xs font-bold ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
+            1 Year Plan
           </span>
           <div 
-            onClick={() => setBillingPeriod(billingPeriod === 'monthly' ? 'yearly' : 'monthly')}
+            onClick={() => setBillingPeriod(billingPeriod === 'yearly' ? '3yearly' : 'yearly')}
             className="w-12 h-6 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-0.5 cursor-pointer relative flex items-center shrink-0"
           >
             <div 
               className="w-5 h-5 rounded-full bg-blue-500 absolute transition-all duration-300"
               style={{
-                left: billingPeriod === 'monthly' ? '2px' : 'calc(100% - 22px)'
+                left: billingPeriod === 'yearly' ? '2px' : 'calc(100% - 22px)'
               }}
             />
           </div>
-          <span className={`text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors whitespace-nowrap`}>
-            Billed Annually
+          <span className={`text-[11px] sm:text-xs font-bold flex items-center gap-1.5 sm:gap-1.5 ${billingPeriod === '3yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors whitespace-nowrap`}>
+            3 Year Plan
             <span className="text-[8px] sm:text-[9px] font-black uppercase px-1 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
               Save 20%
             </span>
@@ -204,20 +254,22 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
       </div>
 
       {/* DESKTOP VIEW: Side-by-side original pricing cards */}
-      <div className="hidden md:grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+      <div className="hidden md:grid md:grid-cols-3 gap-6 items-stretch max-w-6xl mx-auto">
         {pricingPlans.map((plan) => {
           const planKey = `${plan.id}_${billingPeriod}`;
           const isActivePlan = currentPlanId === planKey && isSubscribed;
-          const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+          const price = billingPeriod === 'yearly' ? plan.yearlyPrice : plan.threeYearlyPrice;
+          const originalPrice = billingPeriod === 'yearly' ? plan.yearlyOriginalPrice : plan.threeYearlyOriginalPrice;
+          const savingsText = billingPeriod === 'yearly' ? plan.savings.yearly : plan.savings.three_yearly;
           
           return (
             <div
               key={plan.id}
-              className={`group relative rounded-3xl p-8 bg-white dark:bg-slate-900/40 border ${
+              className={`group relative rounded-3xl p-6 bg-white dark:bg-slate-900/40 border ${
                 isActivePlan 
                   ? 'border-emerald-500/50 shadow-glass-glow' 
-                  : plan.id === 'pro' 
-                    ? 'border-blue-500/30' 
+                  : plan.id === 'premium' 
+                    ? 'border-blue-500/50 shadow-lg dark:shadow-glass-glow' 
                     : 'border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10'
               } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
             >
@@ -225,42 +277,60 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
 
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{plan.name}</span>
+                  <span className="text-base font-bold text-slate-900 dark:text-white">{plan.name}</span>
                   {isActivePlan ? (
-                    <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/35 text-emerald-400 text-[9px] font-extrabold uppercase tracking-widest">
-                      Current Plan
+                    <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/35 text-emerald-450 text-[8px] font-extrabold uppercase tracking-widest">
+                      Current
                     </span>
-                  ) : plan.id === 'pro' ? (
-                    <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
-                      Most Popular
+                  ) : plan.id === 'premium' ? (
+                    <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[8px] font-extrabold uppercase tracking-widest">
+                      Best Seller
                     </span>
                   ) : null}
                 </div>
 
-                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-6">
+                <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed mb-6">
                   {plan.description}
                 </p>
 
-                <div className="flex items-baseline gap-1.5 mb-6 border-b border-slate-100 dark:border-white/5 pb-6">
-                  <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    ₹{price}
-                  </span>
-                  <span className="text-slate-500 text-xs font-semibold">
-                    / {billingPeriod === 'monthly' ? 'month' : 'year'}
-                  </span>
+                {/* Price Display */}
+                <div className="flex flex-col mb-6 border-b border-slate-100 dark:border-white/5 pb-6">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                      ₹{price}
+                    </span>
+                    <span className="text-slate-400 dark:text-slate-555 text-base font-medium line-through">
+                      ₹{originalPrice}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    <span className="text-slate-500 text-[10px] font-semibold">
+                      Billed / {billingPeriod === 'yearly' ? '1 Year' : '3 Years'}
+                    </span>
+                    <span className="text-[9px] font-extrabold text-emerald-650 dark:text-emerald-450 bg-emerald-500/10 border border-emerald-555 px-2 py-0.5 rounded-md">
+                      {savingsText}
+                    </span>
+                  </div>
                 </div>
 
-                <ul className="space-y-4 mb-10">
-                  {plan.features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
-                        <Check className="w-3 h-3" />
-                      </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-300 leading-normal">
-                        {feat}
-                      </span>
-                    </li>
-                  ))}
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feat) => {
+                    const isHeaderFeature = feat.startsWith('Everything in');
+                    return (
+                      <li key={feat} className="flex items-start gap-2.5">
+                        <div className="w-4.5 h-4.5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+                          <Check className="w-2.5 h-2.5" />
+                        </div>
+                        <span className={`text-[11px] leading-normal font-semibold ${
+                          isHeaderFeature 
+                            ? 'text-blue-550 dark:text-white font-extrabold uppercase text-[9px] tracking-wider' 
+                            : 'text-slate-700 dark:text-white'
+                        }`}>
+                          {feat}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
 
@@ -271,7 +341,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                 className={`w-full py-3 rounded-xl font-bold text-xs text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${
                   isActivePlan 
                     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default' 
-                    : plan.id === 'pro'
+                    : plan.id === 'premium'
                       ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white border-transparent shadow-lg shadow-blue-500/20'
                       : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white hover:text-slate-900'
                 }`}
@@ -288,7 +358,9 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
         {pricingPlans.map((plan) => {
           const planKey = `${plan.id}_${billingPeriod}`;
           const isActivePlan = currentPlanId === planKey && isSubscribed;
-          const price = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+          const price = billingPeriod === 'yearly' ? plan.yearlyPrice : plan.threeYearlyPrice;
+          const originalPrice = billingPeriod === 'yearly' ? plan.yearlyOriginalPrice : plan.threeYearlyOriginalPrice;
+          const savingsText = billingPeriod === 'yearly' ? plan.savings.yearly : plan.savings.three_yearly;
           
           return (
             <div
@@ -297,13 +369,13 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
               className={`group relative rounded-3xl bg-white dark:bg-slate-900/40 border cursor-pointer ${
                 isActivePlan 
                   ? 'border-emerald-500/40 shadow-lg shadow-emerald-500/5' 
-                  : plan.id === 'pro' 
+                  : plan.id === 'premium' 
                     ? 'border-blue-500/35' 
                     : 'border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10'
               } transition-all duration-300 overflow-hidden flex flex-col`}
             >
               {/* Top Banner Accent */}
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.id === 'pro' ? 'from-blue-500 to-indigo-500' : 'from-slate-400 to-slate-500'}`} />
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${plan.id === 'premium' ? 'from-blue-500 to-indigo-500' : plan.id === 'enterprise' ? 'from-amber-500 to-orange-500' : 'from-slate-400 to-slate-500'}`} />
               
               {/* Badge/Promo Banner */}
               <div className="bg-slate-50/50 dark:bg-white/5 px-4 py-2.5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
@@ -312,7 +384,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                   {plan.badge}
                 </span>
                 {isActivePlan && (
-                  <span className="text-[8px] sm:text-[9px] font-black bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="text-[8px] sm:text-[9px] font-black bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     Current Plan
                   </span>
                 )}
@@ -325,8 +397,16 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                   <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                     ₹{price}
                   </span>
-                  <span className="text-slate-500 text-[10px] sm:text-xs">
-                    / {billingPeriod === 'monthly' ? 'month' : 'year'}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-slate-400 text-[10px] line-through font-semibold">
+                      ₹{originalPrice}
+                    </span>
+                    <span className="text-[9px] font-bold text-emerald-650 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-555 px-2 py-0.5 rounded-md whitespace-nowrap">
+                      {savingsText}
+                    </span>
+                  </div>
+                  <span className="text-slate-500 text-[9px] mt-1">
+                    / {billingPeriod === 'yearly' ? '1 year' : '3 years'}
                   </span>
                 </div>
 
@@ -335,7 +415,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                   <div className="flex flex-col">
                     <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Validity</span>
                     <span className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-0.5">
-                      {billingPeriod === 'monthly' ? plan.validity.monthly : plan.validity.yearly}
+                      {billingPeriod === 'yearly' ? plan.validity.yearly : plan.validity.three_yearly}
                     </span>
                   </div>
                   <div className="flex flex-col">
@@ -348,11 +428,10 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
 
                 {/* Right: Chevron & Buy Button */}
                 <div className="flex items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  {/* Chevron details indicator */}
                   <button 
                     type="button"
                     onClick={() => setSelectedPlanDetails(plan)}
-                    className="p-2.5 rounded-full border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                    className="p-2.5 rounded-full border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-350 dark:hover:border-white/20 transition-all text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4 sm:w-5 h-5" />
                   </button>
@@ -364,7 +443,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                     className={`px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-bold text-xs text-center border transition-all cursor-pointer shadow-md ${
                       isActivePlan 
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default shadow-none' 
-                        : plan.id === 'pro'
+                        : plan.id === 'premium'
                           ? 'bg-blue-600 hover:bg-blue-500 text-white border-transparent'
                           : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white hover:text-slate-900'
                     }`}
@@ -376,17 +455,17 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
 
               {/* Bottom: Feature tags list */}
               <div className="px-4 sm:px-6 pb-4 flex flex-wrap gap-1.5 items-center">
-                {plan.apps.slice(0, 3).map((app, index) => (
+                {plan.features.slice(0, 3).map((feat, index) => (
                   <span 
                     key={index}
                     className="text-[9px] font-bold bg-blue-500/5 border border-blue-500/10 dark:border-blue-500/20 text-blue-500 dark:text-blue-400 px-2 py-0.5 rounded-md"
                   >
-                    {app.label}
+                    {feat}
                   </span>
                 ))}
-                {plan.apps.length > 3 && (
-                  <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 pl-1">
-                    +{plan.apps.length - 3} more
+                {plan.features.length > 3 && (
+                  <span className="text-[9px] font-bold text-slate-450 dark:text-slate-555 pl-1">
+                    +{plan.features.length - 3} more
                   </span>
                 )}
               </div>
@@ -395,11 +474,73 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
         })}
       </div>
 
+      {/* Order History Section */}
+      <div className="p-5 sm:p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/5 to-transparent blur-2xl pointer-events-none" />
+        
+        <div className="flex items-center gap-2 mb-6">
+          <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+            <FileText className="w-4 h-4" />
+          </span>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Order & Payment History</h3>
+        </div>
+
+        {!currentUser?.orderHistory || currentUser.orderHistory.length === 0 ? (
+          <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
+            No transaction records found. Your plan updates will show up here.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-white/5 text-slate-400 dark:text-slate-555 font-bold">
+                  <th className="pb-3 pr-4 font-semibold uppercase tracking-wider">Plan Details</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Date & Time</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Order ID</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Payment ID</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider text-right">Amount</th>
+                  <th className="pb-3 pl-4 font-semibold uppercase tracking-wider text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-350 font-medium">
+                {currentUser.orderHistory.slice().reverse().map((order, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="py-3.5 pr-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 dark:text-white">{order.planName}</span>
+                        <span className="text-[10px] text-slate-450 dark:text-slate-555 capitalize">{order.planId?.replace('_', ' ')}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {formatDate(order.paidAt)}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                      {order.orderId || 'N/A'}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                      {order.paymentId || 'N/A'}
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white">
+                      ₹{order.amount || '1.00'}
+                    </td>
+                    <td className="py-3.5 pl-4 text-center whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-450">
+                        <Check className="w-3 h-3" />
+                        Paid
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Details Bottom Sheet Modal */}
       <AnimatePresence>
         {selectedPlanDetails && (
           <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center p-0 md:p-4">
-            {/* Backdrop Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -408,7 +549,6 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             
-            {/* Slide-up Container */}
             <motion.div
               initial={{ y: '100%', opacity: 1 }}
               animate={{ y: 0, opacity: 1 }}
@@ -416,10 +556,8 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
               transition={{ type: 'spring', damping: 28, stiffness: 280 }}
               className="relative w-full md:max-w-lg bg-white dark:bg-[#0c1222] border-t md:border border-slate-200 dark:border-white/10 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] md:max-h-[80vh] overflow-hidden z-10 text-slate-900 dark:text-white"
             >
-              {/* Drag Handle Bar for mobile */}
               <div className="w-12 h-1 bg-slate-300 dark:bg-white/10 rounded-full mx-auto my-3 shrink-0 md:hidden" />
               
-              {/* Close Button */}
               <button
                 type="button"
                 onClick={() => setSelectedPlanDetails(null)}
@@ -428,18 +566,25 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                 <X className="w-4 h-4" />
               </button>
 
-              {/* Scrollable details view */}
               <div className="overflow-y-auto px-5 pb-24 pt-4 space-y-6">
-                
-                {/* Price Display */}
                 <div>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-4xl font-black text-slate-900 dark:text-white">
-                      ₹{billingPeriod === 'monthly' ? selectedPlanDetails.monthlyPrice : selectedPlanDetails.yearlyPrice}
-                    </span>
-                    <span className="text-slate-500 dark:text-slate-400 text-sm font-bold">
-                      / {billingPeriod === 'monthly' ? 'month' : 'year'}
-                    </span>
+                  <div className="flex flex-col mt-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-black text-slate-900 dark:text-white">
+                        ₹{billingPeriod === 'yearly' ? selectedPlanDetails.yearlyPrice : selectedPlanDetails.threeYearlyPrice}
+                      </span>
+                      <span className="text-slate-400 dark:text-slate-555 text-xl font-medium line-through">
+                        ₹{billingPeriod === 'yearly' ? selectedPlanDetails.yearlyOriginalPrice : selectedPlanDetails.threeYearlyOriginalPrice}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-slate-555 dark:text-slate-400 text-xs font-bold">
+                        / {billingPeriod === 'yearly' ? '1 year' : '3 years'}
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-650 dark:text-emerald-450 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        {billingPeriod === 'yearly' ? selectedPlanDetails.savings.yearly : selectedPlanDetails.savings.three_yearly}
+                      </span>
+                    </div>
                   </div>
                   <div className="mt-2.5">
                     <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 tracking-wider">
@@ -448,7 +593,6 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                   </div>
                 </div>
 
-                {/* Features & Subscriptions Grid */}
                 <div className="space-y-3">
                   <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     OneQR Services & Apps
@@ -464,14 +608,13 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{app.label}</span>
-                          <span className="text-[9px] text-slate-500 dark:text-slate-400">{app.description}</span>
+                          <span className="text-[9px] text-slate-555 dark:text-slate-400">{app.description}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Plan details table */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2">
                     <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -484,8 +627,8 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                   
                   <div className="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-white/5 bg-slate-50/50 dark:bg-white/5">
                     {selectedPlanDetails.specs.map((spec, index) => {
-                      const specValue = typeof spec.value === 'object' 
-                        ? (billingPeriod === 'monthly' ? spec.value.monthly : spec.value.yearly) 
+                      const specValue = spec.name === 'Pack validity'
+                        ? (billingPeriod === 'yearly' ? spec.value.yearly : spec.value.three_yearly)
                         : spec.value;
                       
                       const isNotIncluded = specValue === 'Not Included';
@@ -493,7 +636,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                       return (
                         <div key={index} className="grid grid-cols-2 p-3.5 text-xs">
                           <span className="text-slate-500 dark:text-slate-400 font-semibold">{spec.name}</span>
-                          <span className={`font-bold text-right ${isNotIncluded ? 'text-slate-400 dark:text-slate-600 line-through font-normal' : 'text-slate-900 dark:text-white'}`}>
+                          <span className={`font-bold text-right ${isNotIncluded ? 'text-slate-400 dark:text-slate-655 line-through font-normal' : 'text-slate-900 dark:text-white'}`}>
                             {specValue}
                           </span>
                         </div>
@@ -503,7 +646,6 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                 </div>
               </div>
 
-              {/* Sticky bottom pay container */}
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 dark:bg-[#0c1222]/95 border-t border-slate-200 dark:border-white/10 backdrop-blur-md flex gap-3 shrink-0">
                 <button
                   type="button"
@@ -530,7 +672,7 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
                     ? 'Processing...' 
                     : currentPlanId === `${selectedPlanDetails.id}_${billingPeriod}` && isSubscribed
                       ? 'Active Plan' 
-                      : `Buy Now - Pay ₹${billingPeriod === 'monthly' ? selectedPlanDetails.monthlyPrice : selectedPlanDetails.yearlyPrice}.00`}
+                      : `Buy Now - Pay ₹${billingPeriod === 'yearly' ? selectedPlanDetails.yearlyPrice : selectedPlanDetails.threeYearlyPrice}.00`}
                 </button>
               </div>
 

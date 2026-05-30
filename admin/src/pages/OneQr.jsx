@@ -7,7 +7,9 @@ import {
   Search, 
   CheckCircle, 
   Link as LinkIcon,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  X
 } from 'lucide-react';
 import { apiRequest } from '../services/apiService';
 
@@ -76,7 +78,6 @@ export default function OneQr() {
 
   const handleDownload = async (qrId, qrUrl) => {
     try {
-      // Fetch the QR code image from the public qrserver API
       const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrUrl)}`);
       if (!response.ok) throw new Error('Network error');
       
@@ -125,6 +126,49 @@ export default function OneQr() {
     }
   };
 
+  const handleDeleteQr = async (id, qrId) => {
+    const confirmation = window.prompt(`To delete QR code "${qrId}", please type 'DELETE' below:`);
+    if (confirmation !== 'DELETE') {
+      if (confirmation !== null) {
+        setError('Incorrect confirmation text. QR code was not deleted.');
+      }
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    try {
+      const res = await apiRequest(`/admin/qrs/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.status === 'success') {
+        setSuccess(`QR code "${qrId}" deleted successfully.`);
+        fetchData();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to delete QR code.');
+    }
+  };
+
+  const handleDeleteAllQrs = async () => {
+    const confirmed = window.confirm('Are you absolutely sure you want to delete ALL generated QR codes? This action is permanent and will unlink them from user profiles.');
+    if (!confirmed) return;
+
+    setError('');
+    setSuccess('');
+    try {
+      const res = await apiRequest('/admin/qrs', {
+        method: 'DELETE',
+      });
+      if (res.status === 'success') {
+        setSuccess('All QR codes deleted successfully.');
+        fetchData();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to delete all QR codes.');
+    }
+  };
+
   const handleSelectUser = (qrId, userId) => {
     setSelectedUserForQr(prev => ({ ...prev, [qrId]: userId }));
   };
@@ -147,21 +191,34 @@ export default function OneQr() {
           <p>Generate, download, and assign unique redirect QR codes to users</p>
         </div>
 
-        <button 
-          onClick={handleGenerate} 
-          className="btn-primary"
-          style={{ width: 'auto', padding: '12px 24px', marginTop: 0 }}
-          disabled={generating}
-        >
-          {generating ? (
-            <span className="spinner" style={{ width: '18px', height: '18px', margin: 0 }}></span>
-          ) : (
-            <>
-              <QrCode size={18} />
-              Generate QR Code
-            </>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+          {totalQrs > 0 && (
+            <button 
+              onClick={handleDeleteAllQrs} 
+              className="btn-primary btn-danger"
+              style={{ width: 'auto', padding: '12px 20px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Trash2 size={18} />
+              <span>Delete All QRs</span>
+            </button>
           )}
-        </button>
+
+          <button 
+            onClick={handleGenerate} 
+            className="btn-primary"
+            style={{ width: 'auto', padding: '12px 20px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}
+            disabled={generating}
+          >
+            {generating ? (
+              <span className="spinner" style={{ width: '18px', height: '18px', margin: 0 }}></span>
+            ) : (
+              <>
+                <QrCode size={18} />
+                <span>Generate QR Code</span>
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       {error && (
@@ -216,8 +273,8 @@ export default function OneQr() {
         <div className="section-header">
           <h2 className="section-title">QR Code Directory</h2>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div className="input-wrapper" style={{ minWidth: '240px' }}>
+          <div className="section-header-actions">
+            <div className="input-wrapper">
               <input
                 type="text"
                 placeholder="Search QR ID or phone..."
@@ -251,183 +308,81 @@ export default function OneQr() {
               <p>No QR codes found matching your query.</p>
             </div>
           ) : (
-            <>
-              {/* Desktop Table View */}
-              <table className="admin-table desktop-only">
-                <thead>
-                  <tr>
-                    <th>QR ID</th>
-                    <th>Target URL</th>
-                    <th>Visuals</th>
-                    <th>Assignment Status</th>
-                    <th style={{ textAlign: 'right' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredQrs.map((qr) => (
-                    <tr key={qr._id}>
-                      <td>
-                        <div className="user-phone-cell">
-                          <div className="user-avatar" style={{ background: 'rgba(236, 72, 153, 0.1)', color: 'var(--accent-secondary)' }}>
-                            QR
-                          </div>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{qr.qrId}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <a 
-                          href={qr.qrUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', textDecoration: 'underline' }}
-                        >
-                          <LinkIcon size={12} />
-                          {qr.qrUrl.replace('https://', '')}
-                        </a>
-                      </td>
-                      <td>
-                        {/* Mini visual QR code preview using API */}
-                        <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=48&hidesource=1&data=${encodeURIComponent(qr.qrUrl)}`} 
-                          alt="Preview" 
-                          style={{ width: '36px', height: '36px', borderRadius: '4px', background: '#fff', padding: '2px', border: '1px solid var(--glass-border)' }}
-                        />
-                      </td>
-                      <td>
-                        {qr.assignedTo ? (
-                          <span className="badge badge-status-active" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            <CheckCircle size={10} />
-                            Assigned: {qr.assignedTo.phone}
-                          </span>
-                        ) : (
-                          <span className="badge badge-status-inactive" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#fcd34d', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-                            <AlertCircle size={10} />
-                            Unassigned
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          {/* Download button */}
-                          <button 
-                            onClick={() => handleDownload(qr.qrId, qr.qrUrl)}
-                            className="btn-primary"
-                            style={{ width: 'auto', padding: '8px 12px', margin: 0, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', boxShadow: 'none' }}
-                            title="Download QR Image"
-                          >
-                            <Download size={14} />
-                          </button>
-
-                          {/* Assign form (only if unassigned) */}
-                          {!qr.assignedTo && (
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <select
-                                className="form-input"
-                                style={{ padding: '6px 12px', fontSize: '0.85rem', width: '160px', height: '34px', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
-                                value={selectedUserForQr[qr.qrId] || ''}
-                                onChange={(e) => handleSelectUser(qr.qrId, e.target.value)}
-                                disabled={assigningState[qr.qrId]}
-                              >
-                                <option value="">-- Choose User --</option>
-                                {users.map(u => (
-                                  <option key={u.id} value={u.id}>
-                                    {u.phone} ({u.plan})
-                                  </option>
-                                ))}
-                              </select>
-
-                              <button
-                                onClick={() => handleAssign(qr.qrId)}
-                                className="btn-primary"
-                                style={{ width: 'auto', padding: '8px 12px', margin: 0, height: '34px', background: 'var(--accent-secondary)' }}
-                                disabled={assigningState[qr.qrId] || !selectedUserForQr[qr.qrId]}
-                              >
-                                {assigningState[qr.qrId] ? (
-                                  <span className="spinner" style={{ width: '14px', height: '14px', margin: 0 }}></span>
-                                ) : (
-                                  <>
-                                    <UserPlus size={14} />
-                                    Assign
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* Mobile Cards View */}
-              <div className="mobile-only mobile-cards-grid">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>QR ID</th>
+                  <th>Target URL</th>
+                  <th>Visuals</th>
+                  <th>Assignment Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filteredQrs.map((qr) => (
-                  <div key={qr._id} className="mobile-user-card glass-panel">
-                    <div className="mobile-user-header">
+                  <tr key={qr._id}>
+                    <td data-label="QR ID">
                       <div className="user-phone-cell">
                         <div className="user-avatar" style={{ background: 'rgba(236, 72, 153, 0.1)', color: 'var(--accent-secondary)' }}>
                           QR
                         </div>
                         <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{qr.qrId}</span>
                       </div>
-                      
-                      {/* Visual QR Code mini preview */}
+                    </td>
+                    <td data-label="Target URL" className="stack-mobile">
+                      <a 
+                        href={qr.qrUrl} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="qr-target-link"
+                      >
+                        <LinkIcon size={12} />
+                        <span>{qr.qrUrl.replace('https://', '')}</span>
+                      </a>
+                    </td>
+                    <td data-label="Visuals">
                       <img 
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=48&hidesource=1&data=${encodeURIComponent(qr.qrUrl)}`} 
                         alt="Preview" 
-                        style={{ width: '36px', height: '36px', borderRadius: '4px', background: '#fff', padding: '2px', border: '1px solid var(--glass-border)' }}
+                        className="qr-preview-img"
                       />
-                    </div>
-
-                    <div className="mobile-user-details">
-                      <div className="detail-row flex-col items-start gap-1">
-                        <span className="detail-label">Target URL</span>
-                        <a 
-                          href={qr.qrUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="text-xs truncate max-w-full text-indigo-400 underline flex items-center gap-1"
+                    </td>
+                    <td data-label="Assignment Status">
+                      {qr.assignedTo ? (
+                        <span className="badge badge-status-active">
+                          Assigned: {qr.assignedTo.phone}
+                        </span>
+                      ) : (
+                        <span className="badge badge-status-inactive" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fcd34d', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+                          Unassigned
+                        </span>
+                      )}
+                    </td>
+                    <td data-label="Actions" className="stack-mobile actions-cell">
+                      <div className="actions-wrapper">
+                        {/* Download button */}
+                        <button 
+                          onClick={() => handleDownload(qr.qrId, qr.qrUrl)}
+                          className="btn-primary btn-action-icon"
+                          title="Download QR Image"
                         >
-                          <LinkIcon size={12} className="shrink-0" />
-                          <span className="truncate">{qr.qrUrl.replace('https://', '')}</span>
-                        </a>
-                      </div>
+                          <Download size={14} />
+                        </button>
 
-                      <div className="detail-row">
-                        <span className="detail-label">Status</span>
-                        {qr.assignedTo ? (
-                          <span className="badge badge-status-active" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            <CheckCircle size={10} />
-                            Assigned: {qr.assignedTo.phone}
-                          </span>
-                        ) : (
-                          <span className="badge badge-status-inactive" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', color: '#fcd34d', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-                            <AlertCircle size={10} />
-                            Unassigned
-                          </span>
-                        )}
-                      </div>
+                        {/* Delete button */}
+                        <button 
+                          onClick={() => handleDeleteQr(qr._id, qr.qrId)}
+                          className="btn-primary btn-action-icon btn-danger"
+                          title="Delete QR Code"
+                        >
+                          <Trash2 size={14} />
+                        </button>
 
-                      <div className="detail-row flex-col items-stretch gap-3 pt-3 border-t border-white/5">
-                        <div className="flex items-center justify-between">
-                          <span className="detail-label">Actions</span>
-                          <button 
-                            onClick={() => handleDownload(qr.qrId, qr.qrUrl)}
-                            className="btn-primary"
-                            style={{ width: 'auto', padding: '8px 16px', margin: 0, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', boxShadow: 'none' }}
-                          >
-                            <Download size={14} style={{ marginRight: '6px' }} />
-                            <span>Download QR</span>
-                          </button>
-                        </div>
-
-                        {/* Assign input on mobile */}
+                        {/* Assign form (only if unassigned) */}
                         {!qr.assignedTo && (
-                          <div className="flex flex-col gap-2 mt-1">
+                          <div className="assign-inline-form">
                             <select
-                              className="form-input"
-                              style={{ padding: '8px 12px', fontSize: '0.85rem', width: '100%', height: '38px', background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+                              className="form-input select-user-assign"
                               value={selectedUserForQr[qr.qrId] || ''}
                               onChange={(e) => handleSelectUser(qr.qrId, e.target.value)}
                               disabled={assigningState[qr.qrId]}
@@ -442,27 +397,26 @@ export default function OneQr() {
 
                             <button
                               onClick={() => handleAssign(qr.qrId)}
-                              className="btn-primary"
-                              style={{ width: '100%', padding: '10px 14px', margin: 0, height: '38px', background: 'var(--accent-secondary)' }}
+                              className="btn-primary btn-assign-submit"
                               disabled={assigningState[qr.qrId] || !selectedUserForQr[qr.qrId]}
                             >
                               {assigningState[qr.qrId] ? (
-                                <span className="spinner" style={{ width: '14px', height: '14px', margin: 0 }}></span>
+                                <span className="spinner spinner-tiny"></span>
                               ) : (
                                 <>
                                   <UserPlus size={14} />
-                                  <span>Assign User</span>
+                                  <span>Assign</span>
                                 </>
                               )}
                             </button>
                           </div>
                         )}
                       </div>
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </>
+              </tbody>
+            </table>
           )}
         </div>
       </section>

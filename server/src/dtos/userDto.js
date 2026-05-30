@@ -82,6 +82,7 @@ class UserResponseDto {
     this.plan = user.plan || 'free';
     this.subscriptionStatus = user.subscriptionStatus || 'inactive';
     this.subscriptionExpiresAt = user.subscriptionExpiresAt || null;
+    this.orderHistory = user.orderHistory || [];
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
   }
