@@ -41,6 +41,14 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    profileMapUrl: {
+      type: String,
+      default: "",
+    },
+    profileTimings: {
+      type: String,
+      default: "",
+    },
     profileBio: {
       type: String,
       default: "",

@@ -80,6 +80,8 @@ exports.getProfile = async (req, res, next) => {
             profileTitle: "",
 
             profileAddress: "",
+            profileMapUrl: "",
+            profileTimings: "",
             profileBio: "",
             profileEmail: "",
             profilePhone: req.user.phone || "",

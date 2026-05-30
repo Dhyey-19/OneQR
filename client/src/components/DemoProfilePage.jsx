@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Smartphone, MapPin, Mail, Phone, Globe, Link2, 
-  ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download 
+  ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download,
+  Copy, X, Check, Clock
 } from 'lucide-react';
 import { 
   FaFacebook, FaInstagram, FaYoutube, 
@@ -17,6 +18,25 @@ export default function DemoProfilePage() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [inactive, setInactive] = useState(false);
+  const [upiModalOpen, setUpiModalOpen] = useState(false);
+  const [upiModalData, setUpiModalData] = useState({ upiId: '', upiLink: '', payeeName: '' });
+  const [copiedUpi, setCopiedUpi] = useState(false);
+
+  const handleUpiClick = (e, upiId) => {
+    if (e) e.preventDefault();
+    const name = profileData?.profileCompany || profileData?.profileName || '';
+    const upiLink = upiId.startsWith('upi://') 
+      ? upiId 
+      : `upi://pay?pa=${upiId}${name ? `&pn=${encodeURIComponent(name)}` : ''}`;
+    
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = upiLink;
+    } else {
+      setUpiModalData({ upiId, upiLink, payeeName: name });
+      setUpiModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     // 1. Verify if this session is authorized to view the demo
@@ -316,32 +336,43 @@ export default function DemoProfilePage() {
           <div className="space-y-3.5">
             {/* Physical Address */}
             {profileData.profileAddress && (
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profileData.profileAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full py-4 px-5 rounded-2xl flex items-start justify-between gap-3 text-sm leading-relaxed transition-all hover:scale-[1.01] ${activeTheme.itemBg} ${activeTheme.text}`}
-              >
-                <span className="flex items-start gap-3">
-                  <MapPin className={`w-5 h-5 text-red-500 shrink-0 mt-0.5`} />
+              <div className={`w-full py-4 px-5 rounded-2xl flex flex-col gap-3.5 text-sm leading-relaxed ${activeTheme.itemBg} ${activeTheme.text}`}>
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                   <span className="text-left whitespace-pre-line">{profileData.profileAddress}</span>
-                </span>
-                <ArrowUpRight className={`w-5 h-5 ${activeTheme.subText} opacity-50 shrink-0 mt-0.5`} />
-              </a>
+                </div>
+                <a 
+                  href={profileData.profileMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profileData.profileAddress)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all hover:scale-[1.01] shadow-md"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>View on Google Map</span>
+                </a>
+              </div>
+            )}
+
+            {/* Office Timings */}
+            {profileData.profileTimings && (
+              <div className={`w-full py-4 px-5 rounded-2xl flex items-center gap-3.5 text-sm leading-relaxed ${activeTheme.itemBg} ${activeTheme.text}`}>
+                <Clock className="w-5 h-5 text-blue-500 shrink-0" />
+                <span className="text-left font-semibold">{profileData.profileTimings}</span>
+              </div>
             )}
 
             {/* Action Grid (Call, Save, Email, Web) */}
             {(() => {
               const actionCards = [];
               if (profileData.profilePhone) {
-                actionCards.push({ id: 'call', type: 'link', href: `tel:${profileData.profilePhone}`, icon: Phone, iconColor: 'text-green-500', label: 'Call' });
-                actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Save' });
+                actionCards.push({ id: 'call', type: 'link', href: `tel:${profileData.profilePhone}`, icon: Phone, iconColor: 'text-green-500', label: profileData.profilePhone });
+                actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Save Contact' });
               }
               if (profileData.profileEmail) {
-                actionCards.push({ id: 'email', type: 'link', href: `mailto:${profileData.profileEmail}`, icon: Mail, iconColor: 'text-yellow-500', label: 'Email' });
+                actionCards.push({ id: 'email', type: 'link', href: `mailto:${profileData.profileEmail}`, icon: Mail, iconColor: 'text-yellow-500', label: profileData.profileEmail });
               }
               if (profileData.profileWebsite) {
-                actionCards.push({ id: 'web', type: 'link', href: formatUrl(profileData.profileWebsite), target: '_blank', icon: Globe, iconColor: 'text-blue-500', label: 'Web' });
+                actionCards.push({ id: 'web', type: 'link', href: formatUrl(profileData.profileWebsite), target: '_blank', icon: Globe, iconColor: 'text-blue-500', label: profileData.profileWebsite });
               }
 
               if (actionCards.length === 0) return null;
@@ -404,9 +435,10 @@ export default function DemoProfilePage() {
                   return (
                     <a 
                       key={key}
-                      href={formatUrl(p.value)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={key === 'upi' ? '#' : formatUrl(p.value)}
+                      onClick={key === 'upi' ? (e) => handleUpiClick(e, p.value) : undefined}
+                      target={key === 'upi' ? undefined : "_blank"}
+                      rel={key === 'upi' ? undefined : "noopener noreferrer"}
                       className={`py-3 px-4 rounded-2xl flex items-center gap-2.5 text-sm font-bold hover:scale-[1.02] active:scale-95 transition-all ${activeTheme.buttonBg} ${activeTheme.text}`}
                     >
                       {p.imgSrc ? (
@@ -450,22 +482,50 @@ export default function DemoProfilePage() {
           {profileData.profileDocuments && profileData.profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).length > 0 && (
             <div className="space-y-3.5 pt-1 border-t border-white/10">
               <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Documents & Catalogs</span>
-              <div className="space-y-3">
-                {profileData.profileDocuments.filter(doc => doc.filename && doc.url).map((doc) => (
-                  <a
-                    key={doc.id}
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`w-full py-4 px-5 rounded-2xl flex items-center justify-between text-sm font-bold transition-all hover:scale-[1.01] ${activeTheme.buttonBg} ${activeTheme.text}`}
-                  >
-                    <span className="flex items-center gap-3 truncate pr-2">
-                      <Smartphone className="w-5 h-5 text-cyan-400 shrink-0" />
-                      <span className="truncate">{doc.label || doc.filename}</span>
-                    </span>
-                    <ArrowUpRight className={`w-5 h-5 ${activeTheme.subText} shrink-0`} />
-                  </a>
-                ))}
+              <div className="grid grid-cols-2 gap-3.5">
+                {profileData.profileDocuments.filter(doc => doc.filename && doc.url).map((doc) => {
+                  const isImg = /\.(jpe?g|png|gif|webp|svg)$/i.test(doc.url) || /\.(jpe?g|png|gif|webp|svg)/i.test(doc.filename);
+
+                  if (isImg) {
+                    return (
+                      <a
+                        key={doc.id}
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block relative rounded-2xl overflow-hidden border border-slate-200/10 transition-all hover:scale-[1.02] active:scale-95 bg-white/5"
+                      >
+                        <div className="aspect-[4/3] w-full bg-slate-150 dark:bg-white/5 relative overflow-hidden">
+                          <img 
+                            src={doc.url} 
+                            alt={doc.label || doc.filename} 
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+                            <span className="text-white text-xs font-extrabold truncate">{doc.label || doc.filename}</span>
+                            <span className="text-white/60 text-[9px] font-medium mt-0.5">Click to view</span>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <a
+                      key={doc.id}
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`col-span-2 w-full py-4 px-5 rounded-2xl flex items-center justify-between text-sm font-bold transition-all hover:scale-[1.01] ${activeTheme.buttonBg} ${activeTheme.text}`}
+                    >
+                      <span className="flex items-center gap-3 truncate pr-2">
+                        <Smartphone className="w-5 h-5 text-cyan-400 shrink-0" />
+                        <span className="truncate">{doc.label || doc.filename}</span>
+                      </span>
+                      <ArrowUpRight className={`w-5 h-5 ${activeTheme.subText} shrink-0`} />
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -491,6 +551,60 @@ export default function DemoProfilePage() {
       <div className="flex-grow flex flex-col relative">
         {profileContent}
       </div>
+
+      {/* UPI QR Code Desktop Fallback Modal */}
+      <AnimatePresence>
+        {upiModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl relative space-y-6 text-center text-slate-900 dark:text-white"
+            >
+              <button 
+                onClick={() => { setUpiModalOpen(false); setCopiedUpi(false); }}
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-1.5 pt-2">
+                <h3 className="font-extrabold text-lg tracking-tight">Scan to Pay with UPI</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {upiModalData.payeeName ? `Paying: ${upiModalData.payeeName}` : 'Scan the QR code with any UPI app on your phone.'}
+                </p>
+              </div>
+
+              <div className="flex justify-center p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiModalData.upiLink)}`} 
+                  alt="UPI Payment QR Code" 
+                  className="w-44 h-44 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block text-left">UPI ID / VPA</span>
+                <div className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
+                  <span className="font-mono text-sm truncate font-medium">{upiModalData.upiId}</span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(upiModalData.upiId);
+                      setCopiedUpi(true);
+                      setTimeout(() => setCopiedUpi(false), 2000);
+                    }}
+                    className="p-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-500 dark:text-blue-400 rounded-lg transition-colors cursor-pointer shrink-0"
+                    title="Copy UPI ID"
+                  >
+                    {copiedUpi ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

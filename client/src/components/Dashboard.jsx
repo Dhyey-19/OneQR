@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { 
   QrCode, Smartphone, BarChart2, Sparkles, Link2, User, 
   Mail, Globe, Phone, Download, Check, RefreshCw, 
   MapPin, CreditCard, Star, Plus, Trash2, ArrowUpRight,
-  Sun, Moon, Scan, Camera
+  Sun, Moon, Scan, Camera, Copy, X, Clock
 } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle, FaWhatsapp, FaMoneyBillWave } from 'react-icons/fa';
 import { authService } from '../services/authService';
@@ -1053,6 +1053,8 @@ export default function Dashboard() {
   const [profilePhone, setProfilePhone] = useState('');
   const [profileWebsite, setProfileWebsite] = useState('');
   const [profileAddress, setProfileAddress] = useState('');
+  const [profileMapUrl, setProfileMapUrl] = useState('');
+  const [profileTimings, setProfileTimings] = useState('');
 
   // Social Links States (Cleared Default Values)
   const [socialFacebook, setSocialFacebook] = useState('');
@@ -1064,6 +1066,10 @@ export default function Dashboard() {
   const [socialWhatsapp, setSocialWhatsapp] = useState('');
   const [socialUPI, setSocialUPI] = useState('');
   const [socialOrder, setSocialOrder] = useState(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
+  const [upiModalOpen, setUpiModalOpen] = useState(false);
+  const [upiModalData, setUpiModalData] = useState({ upiId: '', upiLink: '', payeeName: '' });
+  const [copiedUpi, setCopiedUpi] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Dynamic Custom Links States (Cleared Default Values)
   const [customLinks, setCustomLinks] = useState([]);
@@ -1234,6 +1240,8 @@ export default function Dashboard() {
         setProfileName(profile.profileName || '');
         setProfileTitle(profile.profileTitle || '');
         setProfileAddress(profile.profileAddress || '');
+        setProfileMapUrl(profile.profileMapUrl || '');
+        setProfileTimings(profile.profileTimings || '');
         setProfileBio(profile.profileBio || '');
         setProfileEmail(profile.profileEmail || '');
         setProfilePhone(profile.profilePhone || profile.phone || '');
@@ -1279,6 +1287,8 @@ export default function Dashboard() {
             setProfileName(profile.profileName || '');
             setProfileTitle(profile.profileTitle || '');
             setProfileAddress(profile.profileAddress || '');
+            setProfileMapUrl(profile.profileMapUrl || '');
+            setProfileTimings(profile.profileTimings || '');
             setProfileBio(profile.profileBio || '');
             setProfileEmail(profile.profileEmail || '');
             setProfilePhone(profile.profilePhone || profile.phone || '');
@@ -1499,6 +1509,8 @@ export default function Dashboard() {
         profileName,
         profileTitle,
         profileAddress,
+        profileMapUrl,
+        profileTimings,
         profileBio,
         profileEmail,
         profilePhone,
@@ -1568,6 +1580,22 @@ export default function Dashboard() {
     bioColor: 'text-slate-700',
     detailLabel: 'text-slate-800',
     detailVal: 'text-slate-500'
+  };
+
+  const handleUpiClick = (e, upiId) => {
+    if (e) e.preventDefault();
+    const name = profileCompany || profileName || '';
+    const upiLink = upiId.startsWith('upi://') 
+      ? upiId 
+      : `upi://pay?pa=${upiId}${name ? `&pn=${encodeURIComponent(name)}` : ''}`;
+    
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = upiLink;
+    } else {
+      setUpiModalData({ upiId, upiLink, payeeName: name });
+      setUpiModalOpen(true);
+    }
   };
 
   const handleLaunchMobileDemo = () => {
@@ -1806,7 +1834,12 @@ export default function Dashboard() {
                         <div className="relative w-16 h-16 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-slate-50 dark:bg-white/5">
                           <img src={profileLogo} alt="Logo" className="w-full h-full object-contain" />
                           <button 
-                            onClick={() => setProfileLogo('')}
+                            onClick={() => {
+                              setProfileLogo('');
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }}
                             className="absolute top-1 right-1 bg-red-500 rounded-full p-1 shadow-md hover:bg-red-600 cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3 text-white" />
@@ -1822,6 +1855,7 @@ export default function Dashboard() {
                         </div>
                       )}
                       <input 
+                        ref={fileInputRef}
                         type="file" 
                         accept="image/*"
                         onChange={(e) => {
@@ -1923,6 +1957,36 @@ export default function Dashboard() {
                       />
                     </div>
 
+                    {/* Google Map URL */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Google Map URL</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input 
+                          type="url"
+                          value={profileMapUrl}
+                          onChange={(e) => setProfileMapUrl(e.target.value)}
+                          placeholder="Enter Google Map URL (e.g., https://maps.app.goo.gl/xxx or https://google.com/maps/...)"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Office Timings */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Office Timings / Working Hours</label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input 
+                          type="text"
+                          value={profileTimings}
+                          onChange={(e) => setProfileTimings(e.target.value)}
+                          placeholder="e.g. Mon - Fri: 9:00 AM - 6:00 PM or Open 24/7"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                        />
+                      </div>
+                    </div>
+
                     {/* Email, Phone, and Website URL in 1 line on Webview (Desktop) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:col-span-2">
                       {/* 7. Email Address */}
@@ -1990,7 +2054,7 @@ export default function Dashboard() {
                             linkedin: { icon: FaLinkedin, color: 'text-blue-400', label: 'LinkedIn', placeholder: 'e.g. https://linkedin.com/in/yourusername', value: socialLinkedin, setter: setSocialLinkedin },
                             x: { icon: FaTwitter, color: 'text-black', label: 'X (Twitter)', placeholder: 'e.g. https://x.com/yourusername', value: socialX, setter: setSocialX },
                             whatsapp: { icon: FaWhatsapp, color: 'text-green-500', label: 'WhatsApp', placeholder: 'e.g. https://wa.me/yournumber', value: socialWhatsapp, setter: setSocialWhatsapp },
-                            upi: { imgSrc: '/assets/upi.png', label: 'UPI Link', placeholder: 'e.g. upi://pay?pa=yourvpa@upi', value: socialUPI, setter: setSocialUPI },
+                            upi: { imgSrc: '/assets/upi.png', label: 'UPI ID', placeholder: 'e.g. yourname@upi', inputType: 'text', value: socialUPI, setter: setSocialUPI },
                           };
                           const platform = platforms[key];
                           if (!platform) return null;
@@ -2019,7 +2083,7 @@ export default function Dashboard() {
                               <div className="flex-grow space-y-1">
                                 <span className="text-[10px] font-bold text-slate-500 uppercase">{platform.label}</span>
                                 <input 
-                                  type="url" 
+                                  type={platform.inputType || "url"} 
                                   value={platform.value} 
                                   onChange={(e) => platform.setter(e.target.value)}
                                   placeholder={platform.placeholder} 
@@ -2378,26 +2442,41 @@ export default function Dashboard() {
                         
                         {/* Multiline Address Container */}
                         {profileAddress && (
-                          <div className={`w-full py-2 px-3 rounded-xl flex items-start justify-between gap-2 text-[9px] leading-relaxed ${activeTheme.itemBg}`}>
-                            <span className="flex items-start gap-2">
-                              <MapPin className={`w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5`} />
+                          <div className={`w-full py-2 px-3 rounded-xl flex flex-col gap-2 text-[9px] leading-relaxed ${activeTheme.itemBg}`}>
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
                               <span className={`text-left whitespace-pre-line ${activeTheme.detailLabel}`}>{profileAddress}</span>
-                            </span>
-                            <ArrowUpRight className={`w-3.5 h-3.5 ${activeTheme.subText} opacity-50 shrink-0 mt-0.5`} />
+                            </div>
+                            <a 
+                              href={profileMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profileAddress)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full py-1 px-2.5 rounded-lg flex items-center justify-center gap-1 text-[8px] font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
+                            >
+                              <MapPin className="w-2.5 h-2.5" />
+                              <span>View on Google Map</span>
+                            </a>
+                          </div>
+                        )}
+                        {/* Office Timings Container */}
+                        {profileTimings && (
+                          <div className={`w-full py-2 px-3 rounded-xl flex items-center gap-2 text-[9px] leading-relaxed ${activeTheme.itemBg}`}>
+                            <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                            <span className={`text-left font-semibold ${activeTheme.detailLabel}`}>{profileTimings}</span>
                           </div>
                         )}
 
                         {(() => {
                           const actionCards = [];
                           if (profilePhone) {
-                            actionCards.push({ id: 'call', icon: Phone, color: 'text-green-500', label: 'Call', isButton: false });
-                            actionCards.push({ id: 'save', icon: User, color: 'text-indigo-500', label: 'Save', isButton: true });
+                            actionCards.push({ id: 'call', icon: Phone, color: 'text-green-500', label: profilePhone, isButton: false });
+                            actionCards.push({ id: 'save', icon: User, color: 'text-indigo-500', label: 'Save Contact', isButton: true });
                           }
                           if (profileEmail) {
-                            actionCards.push({ id: 'email', icon: Mail, color: 'text-yellow-500', label: 'Email', isButton: false });
+                            actionCards.push({ id: 'email', icon: Mail, color: 'text-yellow-500', label: profileEmail, isButton: false });
                           }
                           if (profileWebsite) {
-                            actionCards.push({ id: 'web', icon: Globe, color: 'text-blue-500', label: 'Web', isButton: false });
+                            actionCards.push({ id: 'web', icon: Globe, color: 'text-blue-500', label: profileWebsite, isButton: false });
                           }
 
                           if (actionCards.length === 0) return null;
@@ -2411,11 +2490,11 @@ export default function Dashboard() {
                                 
                                 return (
                                   <div key={card.id} className={`w-full py-2 px-2.5 rounded-xl flex items-center justify-between text-[9px] font-bold ${activeTheme.itemBg} ${isLastOdd ? 'col-span-2' : ''}`}>
-                                    <span className={`flex items-center gap-1.5 ${activeTheme.detailLabel}`}>
-                                      <IconComponent className={`w-3 h-3 ${card.color}`} />
-                                      {card.label}
+                                    <span className={`flex items-center gap-1.5 ${activeTheme.detailLabel} truncate pr-1`}>
+                                      <IconComponent className={`w-3 h-3 ${card.color} shrink-0`} />
+                                      <span className="truncate">{card.label}</span>
                                     </span>
-                                    <RightIcon className={`w-3 h-3 ${activeTheme.subText} opacity-50`} />
+                                    <RightIcon className={`w-3 h-3 ${activeTheme.subText} opacity-50 shrink-0`} />
                                   </div>
                                 );
                               })}
@@ -2445,14 +2524,21 @@ export default function Dashboard() {
                                 if (!p || !p.value) return null;
                                 const Icon = p.icon;
                                 return (
-                                  <div key={key} className={`py-1.5 px-2 rounded-xl flex items-center gap-1.5 text-[8px] font-bold ${activeTheme.buttonBg}`}>
+                                  <a 
+                                    key={key} 
+                                    href={key === 'upi' ? '#' : (p.value.includes('://') || p.value.startsWith('mailto:') || p.value.startsWith('tel:') ? p.value : `https://${p.value}`)}
+                                    onClick={key === 'upi' ? (e) => handleUpiClick(e, p.value) : undefined}
+                                    target={key === 'upi' ? undefined : "_blank"}
+                                    rel={key === 'upi' ? undefined : "noopener noreferrer"}
+                                    className={`py-1.5 px-2 rounded-xl flex items-center gap-1.5 text-[8px] font-bold ${activeTheme.buttonBg} hover:scale-[1.02] active:scale-95 transition-all`}
+                                  >
                                     {p.imgSrc ? (
                                       <img src={p.imgSrc} alt={p.label} className="w-3 h-3 shrink-0 object-contain" />
                                     ) : (
                                       <Icon className={`w-3 h-3 shrink-0 ${p.color}`} />
                                     )}
                                     <span className="overflow-hidden text-ellipsis whitespace-nowrap">{p.label}</span>
-                                  </div>
+                                  </a>
                                 );
                               })}
                             </div>
@@ -2485,22 +2571,53 @@ export default function Dashboard() {
                         {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).length > 0 && (
                           <div className="space-y-2 mt-4 pt-4 border-t border-slate-200">
                             <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest block text-left mb-1.5">Documents & Catalogs</span>
-                            <div className="space-y-1.5">
-                              {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).map((doc) => (
-                                <a
-                                  key={doc.id}
-                                  href={doc.url || '#'}
-                                  target={doc.url ? "_blank" : undefined}
-                                  rel={doc.url ? "noopener noreferrer" : undefined}
-                                  className={`w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] font-bold text-slate-300 transition-all ${doc.url ? 'hover:bg-white/10' : ''} ${activeTheme.buttonBg}`}
-                                >
-                                  <span className="flex items-center gap-1.5 truncate pr-2">
-                                    <Smartphone className="w-3 h-3 text-cyan-400 shrink-0" />
-                                    <span className="truncate">{doc.label || doc.filename}</span>
-                                  </span>
-                                  <ArrowUpRight className="w-3 h-3 text-slate-500 shrink-0" />
-                                </a>
-                              ))}
+                            <div className="grid grid-cols-2 gap-2">
+                              {profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).map((doc) => {
+                                const fileUrl = doc.file ? URL.createObjectURL(doc.file) : doc.url;
+                                const isImg = doc.file 
+                                  ? doc.file.type.startsWith('image/')
+                                  : /\.(jpe?g|png|gif|webp|svg)$/i.test(doc.url) || /\.(jpe?g|png|gif|webp|svg)/i.test(doc.filename);
+
+                                if (isImg) {
+                                  return (
+                                    <a
+                                      key={doc.id}
+                                      href={fileUrl || '#'}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="group block relative rounded-xl overflow-hidden border border-slate-200/10 transition-all hover:scale-[1.02] active:scale-95 bg-white/5"
+                                    >
+                                      <div className="aspect-[4/3] w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden">
+                                        <img 
+                                          src={fileUrl} 
+                                          alt={doc.label || doc.filename} 
+                                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2">
+                                          <span className="text-white text-[8px] font-extrabold truncate">{doc.label || doc.filename}</span>
+                                          <span className="text-white/60 text-[6px] font-medium mt-0.5">Click to view</span>
+                                        </div>
+                                      </div>
+                                    </a>
+                                  );
+                                }
+
+                                return (
+                                  <a
+                                    key={doc.id}
+                                    href={fileUrl || '#'}
+                                    target={fileUrl ? "_blank" : undefined}
+                                    rel={fileUrl ? "noopener noreferrer" : undefined}
+                                    className={`col-span-2 w-full py-2 px-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between text-[9px] font-bold text-slate-300 transition-all ${fileUrl ? 'hover:bg-white/10' : ''} ${activeTheme.buttonBg}`}
+                                  >
+                                    <span className="flex items-center gap-1.5 truncate pr-2">
+                                      <Smartphone className="w-3 h-3 text-cyan-400 shrink-0" />
+                                      <span className="truncate">{doc.label || doc.filename}</span>
+                                    </span>
+                                    <ArrowUpRight className="w-3 h-3 text-slate-500 shrink-0" />
+                                  </a>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
@@ -2800,6 +2917,60 @@ export default function Dashboard() {
                     )}
                   </>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* UPI QR Code Desktop Fallback Modal */}
+      <AnimatePresence>
+        {upiModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl relative space-y-6 text-center text-slate-900 dark:text-white"
+            >
+              <button 
+                onClick={() => { setUpiModalOpen(false); setCopiedUpi(false); }}
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-1.5 pt-2">
+                <h3 className="font-extrabold text-lg tracking-tight">Scan to Pay with UPI</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {upiModalData.payeeName ? `Paying: ${upiModalData.payeeName}` : 'Scan the QR code with any UPI app on your phone.'}
+                </p>
+              </div>
+
+              <div className="flex justify-center p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiModalData.upiLink)}`} 
+                  alt="UPI Payment QR Code" 
+                  className="w-44 h-44 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block text-left">UPI ID / VPA</span>
+                <div className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
+                  <span className="font-mono text-sm truncate font-medium">{upiModalData.upiId}</span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(upiModalData.upiId);
+                      setCopiedUpi(true);
+                      setTimeout(() => setCopiedUpi(false), 2000);
+                    }}
+                    className="p-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-500 dark:text-blue-400 rounded-lg transition-colors cursor-pointer shrink-0"
+                    title="Copy UPI ID"
+                  >
+                    {copiedUpi ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
