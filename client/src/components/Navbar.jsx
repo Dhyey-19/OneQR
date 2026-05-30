@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon, Scan } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -95,7 +98,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                 <button
                   onClick={() => {
                     setProfileDropdownOpen(false);
-                    onNavigate('manage-qr');
+                    navigate('/manage-qr');
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
                 >
@@ -107,18 +110,18 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  onNavigate('dashboard');
+                  navigate('/dashboard');
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
               >
-                <Grid className="w-3.5 h-3.5 text-cyan-400" />
+                <Grid className="w-3.5 h-3.5 text-cyan-450" />
                 <span>Dashboard</span>
               </button>
 
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  onNavigate('scan-qr');
+                  navigate('/scan-qr');
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
               >
@@ -129,11 +132,11 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  onNavigate('billing');
+                  navigate('/billing');
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
               >
-                <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                <CreditCard className="w-3.5 h-3.5 text-emerald-450" />
                 <span>Billing & Plans</span>
               </button>
 
@@ -173,9 +176,9 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
           <a 
             href="#home" 
             onClick={(e) => {
-              if (currentView !== 'landing') {
+              if (location.pathname !== '/') {
                 e.preventDefault();
-                onNavigate('landing');
+                navigate('/');
               }
             }}
             className="flex items-center gap-2 group"
@@ -195,12 +198,9 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                 key={link.name}
                 href={link.href}
                 onClick={(e) => {
-                  if (currentView !== 'landing') {
-                    onNavigate('landing');
-                    setTimeout(() => {
-                      const el = document.querySelector(link.href);
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
+                  if (location.pathname !== '/') {
+                    e.preventDefault();
+                    navigate('/' + link.href);
                   }
                 }}
                 className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
@@ -280,12 +280,9 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                   href={link.href}
                   onClick={(e) => {
                     setIsOpen(false);
-                    if (currentView !== 'landing') {
-                      onNavigate('landing');
-                      setTimeout(() => {
-                        const el = document.querySelector(link.href);
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }, 100);
+                    if (location.pathname !== '/') {
+                      e.preventDefault();
+                      navigate('/' + link.href);
                     }
                   }}
                   className="text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"

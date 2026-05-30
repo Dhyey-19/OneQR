@@ -10,6 +10,7 @@ import { FaFacebook, FaInstagram, FaYoutube, FaLinkedin, FaTwitter, FaGoogle, Fa
 import { authService } from '../services/authService';
 import { apiRequest } from '../services/apiService';
 import { Html5Qrcode } from 'html5-qrcode';
+import { useNavigate } from 'react-router-dom';
 
 const downloadFlyer = (qrUrl, qrId) => {
   return new Promise((resolve, reject) => {
@@ -671,9 +672,10 @@ function AllocatedQrCard({ qr, onManage }) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ subViewProp }) {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
-  const [subView, setSubView] = useState('overview'); // 'overview' | 'manage-qr'
+  const [subView, setSubView] = useState(subViewProp || 'overview');
   const [allocatedQrs, setAllocatedQrs] = useState([]);
   const [isLoadingQrs, setIsLoadingQrs] = useState(false);
 
@@ -881,7 +883,7 @@ export default function Dashboard() {
           </div>
           <div>
             <button
-              onClick={() => { window.location.hash = '#dashboard'; }}
+              onClick={() => { navigate('/dashboard'); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-350 dark:hover:border-white/20 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
             >
               &larr; Back to Dashboard
@@ -1061,7 +1063,7 @@ export default function Dashboard() {
           </div>
           <div>
             <button
-              onClick={() => { window.location.hash = '#dashboard'; }}
+              onClick={() => { navigate('/dashboard'); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-350 dark:hover:border-white/20 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-all cursor-pointer shadow-md"
             >
               &larr; Back to Dashboard
@@ -1519,7 +1521,7 @@ export default function Dashboard() {
         setProfileDocuments(profile.profileDocuments || []);
 
         setSubView('manage-qr');
-        window.location.hash = '#manage-qr';
+        navigate('/manage-qr');
       }
     } catch (err) {
       console.error('Error fetching profile settings:', err);
@@ -1596,35 +1598,28 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Listen to hash changes to sync subView
+  // Sync subView with route prop and check authorization status
   useEffect(() => {
-    const handleHashSync = () => {
-      const hash = window.location.hash;
-      const user = authService.getCurrentUser() || currentUser;
-      const isSubscribed = user?.subscriptionStatus === 'active';
+    const user = authService.getCurrentUser() || currentUser;
+    const isSubscribed = user?.subscriptionStatus === 'active';
 
-      if (hash === '#manage-qr') {
-        if (!isSubscribed) {
-          window.location.hash = '#billing';
-          setSubView('billing');
-        } else {
-          setSubView('manage-qr');
-        }
-      } else if (hash === '#billing') {
+    if (subViewProp === 'manage-qr') {
+      if (!isSubscribed) {
+        navigate('/billing', { replace: true });
         setSubView('billing');
-      } else if (hash === '#dashboard' || hash === '#overview') {
-        setSubView('overview');
-      } else if (hash === '#scan-qr') {
-        setSubView('qr-scan');
+      } else {
+        setSubView('manage-qr');
       }
-    };
-
-    window.addEventListener('hashchange', handleHashSync);
-    // Sync initially
-    handleHashSync();
-
-    return () => window.removeEventListener('hashchange', handleHashSync);
-  }, [currentUser]);
+    } else if (subViewProp === 'billing') {
+      setSubView('billing');
+    } else if (subViewProp === 'overview') {
+      setSubView('overview');
+    } else if (subViewProp === 'qr-scan') {
+      setSubView('qr-scan');
+    } else {
+      setSubView('overview');
+    }
+  }, [subViewProp, currentUser, navigate]);
 
   // Trigger pending plan auto-upgrades when navigating to billing view
   useEffect(() => {
@@ -1925,7 +1920,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
                 <button
                   onClick={() => {
-                    window.location.hash = '#scan-qr';
+                    navigate('/scan-qr');
                   }}
                   className="px-4 py-2.5 rounded-xl bg-[#2563eb] text-white font-bold text-xs hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-transparent dark:border-white/10 flex items-center gap-2 cursor-pointer shadow-md"
                 >
@@ -2052,7 +2047,7 @@ export default function Dashboard() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => { window.location.hash = '#dashboard'; }}
+                      onClick={() => { navigate('/dashboard'); }}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
                     >
                       &larr; Back to Dashboard
@@ -2905,7 +2900,7 @@ export default function Dashboard() {
                 type="button"
                 onClick={() => {
                   setShowSuccessModal(false);
-                  window.location.hash = '#manage-qr';
+                  navigate('/manage-qr');
                 }}
                 className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm transition-all border border-transparent dark:border-white/10 shadow-lg shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2 group"
               >
