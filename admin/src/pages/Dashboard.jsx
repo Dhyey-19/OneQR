@@ -6,7 +6,9 @@ import {
   Crown, 
   Shield, 
   RefreshCw,
-  Search
+  Search,
+  Menu,
+  X
 } from 'lucide-react';
 import { apiRequest } from '../services/apiService';
 import { authService } from '../services/authService';
@@ -20,6 +22,7 @@ export default function Dashboard({ onLogout }) {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const adminUser = authService.getCurrentUser();
 
@@ -88,8 +91,29 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <div className="dashboard-layout">
+      {/* Mobile Top Header Bar */}
+      <div className="mobile-header-bar glass-panel mobile-only">
+        <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+          <Menu size={24} />
+        </button>
+        <span className="sidebar-logo-text">OneQR Admin</span>
+        <div className="admin-badge-dot"></div>
+      </div>
+
+      {/* Sidebar Backdrop Overlay on Mobile */}
+      {isSidebarOpen && (
+        <div className="sidebar-backdrop mobile-only" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar glass-panel">
+      <aside className={`sidebar glass-panel ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-header-mobile mobile-only">
+          <span className="sidebar-logo-text">Menu</span>
+          <button className="mobile-menu-btn close" onClick={() => setIsSidebarOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
             <QrCode size={20} color="#fff" />
@@ -99,7 +123,7 @@ export default function Dashboard({ onLogout }) {
 
         <nav className="sidebar-menu">
           <div 
-            onClick={() => setActiveTab('users')} 
+            onClick={() => { setActiveTab('users'); setIsSidebarOpen(false); }} 
             className={`sidebar-item ${activeTab === 'users' ? 'active' : ''}`}
           >
             <Users size={18} />
@@ -107,7 +131,7 @@ export default function Dashboard({ onLogout }) {
           </div>
           
           <div 
-            onClick={() => setActiveTab('oneqr')} 
+            onClick={() => { setActiveTab('oneqr'); setIsSidebarOpen(false); }} 
             className={`sidebar-item ${activeTab === 'oneqr' ? 'active' : ''}`}
           >
             <QrCode size={18} />
@@ -227,51 +251,96 @@ export default function Dashboard({ onLogout }) {
                     <p>No user accounts found matching your query.</p>
                   </div>
                 ) : (
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Mobile Number</th>
-                        <th>Plan Level</th>
-                        <th>Status</th>
-                        <th>Expires At</th>
-                        <th>Profiles Created</th>
-                        <th>Registration Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <>
+                    {/* Desktop Table View */}
+                    <table className="admin-table desktop-only">
+                      <thead>
+                        <tr>
+                          <th>Mobile Number</th>
+                          <th>Plan Level</th>
+                          <th>Status</th>
+                          <th>Expires At</th>
+                          <th>Profiles Created</th>
+                          <th>Registration Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((user) => (
+                          <tr key={user.id}>
+                            <td>
+                              <div className="user-phone-cell">
+                                <div className="user-avatar">
+                                  {user.phone ? user.phone.slice(-2) : 'U'}
+                                </div>
+                                <span>{user.phone}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`badge ${getPlanBadgeClass(user.plan)}`}>
+                                {formatPlanName(user.plan)}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge ${user.subscriptionStatus === 'active' ? 'badge-status-active' : 'badge-status-inactive'}`}>
+                                {user.subscriptionStatus || 'inactive'}
+                              </span>
+                            </td>
+                            <td style={{ color: user.subscriptionExpiresAt ? '#fff' : 'var(--text-muted)' }}>
+                              {user.subscriptionExpiresAt ? formatDate(user.subscriptionExpiresAt) : 'Lifetime Free'}
+                            </td>
+                            <td style={{ fontWeight: '600', paddingLeft: '32px' }}>
+                              {user.profilesCount || 0}
+                            </td>
+                            <td style={{ color: 'var(--text-muted)' }}>
+                              {formatDate(user.createdAt)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Mobile Cards View */}
+                    <div className="mobile-only mobile-cards-grid">
                       {filteredUsers.map((user) => (
-                        <tr key={user.id}>
-                          <td>
+                        <div key={user.id} className="mobile-user-card glass-panel">
+                          <div className="mobile-user-header">
                             <div className="user-phone-cell">
                               <div className="user-avatar">
                                 {user.phone ? user.phone.slice(-2) : 'U'}
                               </div>
-                              <span>{user.phone}</span>
+                              <span className="font-bold text-white">{user.phone}</span>
                             </div>
-                          </td>
-                          <td>
                             <span className={`badge ${getPlanBadgeClass(user.plan)}`}>
                               {formatPlanName(user.plan)}
                             </span>
-                          </td>
-                          <td>
-                            <span className={`badge ${user.subscriptionStatus === 'active' ? 'badge-status-active' : 'badge-status-inactive'}`}>
-                              {user.subscriptionStatus || 'inactive'}
-                            </span>
-                          </td>
-                          <td style={{ color: user.subscriptionExpiresAt ? '#fff' : 'var(--text-muted)' }}>
-                            {user.subscriptionExpiresAt ? formatDate(user.subscriptionExpiresAt) : 'Lifetime Free'}
-                          </td>
-                          <td style={{ fontWeight: '600', paddingLeft: '32px' }}>
-                            {user.profilesCount || 0}
-                          </td>
-                          <td style={{ color: 'var(--text-muted)' }}>
-                            {formatDate(user.createdAt)}
-                          </td>
-                        </tr>
+                          </div>
+                          
+                          <div className="mobile-user-details">
+                            <div className="detail-row">
+                              <span className="detail-label">Status</span>
+                              <span className={`badge ${user.subscriptionStatus === 'active' ? 'badge-status-active' : 'badge-status-inactive'}`}>
+                                {user.subscriptionStatus || 'inactive'}
+                              </span>
+                            </div>
+                            <div className="detail-row">
+                              <span className="detail-label">Expires At</span>
+                              <span className="detail-val" style={{ color: user.subscriptionExpiresAt ? '#fff' : 'var(--text-muted)' }}>
+                                {user.subscriptionExpiresAt ? formatDate(user.subscriptionExpiresAt) : 'Lifetime Free'}
+                              </span>
+                            </div>
+                            <div className="detail-row">
+                              <span className="detail-label">Profiles Created</span>
+                              <span className="detail-val font-bold">{user.profilesCount || 0}</span>
+                            </div>
+                            <div className="detail-row">
+                              <span className="detail-label">Registration Date</span>
+                              <span className="detail-val text-sm">{formatDate(user.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  </>
                 )}
               </div>
             </section>
