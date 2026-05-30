@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon } from 'lucide-react';
+import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon, Scan } from 'lucide-react';
 import { authService } from '../services/authService';
 import { useTheme } from '../context/ThemeContext';
 
@@ -113,6 +113,17 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               >
                 <Grid className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Dashboard</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  onNavigate('scan-qr');
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <Scan className="w-3.5 h-3.5 text-blue-500" />
+                <span>Scan QR</span>
               </button>
 
               <button

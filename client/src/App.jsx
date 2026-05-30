@@ -26,7 +26,7 @@ export default function App() {
     }
     const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
     const hash = window.location.hash;
-    if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing') {
+    if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing' || hash === '#scan-qr') {
       return isLoggedIn ? 'dashboard' : 'landing';
     }
     return 'landing';
@@ -70,7 +70,7 @@ export default function App() {
       const hash = window.location.hash;
       const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
 
-      if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing') {
+      if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing' || hash === '#scan-qr') {
         if (isLoggedIn) {
           setCurrentView('dashboard');
         } else {
@@ -134,6 +134,8 @@ export default function App() {
       window.location.hash = '#manage-qr';
     } else if (view === 'billing') {
       window.location.hash = '#billing';
+    } else if (view === 'scan-qr') {
+      window.location.hash = '#scan-qr';
     } else {
       window.location.hash = '#home';
     }
