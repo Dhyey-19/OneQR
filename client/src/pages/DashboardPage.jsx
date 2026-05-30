@@ -335,7 +335,7 @@ export default function DashboardPage({ subViewProp }) {
             headers['Authorization'] = `Bearer ${token}`;
           }
 
-          const uploadRes = await fetch('http://localhost:5000/api/profile/upload', {
+          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/upload`, {
             method: 'POST',
             headers,
             body: formData,
