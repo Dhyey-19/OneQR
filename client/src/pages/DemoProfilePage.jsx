@@ -10,9 +10,12 @@ import {
   FaLinkedin, FaTwitter, FaGoogle,
   FaWhatsapp, FaMoneyBillWave
 } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../services/apiService';
 
 export default function DemoProfilePage() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(false);
   const [isOwnerPreview, setIsOwnerPreview] = useState(false);
   const [profileData, setProfileData] = useState(null);
@@ -54,7 +57,6 @@ export default function DemoProfilePage() {
       setLoading(false);
     } else {
       // 2. Attempt to fetch public profile using slug from URL
-      const slug = window.location.pathname.substring(1);
       if (slug && slug !== 'index.html') {
         apiRequest(`/public/profile/${slug}`)
           .then(res => {
@@ -73,7 +75,7 @@ export default function DemoProfilePage() {
                 .replace(/(^-|-$)/g, '');
               
               if (companySlug && companySlug !== slug) {
-                window.history.replaceState(null, '', '/' + companySlug);
+                navigate('/' + companySlug, { replace: true });
               }
             }
             setLoading(false);
@@ -86,10 +88,10 @@ export default function DemoProfilePage() {
         setLoading(false);
       }
     }
-  }, []);
+  }, [slug, navigate]);
 
   const handleReturnToBuilder = () => {
-    window.location.href = '/#manage-qr';
+    navigate('/manage-qr');
   };
 
   const getAlphabeticalLogo = (name) => {

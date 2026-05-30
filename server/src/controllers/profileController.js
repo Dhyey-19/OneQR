@@ -343,3 +343,76 @@ exports.claimQrCode = async (req, res, next) => {
   }
 };
 
+/**
+ * Scans, verifies, and allocates a QR code to the logged-in user if unassigned.
+ */
+exports.scanAndAssignQrCode = async (req, res, next) => {
+  try {
+    const { qrId } = req.body;
+    if (!qrId) {
+      return res.status(400).json({
+        status: "error",
+        message: "QR ID is required."
+      });
+    }
+
+    const cleanQrId = qrId.trim();
+
+    // Find the QR Code in ONEQRS collection
+    const qr = await OneQr.findOne({ qrId: cleanQrId });
+
+    if (!qr) {
+      return res.json({
+        status: "not_found",
+        message: "Invalid QR Code ID. Please check the QR code or try again."
+      });
+    }
+
+    // Check if it is already allocated to someone
+    if (qr.assignedTo) {
+      if (qr.assignedTo.toString() === req.user.id.toString()) {
+        return res.json({
+          status: "already_assigned_to_me",
+          message: "This QR Code is already allocated to your workspace.",
+          data: { qr }
+        });
+      } else {
+        return res.json({
+          status: "already_assigned_to_other",
+          message: "This QR Code is already allocated to another owner. Please scan your own QR."
+        });
+      }
+    }
+
+    // Allocate it to the logged-in user!
+    qr.assignedTo = req.user.id;
+    await qr.save();
+
+    // Link user's profile to this QR's ID/slug
+    let profile = await Profile.findOne({ user: req.user.id });
+    const targetQrUrl = `https://oneqr.dtechcode.in/${qr.qrId}`;
+
+    if (profile) {
+      profile.slug = qr.qrId;
+      profile.qrUrl = targetQrUrl;
+      await profile.save();
+    } else {
+      await Profile.create({
+        user: req.user.id,
+        slug: qr.qrId,
+        qrUrl: targetQrUrl,
+        profilePhone: req.user.phone || "",
+      });
+    }
+
+    res.json({
+      status: "assigned_now",
+      message: "your qr is live and link with this property",
+      data: { qr }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+

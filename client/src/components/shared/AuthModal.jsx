@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Phone, ArrowRight, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { authService } from '../services/authService';
+import { authService } from '../../services/authService';
 
 export default function AuthModal({ onClose, initialTab = 'login' }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'login' | 'signup'

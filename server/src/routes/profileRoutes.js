@@ -21,5 +21,6 @@ router.put("/", profileController.updateProfile);
 router.post("/upload", upload.single("file"), profileController.uploadFile);
 router.get("/qrs", profileController.getUserQrCodes);
 router.post("/qrs/claim", profileController.claimQrCode);
+router.post("/qrs/scan", profileController.scanAndAssignQrCode);
 
 module.exports = router;

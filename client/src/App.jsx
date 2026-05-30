@@ -1,36 +1,62 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import { AnimatePresence } from 'framer-motion';
-import { authService } from './services/authService';
 
-// Section Components
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Features from './components/Features';
-import Pricing from './components/Pricing';
-import Testimonials from './components/Testimonials';
-import Faq from './components/Faq';
-import ContactForm from './components/ContactForm';
-import Footer from './components/Footer';
-import AuthModal from './components/AuthModal';
-import Dashboard from './components/Dashboard';
-import DemoProfilePage from './components/DemoProfilePage';
+// Layout & Shared Components
+import Navbar from './components/shared/Navbar';
+import Footer from './components/shared/Footer';
+import AuthModal from './components/shared/AuthModal';
+import BottomNavbar from './components/shared/BottomNavbar';
+import ProtectedRoute from './components/shared/ProtectedRoute';
+
+// Pages
+import LandingPage from './pages/LandingPage';
+import DashboardPage from './pages/DashboardPage';
+import DemoProfilePage from './pages/DemoProfilePage';
+
+// App Layout wrapper component
+function AppLayout({ children, openAuthModal, handleNavigate }) {
+  const location = useLocation();
+  // If we are on landing, currentView is 'landing', otherwise 'dashboard'
+  const currentView = location.pathname === '/' ? 'landing' : 'dashboard';
+
+  return (
+    <div className="relative min-h-screen bg-transparent selection:bg-blue-500/30 selection:text-slate-900 dark:selection:text-white transition-colors duration-300">
+      {/* Structural Global Background Glows */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-blue-600/5 blur-[120px]" />
+        <div className="absolute top-[35%] left-[-15vw] w-[40vw] h-[40vw] rounded-full bg-cyan-500/5 blur-[100px]" />
+        <div className="absolute bottom-[20%] right-[-10vw] w-[35vw] h-[35vw] rounded-full bg-indigo-600/5 blur-[110px]" />
+      </div>
+
+      {/* Structural Sections Container */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar 
+          onOpenAuth={openAuthModal} 
+          currentView={currentView}
+          onNavigate={handleNavigate}
+        />
+        
+        <main className="flex-grow">
+          {children}
+        </main>
+        
+        {location.pathname === '/' && <Footer />}
+        
+        {/* Mobile Bottom Navigation for Authenticated Users */}
+        <BottomNavbar />
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState('login'); // 'login' | 'signup'
-  const [currentView, setCurrentView] = useState(() => {
-    const path = window.location.pathname;
-    if (path !== '/' && path !== '/index.html') {
-      return 'demo';
-    }
-    const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
-    const hash = window.location.hash;
-    if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing') {
-      return isLoggedIn ? 'dashboard' : 'landing';
-    }
-    return 'landing';
-  });
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const openAuthModal = (tab = 'login') => {
     setAuthInitialTab(tab);
@@ -58,84 +84,52 @@ export default function App() {
     };
   }, []);
 
-  // Handle URL Hash-based Routing
-  useEffect(() => {
-    const handleHashChange = () => {
-      const path = window.location.pathname;
-      if (path !== '/' && path !== '/index.html') {
-        setCurrentView('demo');
-        return;
-      }
-
-      const hash = window.location.hash;
-      const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
-
-      if (hash === '#dashboard' || hash === '#manage-qr' || hash === '#billing') {
-        if (isLoggedIn) {
-          setCurrentView('dashboard');
-        } else {
-          window.location.hash = '#home';
-          setCurrentView('landing');
-        }
-      } else {
-        setCurrentView('landing');
-        if (hash && hash !== '#home') {
-          setTimeout(() => {
-            const el = document.querySelector(hash);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth' });
-            }
-          }, 150);
-        }
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    // Run initially
-    handleHashChange();
-
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
   // Listen to logout / auth change to auto-redirect from dashboard to landing page
   useEffect(() => {
     const handleAuthChange = () => {
-      const path = window.location.pathname;
-      if (path !== '/' && path !== '/index.html') return;
+      const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
+      const currentPath = window.location.pathname;
+      
+      const isSystemPath = currentPath === '/' || currentPath === '/index.html' || 
+                            ['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(currentPath);
 
-      const userJson = localStorage.getItem('oneqr_current_user');
-      if (!userJson) {
-        window.location.hash = '#home';
-        setCurrentView('landing');
+      if (!isSystemPath) return;
+
+      if (!isLoggedIn) {
+        navigate('/');
       } else {
         const pendingPlan = localStorage.getItem('pending_plan_checkout');
         if (pendingPlan) {
-          window.location.hash = '#billing';
+          navigate('/billing');
         } else {
-          window.location.hash = '#dashboard';
+          // If we are already on a dashboard path, don't force redirect to main dashboard
+          if (!['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(currentPath)) {
+            navigate('/dashboard');
+          }
         }
-        setCurrentView('dashboard');
       }
     };
     window.addEventListener('auth-state-change', handleAuthChange);
     return () => window.removeEventListener('auth-state-change', handleAuthChange);
-  }, []);
+  }, [navigate]);
 
-  // Guarantee instant scroll-to-top whenever the primary view switches!
+  // Guarantee instant scroll-to-top whenever the primary path switches!
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [currentView]);
+  }, [location.pathname]);
 
-  // Navigate utility that updates URL hash dynamically
+  // Navigate utility that updates URL path dynamically
   const handleNavigate = (view) => {
     if (view === 'dashboard') {
-      window.location.hash = '#dashboard';
+      navigate('/dashboard');
     } else if (view === 'manage-qr') {
-      window.location.hash = '#manage-qr';
+      navigate('/manage-qr');
     } else if (view === 'billing') {
-      window.location.hash = '#billing';
+      navigate('/billing');
+    } else if (view === 'scan-qr') {
+      navigate('/scan-qr');
     } else {
-      window.location.hash = '#home';
+      navigate('/');
     }
   };
 
@@ -143,71 +137,63 @@ export default function App() {
     const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
     localStorage.setItem('pending_plan_checkout', planKey);
     if (isLoggedIn) {
-      window.location.hash = '#billing';
+      navigate('/billing');
     } else {
       openAuthModal('signup');
     }
   };
 
-  if (currentView === 'demo') {
+  // Check if current route is a system path or not
+  const systemPaths = ['/', '/dashboard', '/manage-qr', '/billing', '/scan-qr'];
+  const isSlugPath = !systemPaths.includes(location.pathname) && location.pathname !== '/index.html';
+
+  if (isSlugPath) {
     return <DemoProfilePage />;
   }
 
   return (
-    <div className="relative min-h-screen bg-transparent selection:bg-blue-500/30 selection:text-slate-900 dark:selection:text-white transition-colors duration-300">
-      {/* Structural Global Background Glows */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-blue-600/5 blur-[120px]" />
-        <div className="absolute top-[35%] left-[-15vw] w-[40vw] h-[40vw] rounded-full bg-cyan-500/5 blur-[100px]" />
-        <div className="absolute bottom-[20%] right-[-10vw] w-[35vw] h-[35vw] rounded-full bg-indigo-600/5 blur-[110px]" />
-      </div>
-
-      {/* Structural Sections Container */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar 
-          onOpenAuth={openAuthModal} 
-          currentView={currentView}
-          onNavigate={handleNavigate}
-        />
+    <AppLayout 
+      openAuthModal={openAuthModal} 
+      handleNavigate={handleNavigate}
+    >
+      <Routes>
+        <Route path="/" element={<LandingPage openAuthModal={openAuthModal} handleSelectPlan={handleSelectPlan} />} />
         
-        <main className="flex-grow">
-          {currentView === 'landing' ? (
-            <>
-              {/* 1. Hero Section */}
-              <Hero onOpenAuth={openAuthModal} />
-              
-              {/* 2. Features Grid */}
-              <Features />
-              
-              {/* 3. Pricing Section */}
-              <Pricing onSelectPlan={handleSelectPlan} />
-              
-              {/* 4. Testimonials */}
-              <Testimonials />
-              
-              {/* 5. Collapsible FAQ */}
-              <Faq />
-              
-              {/* 6. Contact Form */}
-              <ContactForm />
-            </>
-          ) : (
-            <Dashboard />
-          )}
-        </main>
+        {/* Protected Dashboard Views */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="overview" />
+          </ProtectedRoute>
+        } />
+        <Route path="/manage-qr" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="manage-qr" />
+          </ProtectedRoute>
+        } />
+        <Route path="/billing" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="billing" />
+          </ProtectedRoute>
+        } />
+        <Route path="/scan-qr" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="qr-scan" />
+          </ProtectedRoute>
+        } />
         
-        <Footer />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-        {/* Global Authentication Modal Center */}
-        <AnimatePresence>
-          {authModalOpen && (
-            <AuthModal
-              onClose={() => setAuthModalOpen(false)}
-              initialTab={authInitialTab}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
+      {/* Global Authentication Modal Center */}
+      <AnimatePresence>
+        {authModalOpen && (
+          <AuthModal
+            onClose={() => setAuthModalOpen(false)}
+            initialTab={authInitialTab}
+          />
+        )}
+      </AnimatePresence>
+    </AppLayout>
   );
 }
