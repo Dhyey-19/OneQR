@@ -2,29 +2,18 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import { AnimatePresence } from 'framer-motion';
-import { authService } from './services/authService';
 
-// Section Components
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Features from './components/Features';
-import Pricing from './components/Pricing';
-import Testimonials from './components/Testimonials';
-import Faq from './components/Faq';
-import ContactForm from './components/ContactForm';
-import Footer from './components/Footer';
-import AuthModal from './components/AuthModal';
-import Dashboard from './components/Dashboard';
-import DemoProfilePage from './components/DemoProfilePage';
+// Layout & Shared Components
+import Navbar from './components/shared/Navbar';
+import Footer from './components/shared/Footer';
+import AuthModal from './components/shared/AuthModal';
+import BottomNavbar from './components/shared/BottomNavbar';
+import ProtectedRoute from './components/shared/ProtectedRoute';
 
-// Protected Route Component to guard dashboard routes
-function ProtectedRoute({ children }) {
-  const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
-  if (!isLoggedIn) {
-    return <Navigate to="/" replace />;
-  }
-  return children;
-}
+// Pages
+import LandingPage from './pages/LandingPage';
+import DashboardPage from './pages/DashboardPage';
+import DemoProfilePage from './pages/DemoProfilePage';
 
 // App Layout wrapper component
 function AppLayout({ children, openAuthModal, handleNavigate }) {
@@ -53,47 +42,12 @@ function AppLayout({ children, openAuthModal, handleNavigate }) {
           {children}
         </main>
         
-        <Footer />
+        {location.pathname === '/' && <Footer />}
+        
+        {/* Mobile Bottom Navigation for Authenticated Users */}
+        <BottomNavbar />
       </div>
     </div>
-  );
-}
-
-// Landing Page Wrapper Component to handle scroll-to-hash triggers
-function LandingPage({ openAuthModal, handleSelectPlan }) {
-  const location = useLocation();
-
-  useEffect(() => {
-    if (location.hash && location.hash !== '#home') {
-      setTimeout(() => {
-        const el = document.querySelector(location.hash);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 150);
-    }
-  }, [location.hash]);
-
-  return (
-    <>
-      {/* 1. Hero Section */}
-      <Hero onOpenAuth={openAuthModal} />
-      
-      {/* 2. Features Grid */}
-      <Features />
-      
-      {/* 3. Pricing Section */}
-      <Pricing onSelectPlan={handleSelectPlan} />
-      
-      {/* 4. Testimonials */}
-      <Testimonials />
-      
-      {/* 5. Collapsible FAQ */}
-      <Faq />
-      
-      {/* 6. Contact Form */}
-      <ContactForm />
-    </>
   );
 }
 
@@ -208,22 +162,22 @@ export default function App() {
         {/* Protected Dashboard Views */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <Dashboard subViewProp="overview" />
+            <DashboardPage subViewProp="overview" />
           </ProtectedRoute>
         } />
         <Route path="/manage-qr" element={
           <ProtectedRoute>
-            <Dashboard subViewProp="manage-qr" />
+            <DashboardPage subViewProp="manage-qr" />
           </ProtectedRoute>
         } />
         <Route path="/billing" element={
           <ProtectedRoute>
-            <Dashboard subViewProp="billing" />
+            <DashboardPage subViewProp="billing" />
           </ProtectedRoute>
         } />
         <Route path="/scan-qr" element={
           <ProtectedRoute>
-            <Dashboard subViewProp="qr-scan" />
+            <DashboardPage subViewProp="qr-scan" />
           </ProtectedRoute>
         } />
         

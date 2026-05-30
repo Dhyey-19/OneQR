@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon, Scan } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { authService } from '../services/authService';
-import { useTheme } from '../context/ThemeContext';
+import { authService } from '../../services/authService';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate }) {
   const location = useLocation();
@@ -245,20 +245,22 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               )}
             </div>
 
-            {/* Mobile Profile Trigger (Directly outside hamburger so it is easily accessible!) */}
-            {currentUser && (
+            {/* Mobile Profile Trigger (Only outside system dashboard paths to avoid duplication with BottomNavbar!) */}
+            {currentUser && !['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(location.pathname) && (
               <div className="md:hidden flex items-center mr-1">
                 <ProfileDropdown isMobile={true} />
               </div>
             )}
 
-            {/* Mobile Hamburger Button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
-            >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Mobile Hamburger Button (Only outside system dashboard paths) */}
+            {!['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(location.pathname) && (
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            )}
           </div>
         </div>
       </motion.nav>
