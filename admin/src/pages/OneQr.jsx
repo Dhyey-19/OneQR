@@ -28,6 +28,11 @@ export default function OneQr() {
   // Track specific QR codes being assigned: { [qrId]: loadingStateBoolean }
   const [assigningState, setAssigningState] = useState({});
 
+  // Track selected plan for each QR code: { [qrId]: planId }
+  const [selectedPlanForQr, setSelectedPlanForQr] = useState({});
+  // Track specific QR codes having plans assigned: { [qrId]: loadingStateBoolean }
+  const [assigningPlanState, setAssigningPlanState] = useState({});
+
   const fetchData = async () => {
     setError('');
     try {
@@ -171,6 +176,51 @@ export default function OneQr() {
 
   const handleSelectUser = (qrId, userId) => {
     setSelectedUserForQr(prev => ({ ...prev, [qrId]: userId }));
+  };
+
+  const handleSelectPlan = (qrId, planId) => {
+    setSelectedPlanForQr(prev => ({ ...prev, [qrId]: planId }));
+  };
+
+  const formatPlanName = (plan) => {
+    if (!plan) return 'Free';
+    return plan.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  const getPlanBadgeClass = (plan) => {
+    if (!plan || plan === 'free') return 'badge-plan-free';
+    if (plan.includes('pro')) return 'badge-plan-pro';
+    return 'badge-plan-starter';
+  };
+
+  const handleAssignPlan = async (qrId) => {
+    const planId = selectedPlanForQr[qrId];
+    if (!planId) {
+      setError('Please select a plan to assign.');
+      return;
+    }
+
+    setAssigningPlanState(prev => ({ ...prev, [qrId]: true }));
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await apiRequest('/admin/qrs/assign-plan', {
+        method: 'POST',
+        body: JSON.stringify({ qrId, planId }),
+      });
+
+      if (res.status === 'success') {
+        setSuccess(`Plan successfully updated for QR code!`);
+        // Reset selection for this QR
+        setSelectedPlanForQr(prev => ({ ...prev, [qrId]: '' }));
+        fetchData();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to assign plan.');
+    } finally {
+      setAssigningPlanState(prev => ({ ...prev, [qrId]: false }));
+    }
   };
 
   // Filter QR codes by QR ID or target phone number
@@ -349,9 +399,19 @@ export default function OneQr() {
                     </td>
                     <td data-label="Assignment Status">
                       {qr.assignedTo ? (
-                        <span className="badge badge-status-active">
-                          Assigned: {qr.assignedTo.phone}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                          <span className="badge badge-status-active">
+                            Assigned: {qr.assignedTo.phone}
+                          </span>
+                          <span className={`badge ${getPlanBadgeClass(qr.plan)}`}>
+                            Plan: {formatPlanName(qr.plan)}
+                          </span>
+                          {qr.planAssignedByAdmin && (
+                            <span className="badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#c084fc', borderColor: 'rgba(139, 92, 246, 0.2)', fontSize: '0.65rem', padding: '2px 6px', textTransform: 'none' }}>
+                              Assigned by Admin
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="badge badge-status-inactive" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fcd34d', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
                           Unassigned
@@ -406,6 +466,43 @@ export default function OneQr() {
                                 <>
                                   <UserPlus size={14} />
                                   <span>Assign</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Assign Plan form (only if assigned) */}
+                        {qr.assignedTo && (
+                          <div className="assign-inline-form">
+                            <select
+                              className="form-input select-user-assign"
+                              value={selectedPlanForQr[qr._id] || ''}
+                              onChange={(e) => handleSelectPlan(qr._id, e.target.value)}
+                              disabled={assigningPlanState[qr._id]}
+                            >
+                              <option value="">-- Choose Plan --</option>
+                              <option value="free">Free</option>
+                              <option value="basic_yearly">Basic Yearly</option>
+                              <option value="basic_3yearly">Basic 3 Years</option>
+                              <option value="premium_yearly">Premium Yearly</option>
+                              <option value="premium_3yearly">Premium 3 Years</option>
+                              <option value="enterprise_yearly">Enterprise Yearly</option>
+                              <option value="enterprise_3yearly">Enterprise 3 Years</option>
+                            </select>
+
+                            <button
+                              onClick={() => handleAssignPlan(qr._id)}
+                              className="btn-primary btn-assign-submit"
+                              style={{ background: 'linear-gradient(135deg, var(--accent-primary), #7c3aed)' }}
+                              disabled={assigningPlanState[qr._id] || !selectedPlanForQr[qr._id]}
+                            >
+                              {assigningPlanState[qr._id] ? (
+                                <span className="spinner spinner-tiny"></span>
+                              ) : (
+                                <>
+                                  <UserPlus size={14} />
+                                  <span>Assign Plan</span>
                                 </>
                               )}
                             </button>

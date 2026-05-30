@@ -10,17 +10,22 @@ import {
   FaLinkedin, FaTwitter, FaGoogle,
   FaWhatsapp, FaMoneyBillWave
 } from 'react-icons/fa';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiRequest } from '../services/apiService';
 
 export default function DemoProfilePage() {
-  const { slug } = useParams();
+  const { slug: routeSlug } = useParams();
+  const location = useLocation();
+  const locationSlug = location.pathname.replace(/^\/|\/$/g, '');
+  const slug = routeSlug || locationSlug;
+
   const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(false);
   const [isOwnerPreview, setIsOwnerPreview] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [inactive, setInactive] = useState(false);
+  const [expired, setExpired] = useState(false);
   const [upiModalOpen, setUpiModalOpen] = useState(false);
   const [upiModalData, setUpiModalData] = useState({ upiId: '', upiLink: '', payeeName: '' });
   const [copiedUpi, setCopiedUpi] = useState(false);
@@ -62,21 +67,12 @@ export default function DemoProfilePage() {
           .then(res => {
             if (res.status === 'inactive') {
               setInactive(true);
+            } else if (res.status === 'expired') {
+              setExpired(true);
             } else if (res.status === 'success' && res.data?.profile) {
               const profile = res.data.profile;
               setProfileData(profile);
               setAuthorized(true);
-              
-              // Change URL path to slugified company name
-              const companyName = profile.profileCompany || profile.profileName || "profile";
-              const companySlug = companyName
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
-              
-              if (companySlug && companySlug !== slug) {
-                navigate('/' + companySlug, { replace: true });
-              }
             }
             setLoading(false);
           })
@@ -194,7 +190,52 @@ export default function DemoProfilePage() {
     );
   }
 
-  // Access Denied / Demo Unauthorized view (for other browsers/direct access)
+  if (expired) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Decorative Glows */}
+        <div className="absolute top-[20%] left-[-10vw] w-[45vw] h-[45vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[20%] right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-cyan-600/5 blur-[120px] pointer-events-none" />
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', duration: 0.6 }}
+          className="w-full max-w-md p-8 glass border border-white/10 rounded-3xl text-center space-y-6 relative z-10 backdrop-blur-xl bg-slate-950/40"
+        >
+          <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-[#ef4444] rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-red-500/10">
+            <ShieldAlert className="w-8 h-8 animate-pulse" />
+          </div>
+          
+          <div className="space-y-2">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+              Subscription Expired
+            </h1>
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+              This QR Code's premium subscription is expired or inactive.
+            </p>
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-left text-xs text-slate-400 space-y-2 leading-normal">
+            <strong className="text-slate-300 block">Are you the owner?</strong>
+            <p className="text-slate-400">
+              Please log in to your OneQR dashboard and renew your subscription in the **Billing** tab to reactivate this page.
+            </p>
+          </div>
+
+          <button
+            onClick={() => { window.location.href = '/'; }}
+            className="w-full py-3 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-sm shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/10"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Go to OneQR Home</span>
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Profile Not Found / Access Denied view (for invalid slugs or deactivated profiles)
   if (!authorized) {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center p-6 relative overflow-hidden">
@@ -214,20 +255,11 @@ export default function DemoProfilePage() {
           
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              🔒 Private Demo Session
+              Profile Not Found
             </h1>
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-              This preview URL is temporary and only accessible on the device and browser session where the demo was generated.
+              The requested profile does not exist, has expired, or is inactive.
             </p>
-          </div>
-
-          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-left text-xs text-slate-400 space-y-2 leading-normal">
-            <strong className="text-slate-300 block">Why am I seeing this?</strong>
-            <ul className="list-disc list-inside space-y-1.5 text-slate-400">
-              <li>You opened this link in a different browser.</li>
-              <li>Your preview session has expired.</li>
-              <li>Direct public access to raw demo pages is restricted.</li>
-            </ul>
           </div>
 
           <button

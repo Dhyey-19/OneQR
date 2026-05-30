@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../services/apiService';
 import { authService } from '../services/authService';
 
+const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
+
 // Dashboard Sub-components & Tabs
 import OverviewTab from '../components/dashboard/OverviewTab';
 import BillingTab from '../components/dashboard/BillingTab';
@@ -72,7 +74,7 @@ export default function DashboardPage({ subViewProp }) {
         const profile = response.data.profile;
         setProfileLogo(profile.profileLogo || '');
         setHeaderColor(profile.headerColor || 'gradient');
-        setQrUrl(profile.qrUrl || (targetQrId ? `https://oneqr.dtechcode.in/${targetQrId}` : 'https://oneqr.co/user/profile'));
+        setQrUrl(profile.qrUrl || (targetQrId ? `${qrUrlPrefix}/${targetQrId}` : 'https://oneqr.co/user/profile'));
         setQrColor(profile.qrColor || '000000');
         setProfileCompany(profile.profileCompany || '');
         setProfileName(profile.profileName || '');
@@ -141,8 +143,11 @@ export default function DashboardPage({ subViewProp }) {
 
   // Sync route param changes
   useEffect(() => {
-    const user = authService.getCurrentUser() || currentUser;
-    const isSubscribed = user?.subscriptionStatus === 'active';
+    if (isLoadingQrs) return; // Prevent redirecting on initial render before QRs load
+
+    const activeQr = allocatedQrs.find(q => q.qrId === activeQrId) || allocatedQrs[0];
+    // Free plan QR or active subscription QR is allowed
+    const isSubscribed = activeQr ? (activeQr.plan === 'free' || activeQr.subscriptionStatus === 'active') : false;
 
     if (subViewProp === 'manage-qr') {
       if (!isSubscribed) {
@@ -160,7 +165,7 @@ export default function DashboardPage({ subViewProp }) {
     } else {
       setSubView('overview');
     }
-  }, [subViewProp, currentUser, navigate]);
+  }, [subViewProp, currentUser, navigate, allocatedQrs, activeQrId, isLoadingQrs]);
 
   // Handle pending plan upgrades on billing load
   useEffect(() => {
@@ -192,7 +197,7 @@ export default function DashboardPage({ subViewProp }) {
     try {
       const res = await apiRequest('/payment/create-order', {
         method: 'POST',
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, qrId: activeQrId }),
       });
 
       if (res.status === 'success' && res.data) {
@@ -223,12 +228,14 @@ export default function DashboardPage({ subViewProp }) {
                     razorpayOrderId: response.razorpay_order_id,
                     razorpaySignature: response.razorpay_signature,
                     planId,
+                    qrId: activeQrId,
                   }),
                 });
 
                 if (verifyRes.status === 'success') {
                   const updatedUser = await authService.getProfile();
                   setCurrentUser(updatedUser);
+                  await fetchQrsAndProfile(); // Re-fetch updated QR code plans
                   setSuccessPlanName(orderData.planName);
                   setShowSuccessModal(true);
                 } else {
@@ -270,12 +277,14 @@ export default function DashboardPage({ subViewProp }) {
           razorpayOrderId: mockPaymentData.orderId,
           razorpaySignature: "mock_signature",
           planId: mockPaymentData.planId,
+          qrId: activeQrId,
         }),
       });
 
       if (verifyRes.status === 'success') {
         const updatedUser = await authService.getProfile();
         setCurrentUser(updatedUser);
+        await fetchQrsAndProfile(); // Re-fetch updated QR code plans
         setShowMockModal(false);
         setMockPaymentData(null);
         setSuccessPlanName(mockPaymentData.planName);
@@ -495,6 +504,7 @@ export default function DashboardPage({ subViewProp }) {
         {subView === 'billing' && (
           <BillingTab 
             currentUser={currentUser}
+            activeQr={allocatedQrs.find(q => q.qrId === activeQrId) || allocatedQrs[0]}
             isPaymentLoading={isPaymentLoading}
             handleUpgrade={handleUpgrade}
           />

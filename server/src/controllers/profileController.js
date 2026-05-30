@@ -3,6 +3,8 @@ const Profile = require("../models/Profile");
 const OneQr = require("../models/OneQr");
 const cloudinary = require("../config/cloudinary");
 
+const qrUrlPrefix = process.env.QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
+
 /**
  * Helper to upload buffer streams to Cloudinary
  */
@@ -59,7 +61,7 @@ exports.getProfile = async (req, res, next) => {
         data: {
           profile: {
             profileLogo: "",
-            qrUrl: qrId ? `https://oneqr.dtechcode.in/${qrId.trim()}` : "https://oneqr.co/user/profile",
+            qrUrl: qrId ? `${qrUrlPrefix}/${qrId.trim()}` : "https://oneqr.co/user/profile",
             qrColor: "000000",
             profileCompany: "",
             profileName: "",
@@ -133,7 +135,7 @@ exports.updateProfile = async (req, res, next) => {
     if (targetSlug) {
       await OneQr.findOneAndUpdate(
         { qrId: targetSlug },
-        { qrUrl: req.body.qrUrl || `https://oneqr.dtechcode.in/${targetSlug}` }
+        { qrUrl: req.body.qrUrl || `${qrUrlPrefix}/${targetSlug}` }
       );
     }
 
@@ -195,6 +197,14 @@ exports.getPublicProfile = async (req, res, next) => {
         return res.json({
           status: "inactive",
           message: "This QR Code is not activated yet.",
+        });
+      }
+
+      // Check if plan is active (if not on free plan)
+      if (qr.plan && qr.plan !== 'free' && qr.subscriptionStatus !== 'active') {
+        return res.json({
+          status: "expired",
+          message: "This QR Code's premium subscription is expired or inactive.",
         });
       }
       
@@ -304,7 +314,7 @@ exports.claimQrCode = async (req, res, next) => {
 
     // Also link user's profile to this QR's ID/slug if user doesn't have a profile yet or needs updating
     let profile = await Profile.findOne({ user: req.user.id });
-    const targetQrUrl = `https://oneqr.dtechcode.in/${qr.qrId}`;
+    const targetQrUrl = `${qrUrlPrefix}/${qr.qrId}`;
     
     if (profile) {
       profile.slug = qr.qrId;
@@ -376,7 +386,7 @@ exports.scanAndAssignQrCode = async (req, res, next) => {
 
     // Link user's profile to this QR's ID/slug
     let profile = await Profile.findOne({ user: req.user.id });
-    const targetQrUrl = `https://oneqr.dtechcode.in/${qr.qrId}`;
+    const targetQrUrl = `${qrUrlPrefix}/${qr.qrId}`;
 
     if (profile) {
       profile.slug = qr.qrId;

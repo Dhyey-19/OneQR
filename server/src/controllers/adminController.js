@@ -5,6 +5,8 @@ const User = require("../models/User");
 const Profile = require("../models/Profile");
 const OneQr = require("../models/OneQr");
 
+const qrUrlPrefix = process.env.QR_URL_PREFIX;
+
 /**
  * Generates a signed JWT for a given admin ID
  */
@@ -121,7 +123,7 @@ exports.getDashboardStats = async (req, res) => {
     const assignedQrs = await OneQr.countDocuments({ assignedTo: { $ne: null } });
 
     // Plan distributions
-    const planCounts = await User.aggregate([
+    const planCounts = await OneQr.aggregate([
       { $group: { _id: "$plan", count: { $sum: 1 } } }
     ]);
 
@@ -132,10 +134,12 @@ exports.getDashboardStats = async (req, res) => {
       assignedQrs,
       plans: {
         free: 0,
-        starter_monthly: 0,
-        starter_yearly: 0,
-        pro_monthly: 0,
-        pro_yearly: 0,
+        basic_yearly: 0,
+        basic_3yearly: 0,
+        premium_yearly: 0,
+        premium_3yearly: 0,
+        enterprise_yearly: 0,
+        enterprise_3yearly: 0,
       },
     };
 
@@ -248,7 +252,7 @@ exports.generateQrCode = async (req, res) => {
     }
 
     // User requested QR URL format: oneqr.dtechcode.in/{qrId}
-    const qrUrl = `https://oneqr.dtechcode.in/${qrId}`;
+    const qrUrl = `${qrUrlPrefix}/${qrId}`;
 
     const newQr = new OneQr({
       qrId,
@@ -311,7 +315,7 @@ exports.assignQrCode = async (req, res) => {
 
     // 4. Upsert User's Profile
     // Connects QR to profile using the qrId as the slug and qrUrl as target
-    const targetQrUrl = `https://oneqr.dtechcode.in/${qrId}`;
+    const targetQrUrl = `${qrUrlPrefix}/${qrId}`;
     
     let profile = await Profile.findOne({ user: userId });
     if (profile) {
@@ -408,6 +412,114 @@ exports.deleteAllQrCodes = async (req, res) => {
     return res.status(500).json({
       status: "error",
       message: "Server error occurred while deleting all QR codes.",
+    });
+  }
+};
+
+/**
+ * @desc    Assign a subscription plan to a user
+ * @route   POST /api/admin/users/assign-plan
+ * @access  Private (Admin)
+ */
+exports.assignPlan = async (req, res) => {
+  try {
+    const { qrId, planId } = req.body;
+
+    if (!qrId || !planId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please provide both qrId and planId.",
+      });
+    }
+
+    const validPlans = ['free', 'basic_yearly', 'basic_3yearly', 'premium_yearly', 'premium_3yearly', 'enterprise_yearly', 'enterprise_3yearly'];
+    if (!validPlans.includes(planId)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid plan selection.",
+      });
+    }
+
+    // 1. Verify QR exists
+    let qr = null;
+    if (qrId.match(/^[0-9a-fA-F]{24}$/)) {
+      qr = await OneQr.findById(qrId);
+    }
+    if (!qr) {
+      qr = await OneQr.findOne({ qrId });
+    }
+
+    if (!qr) {
+      return res.status(404).json({
+        status: "error",
+        message: "QR code not found.",
+      });
+    }
+
+    const planNames = {
+      basic_yearly: "Basic Plan - 1 Year",
+      basic_3yearly: "Basic Plan - 3 Years",
+      premium_yearly: "Premium Plan - 1 Year",
+      premium_3yearly: "Premium Plan - 3 Years",
+      enterprise_yearly: "Enterprise Plan - 1 Year",
+      enterprise_3yearly: "Enterprise Plan - 3 Years",
+    };
+
+    // 2. Set plan details
+    if (planId === 'free') {
+      qr.plan = 'free';
+      qr.subscriptionStatus = 'inactive';
+      qr.subscriptionExpiresAt = null;
+      qr.planAssignedByAdmin = false;
+    } else {
+      // Calculate duration days based on planId
+      const durationDays = planId.includes('3yearly') ? 1095 : 365;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + durationDays);
+
+      qr.plan = planId;
+      qr.subscriptionStatus = 'active';
+      qr.subscriptionExpiresAt = expiresAt;
+      qr.planAssignedByAdmin = true;
+    }
+
+    await qr.save();
+
+    // 3. Add to user order history if QR is assigned to a user
+    if (qr.assignedTo) {
+      const user = await User.findById(qr.assignedTo);
+      if (user) {
+        if (!user.orderHistory) {
+          user.orderHistory = [];
+        }
+        user.orderHistory.push({
+          orderId: `admin_assign_${Date.now()}`,
+          paymentId: `admin_pay_${Date.now()}`,
+          planId: planId,
+          planName: planId === 'free' ? "Free Plan reset" : `${planNames[planId]} (QR: ${qr.qrId})`,
+          amount: 0,
+          status: "success",
+          paidAt: new Date(),
+        });
+        await user.save();
+      }
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: `Plan successfully updated for QR code ${qr.qrId}!`,
+      data: {
+        qrId: qr.qrId,
+        plan: qr.plan,
+        subscriptionStatus: qr.subscriptionStatus,
+        subscriptionExpiresAt: qr.subscriptionExpiresAt,
+      },
+    });
+  } catch (error) {
+    console.error("Assign plan error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while assigning plan.",
     });
   }
 };
