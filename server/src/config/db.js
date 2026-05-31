@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
-const { DB_URL } = require("./config");
+const config = require("./config");
 
 const connectDB = async () => {
   try {
-    if (!DB_URL) {
+    if (!config.DB_URL) {
       console.error("DB_URL is not defined in config.js");
       process.exit(1);
     }
-    const conn = await mongoose.connect(DB_URL);
+    const conn = await mongoose.connect(config.DB_URL);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
     // Seed admin user
@@ -51,21 +51,25 @@ const connectDB = async () => {
       console.error("Index cleanup error (safe to ignore):", indexErr.message);
     }
 
-    // Clean up any corrupted qrUrls starting with "undefined"
+    // Clean up legacy qrUrl fields in database (since they are now dynamic virtual properties)
     try {
-      const OneQr = require("../models/OneQr");
-      const corruptedQrs = await OneQr.find({ qrUrl: /^undefined/ });
-      if (corruptedQrs.length > 0) {
-        console.log(`Found ${corruptedQrs.length} corrupted QR codes starting with 'undefined'. Repairing...`);
-        const targetPrefix = process.env.QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
-        for (const qr of corruptedQrs) {
-          qr.qrUrl = qr.qrUrl.replace(/^undefined/, targetPrefix);
-          await qr.save();
-        }
-        console.log("Corrupted QR codes repaired successfully.");
+      const oneQrResult = await mongoose.connection.db.collection("ONEQRS").updateMany(
+        { qrUrl: { $exists: true } },
+        { $unset: { qrUrl: "" } }
+      );
+      if (oneQrResult.modifiedCount > 0) {
+        console.log(`[Migration] Cleaned up ${oneQrResult.modifiedCount} legacy qrUrl fields from ONEQRS collection.`);
       }
-    } catch (repairErr) {
-      console.error("Failed to repair corrupted QR codes:", repairErr);
+
+      const profileResult = await mongoose.connection.db.collection("PROFILES").updateMany(
+        { qrUrl: { $exists: true } },
+        { $unset: { qrUrl: "" } }
+      );
+      if (profileResult.modifiedCount > 0) {
+        console.log(`[Migration] Cleaned up ${profileResult.modifiedCount} legacy qrUrl fields from PROFILES collection.`);
+      }
+    } catch (cleanupErr) {
+      console.error("Failed to clean up legacy qrUrl fields:", cleanupErr);
     }
   } catch (error) {
     console.error(`Database connection failed: ${error.message}`);

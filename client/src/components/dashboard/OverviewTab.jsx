@@ -84,7 +84,7 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, curr
         <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="text-base md:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <QrCode className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
+              <QrCode className="notranslate w-5 h-5 md:w-6 md:h-6 text-blue-500" translate="no" />
               Your Allocated QR Codes
             </h3>
             <p className="hidden md:block text-slate-650 dark:text-slate-400 text-xs sm:text-sm mt-1">
@@ -113,7 +113,7 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, curr
         ) : allocatedQrs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-500">
-              <QrCode className="w-8 h-8 opacity-45 animate-pulse" />
+              <QrCode className="notranslate w-8 h-8 opacity-45 animate-pulse" translate="no" />
             </div>
             <div className="space-y-1 max-w-sm">
               <h4 className="font-bold text-slate-800 dark:text-white text-base">No QR Codes Assigned</h4>

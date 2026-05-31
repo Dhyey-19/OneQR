@@ -5,7 +5,7 @@ const User = require("../models/User");
 const Profile = require("../models/Profile");
 const OneQr = require("../models/OneQr");
 
-const qrUrlPrefix = process.env.QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
+const qrUrlPrefix = config.QR_URL_PREFIX;
 
 /**
  * Generates a signed JWT for a given admin ID
@@ -247,12 +247,8 @@ exports.generateQrCode = async (req, res) => {
       });
     }
 
-    // User requested QR URL format: oneqr.dtechcode.in/{qrId}
-    const qrUrl = `${qrUrlPrefix}/${qrId}`;
-
     const newQr = new OneQr({
       qrId,
-      qrUrl,
     });
 
     await newQr.save();
@@ -350,18 +346,14 @@ exports.assignQrCode = async (req, res) => {
     await qr.save();
 
     // 5. Upsert User's Profile
-    const targetQrUrl = `${qrUrlPrefix}/${qrId}`;
-    
     let profile = await Profile.findOne({ user: userId });
     if (profile) {
       profile.slug = qrId;
-      profile.qrUrl = targetQrUrl;
       await profile.save();
     } else {
       profile = new Profile({
         user: userId,
         slug: qrId,
-        qrUrl: targetQrUrl,
         profilePhone: user.phone || "",
       });
       await profile.save();
@@ -432,8 +424,8 @@ exports.deleteQrCode = async (req, res) => {
  */
 exports.deleteAllQrCodes = async (req, res) => {
   try {
-    // Reset all profiles linked to QR codes by nullifying slug and qrUrl
-    await Profile.updateMany({}, { $set: { slug: null, qrUrl: null } });
+    // Reset all profiles linked to QR codes by nullifying slug
+    await Profile.updateMany({}, { $set: { slug: null } });
     
     // Delete all QR codes
     await OneQr.deleteMany({});

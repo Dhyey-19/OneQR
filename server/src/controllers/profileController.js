@@ -2,8 +2,9 @@ const { Readable } = require("stream");
 const Profile = require("../models/Profile");
 const OneQr = require("../models/OneQr");
 const cloudinary = require("../config/cloudinary");
+const config = require("../config/config");
 
-const qrUrlPrefix = process.env.QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
+const qrUrlPrefix = config.QR_URL_PREFIX;
 
 /**
  * Helper to upload buffer streams to Cloudinary
@@ -131,13 +132,7 @@ exports.updateProfile = async (req, res, next) => {
       { upsert: true, new: true, runValidators: true }
     );
 
-    // Synchronize OneQr collection redirect destination if this profile belongs to a specific slug/qrId
-    if (targetSlug) {
-      await OneQr.findOneAndUpdate(
-        { qrId: targetSlug },
-        { qrUrl: req.body.qrUrl || `${qrUrlPrefix}/${targetSlug}` }
-      );
-    }
+
 
     res.json({
       status: "success",
@@ -316,17 +311,14 @@ exports.claimQrCode = async (req, res, next) => {
 
     // Also link user's profile to this QR's ID/slug if user doesn't have a profile yet or needs updating
     let profile = await Profile.findOne({ user: req.user.id });
-    const targetQrUrl = `${qrUrlPrefix}/${qr.qrId}`;
     
     if (profile) {
       profile.slug = qr.qrId;
-      profile.qrUrl = targetQrUrl;
       await profile.save();
     } else {
       await Profile.create({
         user: req.user.id,
         slug: qr.qrId,
-        qrUrl: targetQrUrl,
         profilePhone: req.user.phone || "",
       });
     }
@@ -388,17 +380,14 @@ exports.scanAndAssignQrCode = async (req, res, next) => {
 
     // Link user's profile to this QR's ID/slug
     let profile = await Profile.findOne({ user: req.user.id });
-    const targetQrUrl = `${qrUrlPrefix}/${qr.qrId}`;
 
     if (profile) {
       profile.slug = qr.qrId;
-      profile.qrUrl = targetQrUrl;
       await profile.save();
     } else {
       await Profile.create({
         user: req.user.id,
         slug: qr.qrId,
-        qrUrl: targetQrUrl,
         profilePhone: req.user.phone || "",
       });
     }

@@ -12,10 +12,6 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    qrUrl: {
-      type: String,
-      default: "https://oneqr.co/user/profile",
-    },
     qrColor: {
       type: String,
       default: "000000",
@@ -125,8 +121,18 @@ const ProfileSchema = new mongoose.Schema(
   {
     timestamps: true,
     collection: "PROFILES",
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+ProfileSchema.virtual("qrUrl").get(function() {
+  if (this.slug) {
+    const config = require("../config/config");
+    return `${config.QR_URL_PREFIX}/${this.slug}`;
+  }
+  return "https://oneqr.co/user/profile";
+});
 
 ProfileSchema.index(
   { user: 1, slug: 1 },

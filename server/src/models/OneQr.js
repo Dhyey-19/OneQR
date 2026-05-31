@@ -8,10 +8,6 @@ const OneQrSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    qrUrl: {
-      type: String,
-      required: true,
-    },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -44,7 +40,14 @@ const OneQrSchema = new mongoose.Schema(
   {
     timestamps: true,
     collection: "ONEQRS",
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+OneQrSchema.virtual("qrUrl").get(function() {
+  const config = require("../config/config");
+  return `${config.QR_URL_PREFIX}/${this.qrId}`;
+});
 
 module.exports = mongoose.model("OneQr", OneQrSchema);

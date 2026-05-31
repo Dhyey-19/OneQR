@@ -11,5 +11,7 @@ module.exports = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || "",
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || "",
+  QR_URL_PREFIX: process.env.QR_URL_PREFIX || "https://oneqr.dtechcode.in",
 };
+
 
