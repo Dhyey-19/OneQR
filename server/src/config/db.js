@@ -8,7 +8,7 @@ const connectDB = async () => {
       process.exit(1);
     }
     const conn = await mongoose.connect(config.DB_URL);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${conn.connection.host} | DB Name: ${conn.connection.name}`);
 
     // Seed admin user
     const Admin = require("../models/Admin");
