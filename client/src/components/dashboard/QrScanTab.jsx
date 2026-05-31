@@ -249,7 +249,7 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
                   <div className="relative w-full aspect-square max-w-[280px] mx-auto overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-black flex items-center justify-center">
                     <div id="page-qr-reader-container" className="w-full h-full" />
                     {pageCameraError && (
-                      <div className="absolute inset-0 p-6 flex flex-col items-center justify-center text-center bg-slate-955/90 text-white z-10 space-y-3">
+                      <div className="absolute inset-0 p-6 flex flex-col items-center justify-center text-center bg-slate-950/90 text-white z-10 space-y-3">
                         <Smartphone className="w-10 h-10 text-red-500 opacity-80" />
                         <p className="text-[11px] text-slate-300 font-semibold leading-relaxed">{pageCameraError}</p>
                       </div>
@@ -268,7 +268,7 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
                       value={pageManualQrId}
                       onChange={(e) => setPageManualQrId(e.target.value)}
                       placeholder="e.g. 3szp61st"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:bg-white dark:focus:bg-slate-955 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-655"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:bg-white dark:focus:bg-slate-950 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
 

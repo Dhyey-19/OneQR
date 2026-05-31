@@ -147,7 +147,7 @@ export default function ClaimQrModal({ isOpen, onClose, onSuccess }) {
             onClick={() => {
               if (claimStatus !== 'loading') onClose();
             }}
-            className="absolute inset-0 bg-slate-955/80 backdrop-blur-md"
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
           />
 
           {/* Modal Container */}

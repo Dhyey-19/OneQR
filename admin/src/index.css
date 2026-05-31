@@ -726,7 +726,7 @@ select.form-input option {
 /* Users Table */
 .table-container {
   width: 100%;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .admin-table {

@@ -10,8 +10,11 @@ import {
   AlertCircle,
   Trash2,
   X,
-  Edit2
+  Edit2,
+  Camera,
+  Scan
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { apiRequest } from '../services/apiService';
 
 export default function OneQr() {
@@ -37,6 +40,19 @@ export default function OneQr() {
 
   // Track selected plan for each QR code: { [qrId]: planId }
   const [selectedPlanForQr, setSelectedPlanForQr] = useState({});
+
+  // Quick Scan & Edit States
+  const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [scanTab, setScanTab] = useState('camera'); // 'camera' | 'search'
+  const [manualSearchId, setManualSearchId] = useState('');
+  const [modalScanStatus, setModalScanStatus] = useState('idle'); // 'idle' | 'scanning' | 'success' | 'error' | 'editing'
+  const [modalErrorMessage, setModalErrorMessage] = useState('');
+  const [cameraError, setCameraError] = useState('');
+  const [scannedQr, setScannedQr] = useState(null);
+  const [modalSelectedUser, setModalSelectedUser] = useState('');
+  const [modalSelectedPlan, setModalSelectedPlan] = useState('free');
+  const [modalUserSearchActive, setModalUserSearchActive] = useState(false);
+  const [modalSaving, setModalSaving] = useState(false);
 
 
   const fetchData = async () => {
@@ -78,6 +94,155 @@ export default function OneQr() {
     fetchData();
   };
 
+  const parseQrIdFromScannedText = (text) => {
+    if (!text) return '';
+    try {
+      let cleanText = text.trim();
+      if (!cleanText) return '';
+      
+      if (cleanText.toLowerCase().startsWith('http://') || cleanText.toLowerCase().startsWith('https://')) {
+        const url = new URL(cleanText);
+        const parts = url.pathname.split('/').filter(Boolean);
+        if (parts.length > 0) {
+          return parts[parts.length - 1];
+        }
+      }
+      
+      if (cleanText.includes('/')) {
+        const parts = cleanText.split('/').filter(Boolean);
+        if (parts.length > 0) {
+          return parts[parts.length - 1];
+        }
+      }
+      
+      return cleanText;
+    } catch (e) {
+      console.error("Error parsing QR ID from scan:", e);
+      return text.trim();
+    }
+  };
+
+  const processFoundQrId = (qrId) => {
+    if (!qrId || !qrId.trim()) {
+      setModalScanStatus('error');
+      setModalErrorMessage('Please enter a valid QR Code ID.');
+      return;
+    }
+
+    const match = qrs.find(q => q.qrId.toLowerCase() === qrId.trim().toLowerCase());
+    if (!match) {
+      setModalScanStatus('error');
+      setModalErrorMessage(`QR Code "${qrId}" not found in the system.`);
+      return;
+    }
+
+    setScannedQr(match);
+    setModalSelectedUser(match.assignedTo ? match.assignedTo.phone : '');
+    setModalSelectedPlan(getBasePlanId(match.plan));
+    setModalErrorMessage('');
+    setModalScanStatus('editing');
+  };
+
+  const handleScannedText = (text) => {
+    const parsedId = parseQrIdFromScannedText(text);
+    if (!parsedId) {
+      setModalScanStatus('error');
+      setModalErrorMessage('Invalid QR Code format.');
+      return;
+    }
+    processFoundQrId(parsedId);
+  };
+
+  const handleModalSave = async () => {
+    if (!scannedQr) return;
+
+    if (!modalSelectedUser) {
+      setModalErrorMessage('Please select or type a user mobile number.');
+      return;
+    }
+
+    const matchedUser = users.find(u => u.phone === modalSelectedUser.trim());
+    if (!matchedUser) {
+      setModalErrorMessage('Selected mobile number is invalid or not registered.');
+      return;
+    }
+
+    const qrId = scannedQr.qrId;
+    const userId = matchedUser.id;
+    const planId = modalSelectedPlan || 'free';
+
+    setModalSaving(true);
+    setModalErrorMessage('');
+
+    try {
+      const res = await apiRequest('/admin/qrs/assign', {
+        method: 'POST',
+        body: JSON.stringify({ qrId, userId, planId }),
+      });
+
+      if (res.status === 'success') {
+        setSuccess(`Successfully updated QR Code ${qrId}`);
+        setScanModalOpen(false);
+        setScannedQr(null);
+        setModalSelectedUser('');
+        setModalSelectedPlan('free');
+        setModalScanStatus('idle');
+        fetchData();
+      }
+    } catch (err) {
+      setModalErrorMessage(err.message || 'Failed to update assignment.');
+    } finally {
+      setModalSaving(false);
+    }
+  };
+
+  // Camera scanner lifecycle for Admin Quick Scan modal
+  useEffect(() => {
+    let html5QrcodeInstance = null;
+
+    if (scanModalOpen && scanTab === 'camera' && modalScanStatus === 'idle') {
+      setCameraError('');
+      const timer = setTimeout(() => {
+        const scannerId = "admin-qr-reader-container";
+        const container = document.getElementById(scannerId);
+        if (!container) {
+          console.error("Admin scanner container not found in DOM");
+          return;
+        }
+
+        html5QrcodeInstance = new Html5Qrcode(scannerId);
+        html5QrcodeInstance.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 220, height: 220 },
+          },
+          (decodedText) => {
+            handleScannedText(decodedText);
+            if (html5QrcodeInstance && html5QrcodeInstance.isScanning) {
+              html5QrcodeInstance.stop().catch(err => console.error("Error stopping scanner:", err));
+            }
+          },
+          (errorMessage) => {
+            // Verbose debug info from scanner, safe to ignore
+          }
+        ).catch(err => {
+          console.error("Admin camera access error:", err);
+          setCameraError("Camera access denied or no camera device available. Please check permissions.");
+        });
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        if (html5QrcodeInstance && html5QrcodeInstance.isScanning) {
+          html5QrcodeInstance.stop()
+            .then(() => html5QrcodeInstance.clear())
+            .catch(err => console.error("Error stopping/clearing scanner:", err));
+        }
+      };
+    }
+  }, [scanModalOpen, scanTab, modalScanStatus]);
+
   const handleGenerate = async () => {
     setGenerating(true);
     setError('');
@@ -99,22 +264,82 @@ export default function OneQr() {
 
   const handleDownload = async (qrId, qrUrl) => {
     try {
-      const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrUrl)}`);
-      if (!response.ok) throw new Error('Network error');
+      // 1. Fetch QR Code Image
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(qrUrl)}`;
       
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
+      // Load both images using Promises
+      const loadBackground = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = '/All In One 4x4.png';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load background template.'));
+      });
+
+      const loadQr = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // Avoid tainted canvas
+        img.src = qrApiUrl;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load QR code image from API.'));
+      });
+
+      const [bgImg, qrImg] = await Promise.all([loadBackground, loadQr]);
+
+      // 2. Create Canvas matching the background image size (1254x1254)
+      const canvas = document.createElement('canvas');
+      canvas.width = bgImg.width || 1254;
+      canvas.height = bgImg.height || 1254;
+      const ctx = canvas.getContext('2d');
+
+      // 3. Draw Background
+      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+      // 4. Draw QR Code in the centered box with rounded corners and padding
+      // Box coordinates inside newly updated All In One 4x4.png (1254x1254):
+      // Left/Right: 383 to 873 (center = 628, width = 490)
+      // Top/Bottom: 522 to 1001 (center = 761.5, height = 479)
+      const cx = 628;
+      const cy = 761.5;
+      const qrSize = 430; // 430x430 fits perfectly in the center with beautiful balanced padding
+      const radius = 26; // Sleek modern rounded corners for the QR code
       
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', `oneqr_${qrId}.png`);
-      document.body.appendChild(link);
-      
-      link.click();
-      
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      const qx = cx - qrSize / 2;
+      const qy = cy - qrSize / 2;
+
+      ctx.save();
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(qx, qy, qrSize, qrSize, radius);
+      } else {
+        ctx.moveTo(qx + radius, qy);
+        ctx.arcTo(qx + qrSize, qy, qx + qrSize, qy + qrSize, radius);
+        ctx.arcTo(qx + qrSize, qy + qrSize, qx, qy + qrSize, radius);
+        ctx.arcTo(qx, qy + qrSize, qx, qy, radius);
+        ctx.arcTo(qx, qy, qx + qrSize, qy, radius);
+      }
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
+      ctx.restore();
+
+      // 5. Trigger download of the merged image
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setError('Failed to generate final image.');
+          return;
+        }
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.setAttribute('download', `oneqr_${qrId}.png`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      }, 'image/png');
+
     } catch (err) {
+      console.error(err);
       setError('Failed to download QR code image. Please try again.');
     }
   };
@@ -265,6 +490,22 @@ export default function OneQr() {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+          <button 
+            onClick={() => {
+              setScanModalOpen(true);
+              setScanTab('camera');
+              setModalScanStatus('idle');
+              setScannedQr(null);
+              setManualSearchId('');
+              setModalErrorMessage('');
+            }}
+            className="btn-primary"
+            style={{ width: 'auto', padding: '12px 20px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, var(--accent-secondary), #0284c7)' }}
+          >
+            <Scan size={18} />
+            <span>Scan & Edit QR</span>
+          </button>
+
           <button 
             onClick={handleGenerate} 
             className="btn-primary"
@@ -510,7 +751,7 @@ export default function OneQr() {
                       </td>
                       <td data-label="Assigned Mobile" className={isEditing ? 'editing-cell' : ''}>
                         {isEditing ? (
-                          <div style={{ position: 'relative', width: '100%', maxWidth: '180px' }} className="mobile-width-full">
+                          <div style={{ position: 'relative', width: '100%', maxWidth: '180px', zIndex: 20 }} className="mobile-width-full">
                             <input
                               type="text"
                               placeholder="Type mobile..."
@@ -537,7 +778,7 @@ export default function OneQr() {
                                 right: 0,
                                 maxHeight: '180px',
                                 overflowY: 'auto',
-                                zIndex: 10,
+                                zIndex: 100,
                                 marginTop: '4px',
                                 border: '1px solid var(--glass-border)',
                                 boxShadow: 'var(--shadow)',
@@ -762,6 +1003,364 @@ export default function OneQr() {
                 Confirm Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Scan & Edit Modal */}
+      {scanModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '500px', padding: '24px' }}>
+            <button 
+              onClick={() => setScanModalOpen(false)}
+              className="modal-close-btn"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Modal Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{
+                background: 'var(--accent-glow)',
+                color: 'var(--accent-primary)',
+                padding: '8px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Scan size={22} />
+              </div>
+              <h3 className="modal-title" style={{ margin: 0 }}>Quick Scan & Edit</h3>
+            </div>
+
+            {/* Modal Navigation Tabs */}
+            {modalScanStatus !== 'editing' && (
+              <div style={{
+                display: 'flex',
+                background: 'rgba(255, 255, 255, 0.03)',
+                padding: '4px',
+                borderRadius: '10px',
+                marginBottom: '20px',
+                border: '1px solid var(--glass-border)'
+              }}>
+                <button
+                  onClick={() => {
+                    setScanTab('camera');
+                    setModalScanStatus('idle');
+                    setModalErrorMessage('');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: scanTab === 'camera' ? 'var(--accent-primary)' : 'transparent',
+                    color: '#fff',
+                    fontWeight: '600',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Camera size={14} />
+                  Scan QR
+                </button>
+                <button
+                  onClick={() => {
+                    setScanTab('search');
+                    setModalScanStatus('idle');
+                    setModalErrorMessage('');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: scanTab === 'search' ? 'var(--accent-primary)' : 'transparent',
+                    color: '#fff',
+                    fontWeight: '600',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Search size={14} />
+                  Search by ID
+                </button>
+              </div>
+            )}
+
+            {/* Error Message inside modal */}
+            {modalErrorMessage && (
+              <div className="alert-error" style={{ marginBottom: '16px', padding: '10px 12px' }}>
+                <AlertCircle size={16} />
+                <span style={{ fontSize: '0.85rem' }}>{modalErrorMessage}</span>
+              </div>
+            )}
+
+            {/* Tab Contents */}
+            {modalScanStatus === 'idle' && scanTab === 'camera' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '10px 0' }}>
+                <div style={{
+                  position: 'relative',
+                  width: '100%',
+                  maxWidth: '260px',
+                  aspectRatio: '1',
+                  overflow: 'hidden',
+                  borderRadius: '16px',
+                  border: '2px dashed var(--accent-primary)',
+                  background: '#000',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <div id="admin-qr-reader-container" style={{ width: '100%', height: '100%' }} />
+                  {cameraError && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      background: 'rgba(0,0,0,0.85)',
+                      color: '#f8fafc',
+                      zIndex: 5
+                    }}>
+                      <AlertCircle size={32} style={{ color: 'var(--danger)', marginBottom: '8px' }} />
+                      <p style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>{cameraError}</p>
+                    </div>
+                  )}
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
+                  Point your camera at a OneQR code redirection link to automatically detect the ID
+                </p>
+              </div>
+            )}
+
+            {modalScanStatus === 'idle' && scanTab === 'search' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">QR Code ID</label>
+                  <div className="input-wrapper">
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. static_qr_123"
+                      value={manualSearchId}
+                      onChange={(e) => setManualSearchId(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && manualSearchId.trim()) {
+                          processFoundQrId(manualSearchId);
+                        }
+                      }}
+                      style={{ padding: '12px 14px 12px 40px' }}
+                    />
+                    <Search 
+                      size={16} 
+                      style={{
+                        position: 'absolute',
+                        left: '14px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'rgba(255, 255, 255, 0.4)',
+                        pointerEvents: 'none'
+                      }} 
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={() => processFoundQrId(manualSearchId)}
+                  disabled={!manualSearchId.trim()}
+                  className="btn-primary"
+                  style={{ margin: 0, padding: '12px' }}
+                >
+                  Search and Edit
+                </button>
+              </div>
+            )}
+
+            {/* Error or Not Found Retry actions */}
+            {modalScanStatus === 'error' && (
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  onClick={() => {
+                    setModalScanStatus('idle');
+                    setModalErrorMessage('');
+                    setManualSearchId('');
+                  }}
+                  className="btn-primary"
+                  style={{ width: 'auto', margin: 0, padding: '10px 20px' }}
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={() => setScanModalOpen(false)}
+                  className="btn-primary btn-danger"
+                  style={{ width: 'auto', margin: 0, padding: '10px 20px' }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+
+            {/* Edit QR Details View */}
+            {modalScanStatus === 'editing' && scannedQr && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid var(--glass-border)',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>QR Code ID</span>
+                    <h4 style={{ margin: '4px 0 0 0', fontFamily: 'monospace', fontSize: '1.05rem', color: 'var(--text-primary)' }}>{scannedQr.qrId}</h4>
+                  </div>
+                  <span className={`badge ${scannedQr.assignedTo ? 'badge-status-active' : 'badge-status-inactive'}`}>
+                    {scannedQr.assignedTo ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+
+                {/* Plan Dropdown */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">Pricing Plan</label>
+                  <select
+                    className="form-input"
+                    value={modalSelectedPlan}
+                    onChange={(e) => setModalSelectedPlan(e.target.value)}
+                    style={{ padding: '12px', background: 'var(--input-bg)' }}
+                  >
+                    <option value="free">FREE</option>
+                    <option value="basic">Basic</option>
+                    <option value="premium">Premium</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                </div>
+
+                {/* Assigned Mobile User Search */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">Assign to Mobile Number</label>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <input
+                      type="text"
+                      placeholder="Search or type registered mobile number..."
+                      className="form-input"
+                      value={modalSelectedUser}
+                      onChange={(e) => {
+                        setModalSelectedUser(e.target.value);
+                        setModalUserSearchActive(true);
+                      }}
+                      onFocus={() => setModalUserSearchActive(true)}
+                      onBlur={() => {
+                        setTimeout(() => setModalUserSearchActive(false), 200);
+                      }}
+                      style={{ padding: '12px 14px 12px 40px' }}
+                    />
+                    <UserPlus 
+                      size={16} 
+                      style={{
+                        position: 'absolute',
+                        left: '14px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'rgba(255, 255, 255, 0.4)',
+                        pointerEvents: 'none'
+                      }} 
+                    />
+
+                    {/* Suggestions list */}
+                    {modalUserSearchActive && (
+                      <div className="glass-panel" style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        maxHeight: '140px',
+                        overflowY: 'auto',
+                        zIndex: 150,
+                        marginTop: '4px',
+                        border: '1px solid var(--glass-border)',
+                        boxShadow: 'var(--shadow)',
+                        background: 'var(--select-option-bg)',
+                        borderRadius: '8px',
+                        padding: '4px 0'
+                      }}>
+                        {users
+                          .filter(u => u.phone && u.phone.includes(modalSelectedUser || ''))
+                          .map(u => (
+                            <div
+                              key={u.id}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setModalSelectedUser(u.phone);
+                                setModalUserSearchActive(false);
+                              }}
+                              style={{
+                                padding: '8px 12px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                color: 'var(--text-primary)',
+                                textAlign: 'left',
+                                transition: 'background 0.2s'
+                              }}
+                              className="suggestion-item"
+                            >
+                              {u.phone}
+                            </div>
+                          ))}
+                        {users.filter(u => u.phone && u.phone.includes(modalSelectedUser || '')).length === 0 && (
+                          <div style={{ padding: '8px 12px', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'left' }}>
+                            No matching users
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal actions */}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                  <button
+                    onClick={() => {
+                      setModalScanStatus('idle');
+                      setScannedQr(null);
+                    }}
+                    className="btn-primary btn-logout"
+                    style={{ flex: 1, margin: 0, padding: '12px' }}
+                    disabled={modalSaving}
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleModalSave}
+                    className="btn-primary"
+                    style={{ flex: 1, margin: 0, padding: '12px', background: 'linear-gradient(135deg, var(--success), #059669)' }}
+                    disabled={modalSaving}
+                  >
+                    {modalSaving ? (
+                      <span className="spinner spinner-tiny"></span>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
