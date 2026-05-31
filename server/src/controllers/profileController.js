@@ -200,6 +200,8 @@ exports.getPublicProfile = async (req, res, next) => {
         });
       }
 
+
+
       // Check if plan is active (if not on free plan)
       if (qr.plan && qr.plan !== 'free' && qr.subscriptionStatus !== 'active') {
         return res.json({

@@ -22,25 +22,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    plan: {
-      type: String,
-      enum: ['free', 'basic_yearly', 'basic_3yearly', 'premium_yearly', 'premium_3yearly', 'enterprise_yearly', 'enterprise_3yearly'],
-      default: 'free',
-    },
-    subscriptionStatus: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'inactive',
-    },
-    subscriptionExpiresAt: {
-      type: Date,
-    },
-    razorpayOrderId: {
-      type: String,
-    },
-    razorpayPaymentId: {
-      type: String,
-    },
+
     orderHistory: [
       {
         orderId: { type: String },

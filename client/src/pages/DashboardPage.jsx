@@ -7,7 +7,7 @@ const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || 'https://oneqr.dtechco
 
 // Dashboard Sub-components & Tabs
 import OverviewTab from '../components/dashboard/OverviewTab';
-import BillingTab from '../components/dashboard/BillingTab';
+// BillingTab removed
 import QrScanTab from '../components/dashboard/QrScanTab';
 import ManageQrTab from '../components/dashboard/ManageQrTab';
 import MockPaymentModal from '../components/dashboard/MockPaymentModal';
@@ -31,6 +31,8 @@ export default function DashboardPage({ subViewProp }) {
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [mockPaymentData, setMockPaymentData] = useState(null);
   const [successPlanName, setSuccessPlanName] = useState('');
+  const [showTestModeHelper, setShowTestModeHelper] = useState(false);
+  const [pendingTestData, setPendingTestData] = useState(null);
 
   // Digital Profile Form States
   const [profileLogo, setProfileLogo] = useState('');
@@ -146,18 +148,18 @@ export default function DashboardPage({ subViewProp }) {
     if (isLoadingQrs) return; // Prevent redirecting on initial render before QRs load
 
     const activeQr = allocatedQrs.find(q => q.qrId === activeQrId) || allocatedQrs[0];
-    // Free plan QR or active subscription QR is allowed
-    const isSubscribed = activeQr ? (activeQr.plan === 'free' || activeQr.subscriptionStatus === 'active') : false;
+    const isSubscribed = !!activeQr;
 
     if (subViewProp === 'manage-qr') {
       if (!isSubscribed) {
-        navigate('/billing', { replace: true });
-        setSubView('billing');
+        navigate('/dashboard', { replace: true });
+        setSubView('overview');
       } else {
         setSubView('manage-qr');
       }
     } else if (subViewProp === 'billing') {
-      setSubView('billing');
+      navigate('/dashboard', { replace: true });
+      setSubView('overview');
     } else if (subViewProp === 'overview') {
       setSubView('overview');
     } else if (subViewProp === 'qr-scan') {
@@ -167,16 +169,16 @@ export default function DashboardPage({ subViewProp }) {
     }
   }, [subViewProp, currentUser, navigate, allocatedQrs, activeQrId, isLoadingQrs]);
 
-  // Handle pending plan upgrades on billing load
+  // Handle pending plan upgrades on overview/dashboard load
   useEffect(() => {
-    if (subView === 'billing' && currentUser) {
+    if (currentUser) {
       const pendingPlan = localStorage.getItem('pending_plan_checkout');
       if (pendingPlan) {
         localStorage.removeItem('pending_plan_checkout');
         handleUpgrade(pendingPlan);
       }
     }
-  }, [subView, currentUser]);
+  }, [currentUser]);
 
   // Reset scroll position on view transitions
   useEffect(() => {
@@ -192,6 +194,53 @@ export default function DashboardPage({ subViewProp }) {
   };
 
   // Payment triggers
+  const openRazorpayCheckout = (orderData, planId) => {
+    const options = {
+      key: orderData.keyId,
+      amount: orderData.amount,
+      currency: orderData.currency,
+      name: "OneQR Platforms",
+      description: orderData.planName,
+      order_id: orderData.orderId,
+      handler: async function (response) {
+        try {
+          const verifyRes = await apiRequest('/payment/verify-payment', {
+            method: 'POST',
+            body: JSON.stringify({
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+              planId,
+              qrId: activeQrId,
+            }),
+          });
+
+          if (verifyRes.status === 'success') {
+            const updatedUser = await authService.getProfile();
+            setCurrentUser(updatedUser);
+            await fetchQrsAndProfile(); // Re-fetch updated QR code plans
+            setSuccessPlanName(orderData.planName);
+            setShowSuccessModal(true);
+          } else {
+            alert(verifyRes.message || 'Payment verification failed.');
+          }
+        } catch (err) {
+          console.error('Payment verification error:', err);
+          alert(err.message || 'Error verifying payment signature.');
+        }
+      },
+      prefill: {
+        contact: currentUser?.phone || '',
+      },
+      theme: {
+        color: "#2563eb",
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  };
+
   const handleUpgrade = async (planId) => {
     setIsPaymentLoading(true);
     try {
@@ -212,50 +261,13 @@ export default function DashboardPage({ subViewProp }) {
           });
           setShowMockModal(true);
         } else {
-          const options = {
-            key: orderData.keyId,
-            amount: orderData.amount,
-            currency: orderData.currency,
-            name: "OneQR Platforms",
-            description: orderData.planName,
-            order_id: orderData.orderId,
-            handler: async function (response) {
-              try {
-                const verifyRes = await apiRequest('/payment/verify-payment', {
-                  method: 'POST',
-                  body: JSON.stringify({
-                    razorpayPaymentId: response.razorpay_payment_id,
-                    razorpayOrderId: response.razorpay_order_id,
-                    razorpaySignature: response.razorpay_signature,
-                    planId,
-                    qrId: activeQrId,
-                  }),
-                });
-
-                if (verifyRes.status === 'success') {
-                  const updatedUser = await authService.getProfile();
-                  setCurrentUser(updatedUser);
-                  await fetchQrsAndProfile(); // Re-fetch updated QR code plans
-                  setSuccessPlanName(orderData.planName);
-                  setShowSuccessModal(true);
-                } else {
-                  alert(verifyRes.message || 'Payment verification failed.');
-                }
-              } catch (err) {
-                console.error('Payment verification error:', err);
-                alert(err.message || 'Error verifying payment signature.');
-              }
-            },
-            prefill: {
-              contact: currentUser?.phone || '',
-            },
-            theme: {
-              color: "#2563eb",
-            },
-          };
-
-          const rzp = new window.Razorpay(options);
-          rzp.open();
+          // If using a Razorpay test key, show the helper instructions modal first
+          if (orderData.keyId && orderData.keyId.startsWith('rzp_test_')) {
+            setPendingTestData({ orderData, planId });
+            setShowTestModeHelper(true);
+          } else {
+            openRazorpayCheckout(orderData, planId);
+          }
         }
       }
     } catch (err) {
@@ -498,15 +510,7 @@ export default function DashboardPage({ subViewProp }) {
             isLoadingQrs={isLoadingQrs}
             allocatedQrs={allocatedQrs}
             onManage={handleSelectAndManageQr}
-          />
-        )}
-
-        {subView === 'billing' && (
-          <BillingTab 
             currentUser={currentUser}
-            activeQr={allocatedQrs.find(q => q.qrId === activeQrId) || allocatedQrs[0]}
-            isPaymentLoading={isPaymentLoading}
-            handleUpgrade={handleUpgrade}
           />
         )}
 
@@ -577,6 +581,69 @@ export default function DashboardPage({ subViewProp }) {
         onClose={() => setShowClaimModal(false)}
         onSuccess={handleRefreshQrs}
       />
+
+      {/* Razorpay Test Mode Helper Warning Modal */}
+      {showTestModeHelper && pendingTestData && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative space-y-6 text-slate-900 dark:text-white">
+            <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-amber-500/5">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+
+            <div className="space-y-2 text-center">
+              <h3 className="font-extrabold text-xl tracking-tight">Razorpay Test Mode Info</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                You are paying in **Razorpay Test Mode**. Real UPI apps (GPay/PhonePe) will report <span className="text-red-500 font-bold">"Cannot pay / UPI ID is invalid"</span> if you try to scan the Test QR code.
+              </p>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-xs space-y-3 leading-relaxed text-left font-semibold">
+              <strong className="text-slate-700 dark:text-slate-200 font-extrabold block uppercase tracking-wider text-[10px] mb-1.5">How to complete mock payment:</strong>
+              <div className="space-y-2.5 text-slate-600 dark:text-slate-350">
+                <p className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 text-[10px] font-black mt-0.5">1</span>
+                  <span>Select **UPI / QR** &rarr; **UPI ID/VPA** (instead of QR) and enter <code className="bg-blue-500/15 text-blue-600 dark:text-blue-300 px-1 py-0.5 rounded font-mono">success@razorpay</code>.</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 text-[10px] font-black mt-0.5">2</span>
+                  <span>Or choose **Card** and type card number <code className="bg-blue-500/15 text-blue-600 dark:text-blue-300 px-1 py-0.5 rounded font-mono">4111 1111 1111 1111</code> (use any future expiry and CVV).</span>
+                </p>
+                <p className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 text-[10px] font-black mt-0.5">3</span>
+                  <span>Or choose **Netbanking** & select **Success** on the mock bank page.</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTestModeHelper(false);
+                  setPendingTestData(null);
+                }}
+                className="flex-1 py-3 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-350 font-bold text-xs rounded-2xl transition-all cursor-pointer text-center"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const { orderData, planId } = pendingTestData;
+                  setShowTestModeHelper(false);
+                  setPendingTestData(null);
+                  openRazorpayCheckout(orderData, planId);
+                }}
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-2xl transition-all cursor-pointer text-center shadow-lg shadow-blue-500/25 border border-transparent"
+              >
+                Proceed to Pay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

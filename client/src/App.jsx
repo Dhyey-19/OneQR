@@ -91,7 +91,7 @@ export default function App() {
       const currentPath = window.location.pathname;
       
       const isSystemPath = currentPath === '/' || currentPath === '/index.html' || 
-                            ['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(currentPath);
+                            ['/dashboard', '/manage-qr', '/scan-qr'].includes(currentPath);
 
       if (!isSystemPath) return;
 
@@ -100,10 +100,10 @@ export default function App() {
       } else {
         const pendingPlan = localStorage.getItem('pending_plan_checkout');
         if (pendingPlan) {
-          navigate('/billing');
+          navigate('/dashboard');
         } else {
           // If we are already on a dashboard path, don't force redirect to main dashboard
-          if (!['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(currentPath)) {
+          if (!['/dashboard', '/manage-qr', '/scan-qr'].includes(currentPath)) {
             navigate('/dashboard');
           }
         }
@@ -125,7 +125,7 @@ export default function App() {
     } else if (view === 'manage-qr') {
       navigate('/manage-qr');
     } else if (view === 'billing') {
-      navigate('/billing');
+      navigate('/dashboard');
     } else if (view === 'scan-qr') {
       navigate('/scan-qr');
     } else {
@@ -137,14 +137,14 @@ export default function App() {
     const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
     localStorage.setItem('pending_plan_checkout', planKey);
     if (isLoggedIn) {
-      navigate('/billing');
+      navigate('/dashboard');
     } else {
       openAuthModal('signup');
     }
   };
 
   // Check if current route is a system path or not
-  const systemPaths = ['/', '/dashboard', '/manage-qr', '/billing', '/scan-qr'];
+  const systemPaths = ['/', '/dashboard', '/manage-qr', '/scan-qr'];
   const isSlugPath = !systemPaths.includes(location.pathname) && location.pathname !== '/index.html';
 
   if (isSlugPath) {
@@ -171,9 +171,7 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/billing" element={
-          <ProtectedRoute>
-            <DashboardPage subViewProp="billing" />
-          </ProtectedRoute>
+          <Navigate to="/dashboard" replace />
         } />
         <Route path="/scan-qr" element={
           <ProtectedRoute>

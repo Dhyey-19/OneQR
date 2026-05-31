@@ -10,6 +10,7 @@ router.post("/auth/login", adminController.login);
 router.get("/auth/me", adminProtect, adminController.getProfile);
 router.get("/stats", adminProtect, adminController.getDashboardStats);
 router.get("/users", adminProtect, adminController.getAllUsers);
+router.post("/users", adminProtect, adminController.createUser);
 router.post("/qrs/assign-plan", adminProtect, adminController.assignPlan);
 router.get("/qrs", adminProtect, adminController.getQrCodes);
 router.post("/qrs/generate", adminProtect, adminController.generateQrCode);

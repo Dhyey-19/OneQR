@@ -94,18 +94,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                 </div>
               )}
               
-              {currentUser?.subscriptionStatus === 'active' && (
-                <button
-                  onClick={() => {
-                    setProfileDropdownOpen(false);
-                    navigate('/manage-qr');
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
-                >
-                  <User className="w-3.5 h-3.5 text-blue-400" />
-                  <span>My Profile</span>
-                </button>
-              )}
+
 
               <button
                 onClick={() => {
@@ -127,17 +116,6 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               >
                 <Scan className="w-3.5 h-3.5 text-blue-500" />
                 <span>Scan QR</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setProfileDropdownOpen(false);
-                  navigate('/billing');
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
-              >
-                <CreditCard className="w-3.5 h-3.5 text-emerald-450" />
-                <span>Billing & Plans</span>
               </button>
 
               <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
@@ -246,14 +224,14 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             </div>
 
             {/* Mobile Profile Trigger (Only outside system dashboard paths to avoid duplication with BottomNavbar!) */}
-            {currentUser && !['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(location.pathname) && (
+            {currentUser && !['/dashboard', '/manage-qr', '/scan-qr'].includes(location.pathname) && (
               <div className="md:hidden flex items-center mr-1">
                 <ProfileDropdown isMobile={true} />
               </div>
             )}
 
             {/* Mobile Hamburger Button (Only outside system dashboard paths) */}
-            {!['/dashboard', '/manage-qr', '/billing', '/scan-qr'].includes(location.pathname) && (
+            {!['/dashboard', '/manage-qr', '/scan-qr'].includes(location.pathname) && (
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"

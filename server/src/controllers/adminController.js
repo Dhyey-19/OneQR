@@ -5,7 +5,7 @@ const User = require("../models/User");
 const Profile = require("../models/Profile");
 const OneQr = require("../models/OneQr");
 
-const qrUrlPrefix = process.env.QR_URL_PREFIX;
+const qrUrlPrefix = process.env.QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
 
 /**
  * Generates a signed JWT for a given admin ID
@@ -121,6 +121,7 @@ exports.getDashboardStats = async (req, res) => {
     const totalProfiles = await Profile.countDocuments();
     const totalQrs = await OneQr.countDocuments();
     const assignedQrs = await OneQr.countDocuments({ assignedTo: { $ne: null } });
+    const activeSubscriptions = await OneQr.countDocuments({ subscriptionStatus: "active" });
 
     // Plan distributions
     const planCounts = await OneQr.aggregate([
@@ -132,14 +133,12 @@ exports.getDashboardStats = async (req, res) => {
       totalProfiles,
       totalQrs,
       assignedQrs,
+      activeSubscriptions,
       plans: {
         free: 0,
-        basic_yearly: 0,
-        basic_3yearly: 0,
-        premium_yearly: 0,
-        premium_3yearly: 0,
-        enterprise_yearly: 0,
-        enterprise_3yearly: 0,
+        basic: 0,
+        premium: 0,
+        enterprise: 0,
       },
     };
 
@@ -178,9 +177,6 @@ exports.getAllUsers = async (req, res) => {
         return {
           id: user._id,
           phone: user.phone,
-          plan: user.plan,
-          subscriptionStatus: user.subscriptionStatus,
-          subscriptionExpiresAt: user.subscriptionExpiresAt,
           createdAt: user.createdAt,
           profilesCount: profileCount,
         };
@@ -282,7 +278,7 @@ exports.generateQrCode = async (req, res) => {
  */
 exports.assignQrCode = async (req, res) => {
   try {
-    const { qrId, userId } = req.body;
+    const { qrId, userId, planId } = req.body;
 
     if (!qrId || !userId) {
       return res.status(400).json({
@@ -311,10 +307,49 @@ exports.assignQrCode = async (req, res) => {
 
     // 3. Assign QR to User
     qr.assignedTo = userId;
+
+    // 4. Assign Plan if provided
+    if (planId) {
+      const validPlans = ['free', 'basic', 'premium', 'enterprise'];
+      if (validPlans.includes(planId)) {
+        const planNames = {
+          basic: "Basic Plan",
+          premium: "Premium Plan",
+          enterprise: "Enterprise Plan",
+        };
+
+        if (planId === 'free') {
+          qr.plan = 'free';
+          qr.subscriptionStatus = 'inactive';
+          qr.subscriptionExpiresAt = null;
+          qr.planAssignedByAdmin = false;
+        } else {
+          qr.plan = planId;
+          qr.subscriptionStatus = 'active';
+          qr.subscriptionExpiresAt = null;
+          qr.planAssignedByAdmin = true;
+        }
+
+        // Add to user order history if plan changed
+        if (!user.orderHistory) {
+          user.orderHistory = [];
+        }
+        user.orderHistory.push({
+          orderId: `admin_assign_${Date.now()}`,
+          paymentId: `admin_pay_${Date.now()}`,
+          planId: planId,
+          planName: planId === 'free' ? "Free Plan reset" : `${planNames[planId]} (QR: ${qr.qrId})`,
+          amount: 0,
+          status: "success",
+          paidAt: new Date(),
+        });
+        await user.save();
+      }
+    }
+
     await qr.save();
 
-    // 4. Upsert User's Profile
-    // Connects QR to profile using the qrId as the slug and qrUrl as target
+    // 5. Upsert User's Profile
     const targetQrUrl = `${qrUrlPrefix}/${qrId}`;
     
     let profile = await Profile.findOne({ user: userId });
@@ -432,7 +467,7 @@ exports.assignPlan = async (req, res) => {
       });
     }
 
-    const validPlans = ['free', 'basic_yearly', 'basic_3yearly', 'premium_yearly', 'premium_3yearly', 'enterprise_yearly', 'enterprise_3yearly'];
+    const validPlans = ['free', 'basic', 'premium', 'enterprise'];
     if (!validPlans.includes(planId)) {
       return res.status(400).json({
         status: "error",
@@ -457,12 +492,9 @@ exports.assignPlan = async (req, res) => {
     }
 
     const planNames = {
-      basic_yearly: "Basic Plan - 1 Year",
-      basic_3yearly: "Basic Plan - 3 Years",
-      premium_yearly: "Premium Plan - 1 Year",
-      premium_3yearly: "Premium Plan - 3 Years",
-      enterprise_yearly: "Enterprise Plan - 1 Year",
-      enterprise_3yearly: "Enterprise Plan - 3 Years",
+      basic: "Basic Plan",
+      premium: "Premium Plan",
+      enterprise: "Enterprise Plan",
     };
 
     // 2. Set plan details
@@ -472,14 +504,9 @@ exports.assignPlan = async (req, res) => {
       qr.subscriptionExpiresAt = null;
       qr.planAssignedByAdmin = false;
     } else {
-      // Calculate duration days based on planId
-      const durationDays = planId.includes('3yearly') ? 1095 : 365;
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + durationDays);
-
       qr.plan = planId;
       qr.subscriptionStatus = 'active';
-      qr.subscriptionExpiresAt = expiresAt;
+      qr.subscriptionExpiresAt = null;
       qr.planAssignedByAdmin = true;
     }
 
@@ -520,6 +547,86 @@ exports.assignPlan = async (req, res) => {
     return res.status(500).json({
       status: "error",
       message: "Server error occurred while assigning plan.",
+    });
+  }
+};
+
+/**
+ * @desc    Create a new user manually
+ * @route   POST /api/admin/users
+ * @access  Private (Admin)
+ */
+exports.createUser = async (req, res) => {
+  try {
+    const { phone, password, email } = req.body;
+
+    // 1. Validation
+    if (!phone || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Mobile number and password are required.",
+      });
+    }
+
+    if (phone.trim().length < 8) {
+      return res.status(400).json({
+        status: "error",
+        message: "Phone number must be at least 8 characters long.",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        status: "error",
+        message: "Password must be at least 6 characters long.",
+      });
+    }
+
+    // 2. Check duplicate phone
+    const existingPhone = await User.findOne({ phone: phone.trim() });
+    if (existingPhone) {
+      return res.status(400).json({
+        status: "error",
+        message: "A user with this mobile number already exists.",
+      });
+    }
+
+    // 3. Check duplicate email (if provided)
+    if (email && email.trim()) {
+      const existingEmail = await User.findOne({ email: email.trim().toLowerCase() });
+      if (existingEmail) {
+        return res.status(400).json({
+          status: "error",
+          message: "A user with this email address already exists.",
+        });
+      }
+    }
+
+    // 4. Create and save user
+    const newUser = new User({
+      phone: phone.trim(),
+      password,
+      email: email && email.trim() ? email.trim().toLowerCase() : undefined,
+    });
+
+    await newUser.save();
+
+    return res.status(201).json({
+      status: "success",
+      message: "User account created successfully.",
+      data: {
+        id: newUser._id,
+        phone: newUser.phone,
+        email: newUser.email || null,
+        createdAt: newUser.createdAt,
+        profilesCount: 0,
+      },
+    });
+  } catch (error) {
+    console.error("Create user error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: error.message || "Server error occurred while creating user.",
     });
   }
 };

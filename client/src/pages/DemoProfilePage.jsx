@@ -30,6 +30,15 @@ export default function DemoProfilePage() {
   const [upiModalData, setUpiModalData] = useState({ upiId: '', upiLink: '', payeeName: '' });
   const [copiedUpi, setCopiedUpi] = useState(false);
 
+  // UPI Simulation & Helper States
+  const [mobileConfirmOpen, setMobileConfirmOpen] = useState(false);
+  const [showSimulator, setShowSimulator] = useState(false);
+  const [simulatorStep, setSimulatorStep] = useState('amount'); // 'amount' | 'paying' | 'success'
+  const [simulatorAmount, setSimulatorAmount] = useState('100');
+  const [simulatorNote, setSimulatorNote] = useState('Payment for Services');
+  const [simulatorTxId, setSimulatorTxId] = useState('');
+  const [simulatorTime, setSimulatorTime] = useState('');
+
   const handleUpiClick = (e, upiId) => {
     if (e) e.preventDefault();
     const name = profileData?.profileCompany || profileData?.profileName || '';
@@ -38,8 +47,18 @@ export default function DemoProfilePage() {
       : `upi://pay?pa=${upiId}${name ? `&pn=${encodeURIComponent(name)}` : ''}`;
     
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isTestUpi = upiId.toLowerCase().includes('test') || 
+                      upiId.toLowerCase().includes('mock') || 
+                      upiId.toLowerCase().includes('example') || 
+                      window.location.hostname === 'localhost';
+
     if (isMobile) {
-      window.location.href = upiLink;
+      if (isTestUpi) {
+        setUpiModalData({ upiId, upiLink, payeeName: name });
+        setMobileConfirmOpen(true);
+      } else {
+        window.location.href = upiLink;
+      }
     } else {
       setUpiModalData({ upiId, upiLink, payeeName: name });
       setUpiModalOpen(true);
@@ -635,10 +654,262 @@ export default function DemoProfilePage() {
                   </button>
                 </div>
               </div>
+
+              {/* Test Mode Simulator trigger in Modal */}
+              {(upiModalData.upiId.toLowerCase().includes('test') || 
+                upiModalData.upiId.toLowerCase().includes('mock') || 
+                upiModalData.upiId.toLowerCase().includes('example') || 
+                window.location.hostname === 'localhost') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUpiModalOpen(false);
+                    setSimulatorAmount('100');
+                    setSimulatorNote('Payment for Services');
+                    setSimulatorStep('amount');
+                    setShowSimulator(true);
+                  }}
+                  className="w-full py-3 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-xs transition-colors cursor-pointer border border-amber-500/20 flex items-center justify-center gap-2 mt-4"
+                >
+                  <FaMoneyBillWave className="w-3.5 h-3.5" />
+                  <span>Simulate Mock Payment</span>
+                </button>
+              )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Test Mode Warning Dialog */}
+      {mobileConfirmOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-sm bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-6 text-center text-slate-900 dark:text-white animate-scaleUp"
+          >
+            <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-6 h-6 animate-bounce" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-extrabold text-lg tracking-tight">Test Mode P2P UPI</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                You are scanning or selecting a test UPI ID (<strong>{upiModalData.upiId}</strong>). 
+                Real banking apps like GPay or PhonePe will fail with an invalid UPI error.
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileConfirmOpen(false);
+                  setSimulatorAmount('100');
+                  setSimulatorNote('Payment for Services');
+                  setSimulatorStep('amount');
+                  setShowSimulator(true);
+                }}
+                className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+              >
+                Simulate Mock Payment
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileConfirmOpen(false);
+                  window.location.href = upiModalData.upiLink;
+                }}
+                className="w-full py-3 rounded-2xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Proceed to UPI App Anyway
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileConfirmOpen(false)}
+                className="w-full py-2.5 text-xs text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Mock UPI Payment Simulator Overlay */}
+      {showSimulator && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-sm bg-white dark:bg-[#070b13] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl relative space-y-6 text-slate-900 dark:text-white"
+          >
+            {simulatorStep !== 'paying' && (
+              <button 
+                onClick={() => setShowSimulator(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Step 1: Amount Selection */}
+            {simulatorStep === 'amount' && (
+              <div className="space-y-6 pt-2">
+                <div className="text-center space-y-1">
+                  <div className="w-12 h-12 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <FaMoneyBillWave className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-extrabold text-base tracking-tight">UPI Payment Simulator</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Paying <span className="font-bold text-slate-800 dark:text-slate-200">{upiModalData.payeeName || 'Business Profile'}</span>
+                  </p>
+                  <p className="text-[10px] font-mono text-slate-400 truncate max-w-[250px] mx-auto">
+                    VPA: {upiModalData.upiId}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount (₹)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-lg">₹</span>
+                      <input
+                        type="number"
+                        value={simulatorAmount}
+                        onChange={(e) => setSimulatorAmount(e.target.value)}
+                        placeholder="Enter Amount"
+                        className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:border-blue-500 focus:outline-none font-bold text-lg text-slate-900 dark:text-white"
+                        min="1"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {['10', '100', '500', '1000'].map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setSimulatorAmount(val)}
+                          className="py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-xs text-slate-700 dark:text-slate-350 border border-slate-200 dark:border-white/10 rounded-lg transition-colors font-bold cursor-pointer"
+                        >
+                          ₹{val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Remarks / Note</label>
+                    <input
+                      type="text"
+                      value={simulatorNote}
+                      onChange={(e) => setSimulatorNote(e.target.value)}
+                      placeholder="What is this for?"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:border-blue-500 focus:outline-none text-xs text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!simulatorAmount || parseFloat(simulatorAmount) <= 0) return;
+                    setSimulatorStep('paying');
+                    setTimeout(() => {
+                      setSimulatorTxId(`TXN${Math.floor(100000000000 + Math.random() * 900000000000)}`);
+                      setSimulatorTime(new Date().toLocaleString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: true
+                      }));
+                      setSimulatorStep('success');
+                    }, 2500);
+                  }}
+                  className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-lg shadow-blue-500/25 transition-all cursor-pointer uppercase tracking-wider"
+                >
+                  Pay Securely ₹{parseFloat(simulatorAmount || '0').toFixed(2)}
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Processing Payment */}
+            {simulatorStep === 'paying' && (
+              <div className="text-center py-8 space-y-6">
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="absolute inset-0 border-4 border-slate-100 dark:border-white/5 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center text-blue-500">
+                    <Clock className="w-8 h-8 animate-pulse" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-extrabold text-base tracking-tight">Processing Payment</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Verifying transaction with UPI gateway...
+                  </p>
+                  <p className="text-[10px] text-slate-400 italic">
+                    Do not refresh or close this screen.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Success Screen */}
+            {simulatorStep === 'success' && (
+              <div className="space-y-6 pt-2 text-center animate-scaleUp">
+                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto relative">
+                  <Check className="w-8 h-8" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                    Transaction Success
+                  </span>
+                  <h3 className="font-black text-2xl tracking-tight pt-2 text-slate-900 dark:text-white">
+                    ₹{parseFloat(simulatorAmount || '0').toFixed(2)}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Paid to: <span className="font-bold text-slate-800 dark:text-slate-200">{upiModalData.payeeName || 'Business Profile'}</span>
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-2xl text-left text-xs space-y-2.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">VPA Payee</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-350">{upiModalData.upiId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Transaction ID</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-350">{simulatorTxId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Time & Date</span>
+                    <span className="text-slate-700 dark:text-slate-350 font-medium">{simulatorTime}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-200/50 dark:border-white/5 pt-2">
+                    <span className="text-slate-400">Payment Note</span>
+                    <span className="text-slate-700 dark:text-slate-350 font-bold truncate max-w-[150px]">{simulatorNote}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSimulator(false)}
+                  className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-colors cursor-pointer uppercase tracking-wider shadow-md shadow-emerald-500/25"
+                >
+                  Done & Close
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

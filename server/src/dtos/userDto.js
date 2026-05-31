@@ -79,9 +79,6 @@ class UserResponseDto {
     this.id = user._id || user.id;
     this.phone = user.phone;
     this.email = user.email || null;
-    this.plan = user.plan || 'free';
-    this.subscriptionStatus = user.subscriptionStatus || 'inactive';
-    this.subscriptionExpiresAt = user.subscriptionExpiresAt || null;
     this.orderHistory = user.orderHistory || [];
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;

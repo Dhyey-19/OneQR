@@ -18,16 +18,14 @@ export default function BottomNavbar() {
   }, []);
 
   // Show bottom navbar only if logged in and on system routes (excluding landing)
-  const systemRoutes = ['/dashboard', '/manage-qr', '/billing', '/scan-qr'];
+  const systemRoutes = ['/dashboard', '/manage-qr', '/scan-qr'];
   const showNavbar = isLoggedIn && systemRoutes.includes(location.pathname);
 
   if (!showNavbar) return null;
 
   const tabs = [
     { name: 'Home', path: '/dashboard', icon: Home },
-    { name: 'Billing', path: '/billing', icon: CreditCard },
     { name: 'Scan', path: '/scan-qr', icon: Scan, isFab: true },
-    { name: 'Profile', path: '/manage-qr', icon: User },
     { name: 'Logout', path: 'logout', icon: LogOut },
   ];
 

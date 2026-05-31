@@ -50,6 +50,23 @@ const connectDB = async () => {
     } catch (indexErr) {
       console.error("Index cleanup error (safe to ignore):", indexErr.message);
     }
+
+    // Clean up any corrupted qrUrls starting with "undefined"
+    try {
+      const OneQr = require("../models/OneQr");
+      const corruptedQrs = await OneQr.find({ qrUrl: /^undefined/ });
+      if (corruptedQrs.length > 0) {
+        console.log(`Found ${corruptedQrs.length} corrupted QR codes starting with 'undefined'. Repairing...`);
+        const targetPrefix = process.env.QR_URL_PREFIX || 'https://oneqr.dtechcode.in';
+        for (const qr of corruptedQrs) {
+          qr.qrUrl = qr.qrUrl.replace(/^undefined/, targetPrefix);
+          await qr.save();
+        }
+        console.log("Corrupted QR codes repaired successfully.");
+      }
+    } catch (repairErr) {
+      console.error("Failed to repair corrupted QR codes:", repairErr);
+    }
   } catch (error) {
     console.error(`Database connection failed: ${error.message}`);
     console.log("Continuing server execution without database connection...");

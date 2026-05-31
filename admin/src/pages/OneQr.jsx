@@ -9,7 +9,8 @@ import {
   Link as LinkIcon,
   AlertCircle,
   Trash2,
-  X
+  X,
+  Edit2
 } from 'lucide-react';
 import { apiRequest } from '../services/apiService';
 
@@ -22,6 +23,12 @@ export default function OneQr() {
   const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [activeQrSearchId, setActiveQrSearchId] = useState(null);
+  const [editingQrId, setEditingQrId] = useState(null);
+  const [activeTab, setActiveTab] = useState('inactive');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [qrToDelete, setQrToDelete] = useState(null);
+  const [confirmInputText, setConfirmInputText] = useState('');
   
   // Track selected user for each unassigned QR code: { [qrId]: userId }
   const [selectedUserForQr, setSelectedUserForQr] = useState({});
@@ -30,8 +37,7 @@ export default function OneQr() {
 
   // Track selected plan for each QR code: { [qrId]: planId }
   const [selectedPlanForQr, setSelectedPlanForQr] = useState({});
-  // Track specific QR codes having plans assigned: { [qrId]: loadingStateBoolean }
-  const [assigningPlanState, setAssigningPlanState] = useState({});
+
 
   const fetchData = async () => {
     setError('');
@@ -41,6 +47,16 @@ export default function OneQr() {
 
       if (qrsRes.status === 'success') {
         setQrs(qrsRes.data);
+
+        // Prepopulate mobile numbers and plans for the forms
+        const initialUsers = {};
+        const initialPlans = {};
+        qrsRes.data.forEach(qr => {
+          initialUsers[qr.qrId] = qr.assignedTo ? qr.assignedTo.phone : '';
+          initialPlans[qr.qrId] = getBasePlanId(qr.plan);
+        });
+        setSelectedUserForQr(prev => ({ ...initialUsers, ...prev }));
+        setSelectedPlanForQr(prev => ({ ...initialPlans, ...prev }));
       }
       if (usersRes.status === 'success') {
         setUsers(usersRes.data);
@@ -104,11 +120,20 @@ export default function OneQr() {
   };
 
   const handleAssign = async (qrId) => {
-    const userId = selectedUserForQr[qrId];
-    if (!userId) {
-      setError('Please select a user to assign.');
+    const typedPhone = selectedUserForQr[qrId];
+    if (!typedPhone) {
+      setError('Please select or type a user mobile number to assign.');
       return;
     }
+
+    const matchedUser = users.find(u => u.phone === typedPhone.trim());
+    if (!matchedUser) {
+      setError('Selected mobile number is invalid or not registered.');
+      return;
+    }
+
+    const userId = matchedUser.id;
+    const planId = selectedPlanForQr[qrId] || 'free';
 
     setAssigningState(prev => ({ ...prev, [qrId]: true }));
     setError('');
@@ -117,11 +142,11 @@ export default function OneQr() {
     try {
       const res = await apiRequest('/admin/qrs/assign', {
         method: 'POST',
-        body: JSON.stringify({ qrId, userId }),
+        body: JSON.stringify({ qrId, userId, planId }),
       });
 
       if (res.status === 'success') {
-        setSuccess(`QR code ${qrId} successfully assigned to user!`);
+        setEditingQrId(null);
         fetchData();
       }
     } catch (err) {
@@ -131,15 +156,19 @@ export default function OneQr() {
     }
   };
 
-  const handleDeleteQr = async (id, qrId) => {
-    const confirmation = window.prompt(`To delete QR code "${qrId}", please type 'DELETE' below:`);
-    if (confirmation !== 'DELETE') {
-      if (confirmation !== null) {
-        setError('Incorrect confirmation text. QR code was not deleted.');
-      }
-      return;
-    }
+  const startDeleteQr = (id, qrId) => {
+    setQrToDelete({ id, qrId });
+    setConfirmInputText('');
+    setDeleteModalOpen(true);
+  };
 
+  const confirmDeletion = async () => {
+    if (!qrToDelete) return;
+    if (confirmInputText !== 'DELETE') return;
+    
+    const { id, qrId } = qrToDelete;
+    setDeleteModalOpen(false);
+    
     setError('');
     setSuccess('');
     try {
@@ -155,25 +184,6 @@ export default function OneQr() {
     }
   };
 
-  const handleDeleteAllQrs = async () => {
-    const confirmed = window.confirm('Are you absolutely sure you want to delete ALL generated QR codes? This action is permanent and will unlink them from user profiles.');
-    if (!confirmed) return;
-
-    setError('');
-    setSuccess('');
-    try {
-      const res = await apiRequest('/admin/qrs', {
-        method: 'DELETE',
-      });
-      if (res.status === 'success') {
-        setSuccess('All QR codes deleted successfully.');
-        fetchData();
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to delete all QR codes.');
-    }
-  };
-
   const handleSelectUser = (qrId, userId) => {
     setSelectedUserForQr(prev => ({ ...prev, [qrId]: userId }));
   };
@@ -183,51 +193,64 @@ export default function OneQr() {
   };
 
   const formatPlanName = (plan) => {
-    if (!plan) return 'Free';
-    return plan.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    if (!plan || plan === 'free') return 'FREE';
+    switch (plan) {
+      case 'basic': return 'Basic';
+      case 'premium': return 'Premium';
+      case 'enterprise': return 'Enterprise';
+      default: return plan.replace('_yearly', '').replace('_3yearly', '');
+    }
   };
 
   const getPlanBadgeClass = (plan) => {
     if (!plan || plan === 'free') return 'badge-plan-free';
-    if (plan.includes('pro')) return 'badge-plan-pro';
-    return 'badge-plan-starter';
+    const cleaned = plan.toLowerCase();
+    if (cleaned.includes('basic')) return 'badge-plan-basic';
+    if (cleaned.includes('premium')) return 'badge-plan-premium';
+    if (cleaned.includes('enterprise')) return 'badge-plan-enterprise';
+    return 'badge-plan-free';
   };
 
-  const handleAssignPlan = async (qrId) => {
-    const planId = selectedPlanForQr[qrId];
-    if (!planId) {
-      setError('Please select a plan to assign.');
-      return;
-    }
-
-    setAssigningPlanState(prev => ({ ...prev, [qrId]: true }));
-    setError('');
-    setSuccess('');
-
-    try {
-      const res = await apiRequest('/admin/qrs/assign-plan', {
-        method: 'POST',
-        body: JSON.stringify({ qrId, planId }),
-      });
-
-      if (res.status === 'success') {
-        setSuccess(`Plan successfully updated for QR code!`);
-        // Reset selection for this QR
-        setSelectedPlanForQr(prev => ({ ...prev, [qrId]: '' }));
-        fetchData();
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to assign plan.');
-    } finally {
-      setAssigningPlanState(prev => ({ ...prev, [qrId]: false }));
-    }
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
-  // Filter QR codes by QR ID or target phone number
-  const filteredQrs = qrs.filter(qr => 
-    qr.qrId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (qr.assignedTo && qr.assignedTo.phone && qr.assignedTo.phone.includes(searchQuery))
-  );
+  const getBasePlanId = (plan) => {
+    if (!plan) return 'free';
+    const cleaned = plan.toLowerCase();
+    if (cleaned.startsWith('basic')) return 'basic';
+    if (cleaned.startsWith('premium')) return 'premium';
+    if (cleaned.startsWith('enterprise')) return 'enterprise';
+    return 'free';
+  };
+
+  const startEditing = (qr) => {
+    setEditingQrId(qr.qrId);
+    setSelectedUserForQr(prev => ({
+      ...prev,
+      [qr.qrId]: qr.assignedTo ? qr.assignedTo.phone : ''
+    }));
+    setSelectedPlanForQr(prev => ({
+      ...prev,
+      [qr.qrId]: getBasePlanId(qr.plan)
+    }));
+  };
+
+
+
+  // Filter QR codes by active/inactive tab and QR ID or target phone number
+  const filteredQrs = qrs
+    .filter(qr => activeTab === 'active' ? !!qr.assignedTo : !qr.assignedTo)
+    .filter(qr => 
+      qr.qrId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (qr.assignedTo && qr.assignedTo.phone && qr.assignedTo.phone.includes(searchQuery))
+    );
 
   const totalQrs = qrs.length;
   const assignedQrs = qrs.filter(qr => qr.assignedTo).length;
@@ -242,17 +265,6 @@ export default function OneQr() {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
-          {totalQrs > 0 && (
-            <button 
-              onClick={handleDeleteAllQrs} 
-              className="btn-primary btn-danger"
-              style={{ width: 'auto', padding: '12px 20px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <Trash2 size={18} />
-              <span>Delete All QRs</span>
-            </button>
-          )}
-
           <button 
             onClick={handleGenerate} 
             className="btn-primary"
@@ -320,29 +332,110 @@ export default function OneQr() {
 
       {/* QR Code Index Directory */}
       <section className="section-card glass-panel">
-        <div className="section-header">
-          <h2 className="section-title">QR Code Directory</h2>
+        <div className="section-header" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>QR Code Directory</h2>
 
-          <div className="section-header-actions">
-            <div className="input-wrapper">
-              <input
-                type="text"
-                placeholder="Search QR ID or phone..."
-                className="form-input"
-                style={{ padding: '10px 12px 10px 36px', fontSize: '0.85rem' }}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Search size={16} className="input-icon" style={{ left: '12px' }} />
+            <div className="section-header-actions">
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  placeholder="Search QR ID or phone..."
+                  className="form-input"
+                  style={{ padding: '10px 12px 10px 36px', fontSize: '0.85rem' }}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search size={16} className="input-icon" style={{ left: '12px' }} />
+              </div>
+
+              <div className="actions-button-group">
+                <button 
+                  onClick={handleRefresh} 
+                  className="btn-primary" 
+                  style={{ padding: '10px 14px', marginTop: 0, width: 'auto' }}
+                  disabled={refreshing || loading}
+                >
+                  <RefreshCw size={16} className={refreshing ? 'spinner' : ''} style={{ margin: 0 }} />
+                </button>
+              </div>
             </div>
+          </div>
 
-            <button 
-              onClick={handleRefresh} 
-              className="btn-primary" 
-              style={{ padding: '10px 14px', marginTop: 0, width: 'auto' }}
-              disabled={refreshing || loading}
+          {/* Directory Status Tabs */}
+          <div className="directory-tabs" style={{
+            display: 'flex',
+            gap: '8px',
+            borderBottom: '1px solid var(--glass-border)',
+            paddingBottom: '8px',
+            marginTop: '8px'
+          }}>
+            <button
+              onClick={() => {
+                setActiveTab('inactive');
+                setEditingQrId(null);
+              }}
+              className={`tab-btn directory-tab-button ${activeTab === 'inactive' ? 'active' : ''}`}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: '1px solid',
+                borderColor: activeTab === 'inactive' ? 'rgba(236, 72, 153, 0.3)' : 'transparent',
+                background: activeTab === 'inactive' ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05))' : 'transparent',
+                color: activeTab === 'inactive' ? 'var(--accent-secondary)' : 'var(--text-muted)',
+                fontWeight: '600',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
             >
-              <RefreshCw size={16} className={refreshing ? 'spinner' : ''} style={{ margin: 0 }} />
+              <span>Inactive QRs</span>
+              <span style={{
+                background: activeTab === 'inactive' ? 'var(--accent-secondary)' : 'rgba(255, 255, 255, 0.1)',
+                color: activeTab === 'inactive' ? '#fff' : 'var(--text-muted)',
+                padding: '2px 8px',
+                borderRadius: '20px',
+                fontSize: '0.75rem'
+              }}>
+                {loading ? '...' : unassignedQrs}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('active');
+                setEditingQrId(null);
+              }}
+              className={`tab-btn directory-tab-button ${activeTab === 'active' ? 'active' : ''}`}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: '1px solid',
+                borderColor: activeTab === 'active' ? 'rgba(124, 58, 237, 0.3)' : 'transparent',
+                background: activeTab === 'active' ? 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(124, 58, 237, 0.05))' : 'transparent',
+                color: activeTab === 'active' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontWeight: '600',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>Active QRs</span>
+              <span style={{
+                background: activeTab === 'active' ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.1)',
+                color: activeTab === 'active' ? '#fff' : 'var(--text-muted)',
+                padding: '2px 8px',
+                borderRadius: '20px',
+                fontSize: '0.75rem'
+              }}>
+                {loading ? '...' : assignedQrs}
+              </span>
             </button>
           </div>
         </div>
@@ -362,161 +455,316 @@ export default function OneQr() {
               <thead>
                 <tr>
                   <th>QR ID</th>
-                  <th>Target URL</th>
-                  <th>Visuals</th>
-                  <th>Assignment Status</th>
+                  <th>Created At</th>
+                  <th>Status</th>
+                  <th>Plan</th>
+                  <th>Assigned Mobile</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredQrs.map((qr) => (
-                  <tr key={qr._id}>
-                    <td data-label="QR ID">
-                      <div className="user-phone-cell">
-                        <div className="user-avatar" style={{ background: 'rgba(236, 72, 153, 0.1)', color: 'var(--accent-secondary)' }}>
-                          QR
-                        </div>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{qr.qrId}</span>
-                      </div>
-                    </td>
-                    <td data-label="Target URL" className="stack-mobile">
-                      <a 
-                        href={qr.qrUrl} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="qr-target-link"
-                      >
-                        <LinkIcon size={12} />
-                        <span>{qr.qrUrl.replace('https://', '')}</span>
-                      </a>
-                    </td>
-                    <td data-label="Visuals">
-                      <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=48&hidesource=1&data=${encodeURIComponent(qr.qrUrl)}`} 
-                        alt="Preview" 
-                        className="qr-preview-img"
-                      />
-                    </td>
-                    <td data-label="Assignment Status">
-                      {qr.assignedTo ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                {filteredQrs.map((qr) => {
+                  const isEditing = editingQrId === qr.qrId;
+                  return (
+                    <tr key={qr._id}>
+                      <td data-label="QR ID">
+                        <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '0.9rem' }}>{qr.qrId}</span>
+                      </td>
+                      <td data-label="Created At" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                        {formatDate(qr.createdAt)}
+                      </td>
+                      <td data-label="Status">
+                        {qr.assignedTo ? (
                           <span className="badge badge-status-active">
-                            Assigned: {qr.assignedTo.phone}
+                            Active
                           </span>
-                          <span className={`badge ${getPlanBadgeClass(qr.plan)}`}>
-                            Plan: {formatPlanName(qr.plan)}
+                        ) : (
+                          <span className="badge badge-status-inactive">
+                            Inactive
                           </span>
-                          {qr.planAssignedByAdmin && (
-                            <span className="badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#c084fc', borderColor: 'rgba(139, 92, 246, 0.2)', fontSize: '0.65rem', padding: '2px 6px', textTransform: 'none' }}>
-                              Assigned by Admin
+                        )}
+                      </td>
+                      <td data-label="Plan" className={isEditing ? 'editing-cell' : ''}>
+                        {isEditing ? (
+                          <select
+                            className="form-input"
+                            value={selectedPlanForQr[qr.qrId] || 'free'}
+                            onChange={(e) => handleSelectPlan(qr.qrId, e.target.value)}
+                            disabled={assigningState[qr.qrId]}
+                            style={{ width: '100%', margin: 0, padding: '8px' }}
+                          >
+                            <option value="free">FREE</option>
+                            <option value="basic">Basic</option>
+                            <option value="premium">Premium</option>
+                            <option value="enterprise">Enterprise</option>
+                          </select>
+                        ) : (
+                          qr.assignedTo ? (
+                            <span className={`badge ${getPlanBadgeClass(qr.plan)}`}>
+                              {formatPlanName(qr.plan)}
                             </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="badge badge-status-inactive" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#fcd34d', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-                          Unassigned
-                        </span>
-                      )}
-                    </td>
-                    <td data-label="Actions" className="stack-mobile actions-cell">
-                      <div className="actions-wrapper">
-                        {/* Download button */}
-                        <button 
-                          onClick={() => handleDownload(qr.qrId, qr.qrUrl)}
-                          className="btn-primary btn-action-icon"
-                          title="Download QR Image"
-                        >
-                          <Download size={14} />
-                        </button>
-
-                        {/* Delete button */}
-                        <button 
-                          onClick={() => handleDeleteQr(qr._id, qr.qrId)}
-                          className="btn-primary btn-action-icon btn-danger"
-                          title="Delete QR Code"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-
-                        {/* Assign form (only if unassigned) */}
-                        {!qr.assignedTo && (
-                          <div className="assign-inline-form">
-                            <select
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>-</span>
+                          )
+                        )}
+                      </td>
+                      <td data-label="Assigned Mobile" className={isEditing ? 'editing-cell' : ''}>
+                        {isEditing ? (
+                          <div style={{ position: 'relative', width: '100%', maxWidth: '180px' }} className="mobile-width-full">
+                            <input
+                              type="text"
+                              placeholder="Type mobile..."
                               className="form-input select-user-assign"
                               value={selectedUserForQr[qr.qrId] || ''}
-                              onChange={(e) => handleSelectUser(qr.qrId, e.target.value)}
+                              onChange={(e) => {
+                                handleSelectUser(qr.qrId, e.target.value);
+                                setActiveQrSearchId(qr.qrId);
+                              }}
+                              onFocus={() => setActiveQrSearchId(qr.qrId)}
+                              onBlur={() => {
+                                // Delay slightly to let click register
+                                setTimeout(() => setActiveQrSearchId(null), 200);
+                              }}
                               disabled={assigningState[qr.qrId]}
-                            >
-                              <option value="">-- Choose User --</option>
-                              {users.map(u => (
-                                <option key={u.id} value={u.id}>
-                                  {u.phone} ({u.plan})
-                                </option>
-                              ))}
-                            </select>
-
+                              style={{ width: '100%', margin: 0, padding: '8px 10px' }}
+                            />
+                            
+                            {activeQrSearchId === qr.qrId && (
+                              <div className="glass-panel" style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                maxHeight: '180px',
+                                overflowY: 'auto',
+                                zIndex: 10,
+                                marginTop: '4px',
+                                border: '1px solid var(--glass-border)',
+                                boxShadow: 'var(--shadow)',
+                                background: 'var(--select-option-bg)',
+                                borderRadius: '8px',
+                                padding: '4px 0'
+                              }}>
+                                {users
+                                  .filter(u => u.phone && u.phone.includes(selectedUserForQr[qr.qrId] || ''))
+                                  .map(u => (
+                                    <div
+                                      key={u.id}
+                                      onMouseDown={(e) => {
+                                        e.preventDefault(); // Prevents input blur
+                                        handleSelectUser(qr.qrId, u.phone);
+                                        setActiveQrSearchId(null);
+                                      }}
+                                      style={{
+                                        padding: '8px 12px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem',
+                                        color: 'var(--text-primary)',
+                                        textAlign: 'left',
+                                        transition: 'background 0.2s'
+                                      }}
+                                      className="suggestion-item"
+                                    >
+                                      {u.phone}
+                                    </div>
+                                  ))}
+                                {users.filter(u => u.phone && u.phone.includes(selectedUserForQr[qr.qrId] || '')).length === 0 && (
+                                  <div style={{ padding: '8px 12px', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'left' }}>
+                                    No matches
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          qr.assignedTo ? (
+                            <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{qr.assignedTo.phone}</span>
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>-</span>
+                          )
+                        )}
+                      </td>
+                      <td data-label="Actions" className="stack-mobile actions-cell">
+                        {isEditing ? (
+                          <div className="actions-wrapper">
                             <button
                               onClick={() => handleAssign(qr.qrId)}
-                              className="btn-primary btn-assign-submit"
+                              className="btn-primary"
+                              style={{ margin: 0, width: 'auto', padding: '8px 14px' }}
                               disabled={assigningState[qr.qrId] || !selectedUserForQr[qr.qrId]}
                             >
                               {assigningState[qr.qrId] ? (
                                 <span className="spinner spinner-tiny"></span>
                               ) : (
-                                <>
-                                  <UserPlus size={14} />
-                                  <span>Assign</span>
-                                </>
+                                <span>Save</span>
                               )}
                             </button>
-                          </div>
-                        )}
-
-                        {/* Assign Plan form (only if assigned) */}
-                        {qr.assignedTo && (
-                          <div className="assign-inline-form">
-                            <select
-                              className="form-input select-user-assign"
-                              value={selectedPlanForQr[qr._id] || ''}
-                              onChange={(e) => handleSelectPlan(qr._id, e.target.value)}
-                              disabled={assigningPlanState[qr._id]}
-                            >
-                              <option value="">-- Choose Plan --</option>
-                              <option value="free">Free</option>
-                              <option value="basic_yearly">Basic Yearly</option>
-                              <option value="basic_3yearly">Basic 3 Years</option>
-                              <option value="premium_yearly">Premium Yearly</option>
-                              <option value="premium_3yearly">Premium 3 Years</option>
-                              <option value="enterprise_yearly">Enterprise Yearly</option>
-                              <option value="enterprise_3yearly">Enterprise 3 Years</option>
-                            </select>
-
                             <button
-                              onClick={() => handleAssignPlan(qr._id)}
-                              className="btn-primary btn-assign-submit"
-                              style={{ background: 'linear-gradient(135deg, var(--accent-primary), #7c3aed)' }}
-                              disabled={assigningPlanState[qr._id] || !selectedPlanForQr[qr._id]}
+                              onClick={() => setEditingQrId(null)}
+                              className="btn-primary btn-danger"
+                              style={{ margin: 0, width: 'auto', padding: '8px 14px' }}
+                              disabled={assigningState[qr.qrId]}
                             >
-                              {assigningPlanState[qr._id] ? (
-                                <span className="spinner spinner-tiny"></span>
-                              ) : (
-                                <>
-                                  <UserPlus size={14} />
-                                  <span>Assign Plan</span>
-                                </>
-                              )}
+                              Cancel
                             </button>
                           </div>
+                        ) : (
+                          <div className="actions-wrapper">
+                            {/* Download button */}
+                            <button 
+                              onClick={() => handleDownload(qr.qrId, qr.qrUrl)}
+                              className="btn-primary btn-action-icon"
+                              title="Download QR Image"
+                            >
+                              <Download size={14} />
+                            </button>
+
+                            {/* Delete button */}
+                            <button 
+                              onClick={() => startDeleteQr(qr._id, qr.qrId)}
+                              className="btn-primary btn-action-icon btn-danger"
+                              title="Delete QR Code"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+
+                            {/* Edit / Assign button */}
+                            {qr.assignedTo ? (
+                              <button 
+                                onClick={() => startEditing(qr)}
+                                className="btn-primary btn-action-icon"
+                                style={{ background: 'linear-gradient(135deg, var(--accent-primary), #7c3aed)' }}
+                                title="Edit Fields"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                            ) : (
+                              <button 
+                                onClick={() => startEditing(qr)}
+                                className="btn-primary btn-action-icon"
+                                style={{ background: 'linear-gradient(135deg, var(--accent-secondary), #ec4899)' }}
+                                title="Assign User & Plan"
+                              >
+                                <UserPlus size={14} />
+                              </button>
+                            )}
+                          </div>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
         </div>
       </section>
+
+      {/* Custom Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                padding: '10px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Trash2 size={24} />
+              </div>
+              <h3 className="modal-title" style={{ margin: 0 }}>
+                Delete QR Code
+              </h3>
+            </div>
+
+            {/* Content */}
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '20px' }}>
+              Are you sure you want to delete QR code <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>"{qrToDelete?.qrId}"</strong>? This action is permanent.
+            </p>
+
+            {/* Input field */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                color: 'var(--text-muted)',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Type <strong style={{ color: 'var(--text-primary)' }}>DELETE</strong> to confirm:
+              </label>
+              <input
+                type="text"
+                placeholder="DELETE"
+                value={confirmInputText}
+                onChange={(e) => setConfirmInputText(e.target.value)}
+                className="form-input"
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && confirmInputText === 'DELETE') {
+                    confirmDeletion();
+                  }
+                }}
+              />
+            </div>
+
+            {/* Footer Buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="btn-primary"
+                style={{
+                  margin: 0,
+                  width: 'auto',
+                  padding: '10px 18px',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--glass-border)',
+                  color: 'var(--text-primary)',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeletion}
+                disabled={confirmInputText !== 'DELETE'}
+                className="btn-primary"
+                style={{
+                  margin: 0,
+                  width: 'auto',
+                  padding: '10px 18px',
+                  background: confirmInputText === 'DELETE' 
+                    ? 'var(--danger)' 
+                    : 'rgba(239, 68, 68, 0.1)',
+                  color: confirmInputText === 'DELETE' ? '#fff' : 'rgba(239, 68, 68, 0.4)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: confirmInputText === 'DELETE' ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s',
+                  fontWeight: '600'
+                }}
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

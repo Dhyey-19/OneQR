@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { QrCode, Sparkles, Scan } from 'lucide-react';
+import { QrCode, Sparkles, Scan, FileText, Check } from 'lucide-react';
 import AllocatedQrCard from './AllocatedQrCard';
 
-export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage }) {
+export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, currentUser }) {
   const navigate = useNavigate();
 
   // Mock telemetry data
@@ -12,6 +12,19 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage }) {
     { name: 'vCard Downloads', value: '492', change: '+32% this week', color: 'text-indigo-400' },
     { name: 'Engagement Rate', value: '82.4%', change: '+5.3% this week', color: 'text-emerald-400' }
   ];
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -74,7 +87,7 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage }) {
               <QrCode className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
               Your Allocated QR Codes
             </h3>
-            <p className="hidden md:block text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1">
+            <p className="hidden md:block text-slate-650 dark:text-slate-400 text-xs sm:text-sm mt-1">
               Manage and download the dynamic QR codes assigned to your workspace.
             </p>
           </div>
@@ -118,6 +131,69 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage }) {
                 onManage={() => onManage(qr.qrId)} 
               />
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Order & Payment History Section */}
+      <div className="p-4 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/5 to-transparent blur-2xl pointer-events-none" />
+        
+        <div className="flex items-center gap-2 mb-6">
+          <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+            <FileText className="w-4 h-4" />
+          </span>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Order & Payment History</h3>
+        </div>
+
+        {!currentUser?.orderHistory || currentUser.orderHistory.length === 0 ? (
+          <div className="text-center py-8 text-slate-550 dark:text-slate-400 text-xs sm:text-sm">
+            No transaction records found. Your plan updates will show up here.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-[11px] sm:text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 font-bold">
+                  <th className="pb-3 pr-4 font-semibold uppercase tracking-wider">Plan Details</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Date & Time</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Order ID</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Payment ID</th>
+                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider text-right">Amount</th>
+                  <th className="pb-3 pl-4 font-semibold uppercase tracking-wider text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-white/5 text-slate-700 dark:text-slate-350 font-medium">
+                {currentUser.orderHistory.slice().reverse().map((order, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="py-3.5 pr-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 dark:text-white">{order.planName}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize">{order.planId?.replace('_', ' ')}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {formatDate(order.paidAt)}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                      {order.orderId || 'N/A'}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                      {order.paymentId || 'N/A'}
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white">
+                      ₹{order.amount || '1.00'}
+                    </td>
+                    <td className="py-3.5 pl-4 text-center whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        <Check className="w-3 h-3" />
+                        Paid
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

@@ -19,7 +19,7 @@ const OneQrSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: ['free', 'basic_yearly', 'basic_3yearly', 'premium_yearly', 'premium_3yearly', 'enterprise_yearly', 'enterprise_3yearly'],
+      enum: ['free', 'basic', 'premium', 'enterprise'],
       default: 'free',
     },
     subscriptionStatus: {

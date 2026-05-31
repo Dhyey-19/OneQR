@@ -5,9 +5,8 @@ import {
   CreditCard, Check, X, ChevronRight, Globe, FileText, BarChart3, Smile, QrCode, Sparkles 
 } from 'lucide-react';
 
-export default function BillingTab({ currentUser, activeQr, isPaymentLoading, handleUpgrade }) {
+export default function BillingTab({ currentUser, activeQr, allocatedQrs = [], activeQrId, setActiveQrId, isPaymentLoading, handleUpgrade }) {
   const navigate = useNavigate();
-  const [billingPeriod, setBillingPeriod] = useState('yearly'); // 'yearly' | '3yearly'
   const [selectedPlanDetails, setSelectedPlanDetails] = useState(null);
 
   const pricingPlans = [
@@ -15,15 +14,10 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
       id: 'basic',
       name: 'Basic Plan',
       description: 'Essential tools to create a digital business profile and launch your smart QR business card.',
-      yearlyPrice: 499,
-      yearlyOriginalPrice: 999,
-      threeYearlyPrice: 999,
-      threeYearlyOriginalPrice: 2999,
-      savings: {
-        yearly: 'Save ₹500 (50% Off)',
-        three_yearly: 'Save ₹2,000 (66% Off)'
-      },
-      validity: { yearly: '365 Days', three_yearly: '1095 Days' },
+      price: 999,
+      originalPrice: 1999,
+      savings: 'Save ₹1,000 (50% Off)',
+      validity: 'Lifetime',
       keyBenefit: '4" x 4" Standee',
       badge: 'Starter Package',
       features: [
@@ -39,7 +33,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
         { label: '4" x 4" Standee', description: 'Physical QR Standee', icon: 'Sparkles' }
       ],
       specs: [
-        { name: 'Pack validity', value: { yearly: '365 Days', three_yearly: '1095 Days' } },
+        { name: 'Pack validity', value: 'Lifetime' },
         { name: 'QR Standee', value: '4" x 4"' },
         { name: 'Scans', value: 'Unlimited' },
         { name: 'Social Links', value: 'Limited' },
@@ -52,15 +46,10 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
       id: 'premium',
       name: 'Premium Plan',
       description: 'Unlock detailed scan analytics, document sharing, and no watermarks (Best Seller & Most Popular).',
-      yearlyPrice: 999,
-      yearlyOriginalPrice: 1999,
-      threeYearlyPrice: 1999,
-      threeYearlyOriginalPrice: 5999,
-      savings: {
-        yearly: 'Save ₹1,000 (50% Off)',
-        three_yearly: 'Save ₹4,000 (66% Off)'
-      },
-      validity: { yearly: '365 Days', three_yearly: '1095 Days' },
+      price: 1999,
+      originalPrice: 3999,
+      savings: 'Save ₹2,000 (50% Off)',
+      validity: 'Lifetime',
       keyBenefit: '6" x 4" Standee',
       badge: 'Best Seller & Most Popular',
       features: [
@@ -79,7 +68,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
         { label: 'Photo Gallery', description: 'Showcase products', icon: 'Sparkles' }
       ],
       specs: [
-        { name: 'Pack validity', value: { yearly: '365 Days', three_yearly: '1095 Days' } },
+        { name: 'Pack validity', value: 'Lifetime' },
         { name: 'QR Standee', value: '6" h x 4"' },
         { name: 'Scans', value: 'Unlimited' },
         { name: 'Social Links', value: 'Customized' },
@@ -92,15 +81,10 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
       id: 'enterprise',
       name: 'Enterprise Plan',
       description: 'Advanced tools for larger brands requiring dedicated setups, custom links, and infinite scans.',
-      yearlyPrice: 2499,
-      yearlyOriginalPrice: 4999,
-      threeYearlyPrice: 4999,
-      threeYearlyOriginalPrice: 14999,
-      savings: {
-        yearly: 'Save ₹2,500 (50% Off)',
-        three_yearly: 'Save ₹10,000 (66% Off)'
-      },
-      validity: { yearly: '365 Days', three_yearly: '1095 Days' },
+      price: 4999,
+      originalPrice: 9999,
+      savings: 'Save ₹5,000 (50% Off)',
+      validity: 'Lifetime',
       keyBenefit: 'Customized Standee',
       badge: 'Enterprise Choice',
       features: [
@@ -119,7 +103,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
         { label: 'Custom Form', description: 'Interactive forms', icon: 'Globe' }
       ],
       specs: [
-        { name: 'Pack validity', value: { yearly: '365 Days', three_yearly: '1095 Days' } },
+        { name: 'Pack validity', value: 'Lifetime' },
         { name: 'QR Standee', value: 'Customized / Bespoke' },
         { name: 'Scans', value: 'Unlimited' },
         { name: 'Social Links', value: 'Customized' },
@@ -186,81 +170,146 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
         </div>
       </div>
 
-      {/* Current Plan Overview Card */}
-      <div className="p-5 sm:p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl relative overflow-hidden">
+      {/* QR-wise Subscriptions Grid */}
+      <div className="p-5 sm:p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl relative overflow-hidden space-y-6">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-indigo-500/5 to-transparent blur-2xl pointer-events-none" />
-        <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-4">Subscription Overview</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
-            <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Current Plan</span>
-            <span className="text-sm sm:text-lg font-extrabold text-slate-900 dark:text-white block uppercase tracking-tight sm:mt-1">
-              {currentPlanId === 'free' ? 'Free Plan' : currentPlanId.replace('_', ' ')}
-            </span>
-          </div>
-          <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
-            <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Status</span>
-            <span className={`inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full border sm:mt-2 ${
-              isSubscribed 
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isSubscribed ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-500'}`} />
-              {isSubscribed ? 'Active' : 'Inactive / Expired'}
-            </span>
-          </div>
-          <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
-            <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Valid Until</span>
-            <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 block sm:mt-1.5">
-              {isSubscribed && activeQr?.subscriptionExpiresAt 
-                ? formatDate(activeQr.subscriptionExpiresAt) 
-                : 'N/A'}
-            </span>
-          </div>
+        
+        <div>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Your QR Subscriptions</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+            Click on any QR below to view plans and manage upgrades. Selected QR is highlighted.
+          </p>
         </div>
-      </div>
 
+        {(!allocatedQrs || allocatedQrs.length === 0) ? (
+          <div className="text-center py-6 text-slate-500 dark:text-slate-400 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl">
+            No QR codes allocated yet. Please scan or claim a QR code first from the overview dashboard.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-slate-900/10">
+            <table className="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr className="bg-slate-100/50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-[10px] sm:text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                  <th className="p-4 w-16 text-center">Select</th>
+                  <th className="p-4 w-20">Preview</th>
+                  <th className="p-4 w-28">QR ID</th>
+                  <th className="p-4">Redirect URL</th>
+                  <th className="p-4 w-36">Current Plan</th>
+                  <th className="p-4 w-24 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-150 dark:divide-white/5 text-[11px] sm:text-xs">
+                {allocatedQrs.map((qr) => {
+                  const isSelected = activeQrId === qr.qrId;
+                  
+                  // Local helpers for format
+                  const localFormatPlanName = (p) => {
+                    if (!p || p === 'free') return 'FREE';
+                    switch (p) {
+                      case 'basic': return 'Basic (Lifetime)';
+                      case 'premium': return 'Premium (Lifetime)';
+                      case 'enterprise': return 'Enterprise (Lifetime)';
+                      default: return p.replace('_yearly', ' (Lifetime)').replace('_3yearly', ' (Lifetime)');
+                    }
+                  };
+
+                  const localGetQrStatus = (q) => {
+                    if (!q) return { text: 'Inactive', className: 'bg-amber-500/10 border-amber-500/20 text-amber-400' };
+                    if (q.plan === 'free') {
+                      return { text: 'Active (Free)', className: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' };
+                    }
+                    return {
+                      text: 'Active (Lifetime)',
+                      className: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    };
+                  };
+
+                  const status = localGetQrStatus(qr);
+                  
+                  return (
+                    <tr
+                      key={qr._id || qr.qrId}
+                      onClick={() => {
+                        if (setActiveQrId) setActiveQrId(qr.qrId);
+                      }}
+                      className={`hover:bg-slate-100/50 dark:hover:bg-white/5 transition-all cursor-pointer ${
+                        isSelected 
+                          ? 'bg-blue-500/5 dark:bg-blue-500/5 font-semibold text-blue-600 dark:text-blue-400' 
+                          : 'text-slate-700 dark:text-slate-350'
+                      }`}
+                    >
+                      {/* Selection radio bullet indicator */}
+                      <td className="p-4 text-center">
+                        <div className="flex justify-center">
+                          <div className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-500 shadow-md shadow-blue-500/35 scale-110' 
+                              : 'border-slate-300 dark:border-white/20'
+                          }`}>
+                            {isSelected && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Small preview thumbnail */}
+                      <td className="p-4">
+                        <div className="w-9 h-9 rounded-lg bg-white p-0.5 border border-slate-200 dark:border-white/10 flex items-center justify-center">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&hidesource=1&data=${encodeURIComponent(qr.qrUrl)}`}
+                            alt="QR"
+                            className="w-8 h-8 object-contain"
+                          />
+                        </div>
+                      </td>
+
+                      {/* QR ID */}
+                      <td className="p-4 font-mono font-bold tracking-tight">
+                        {qr.qrId}
+                      </td>
+
+                      {/* Redirect Path */}
+                      <td className="p-4 max-w-[220px] truncate font-medium">
+                        {qr.qrUrl.replace('https://', '')}
+                      </td>
+
+                      {/* Plan Description */}
+                      <td className="p-4 font-bold">
+                        {localFormatPlanName(qr.plan)}
+                      </td>
+
+                      {/* Status pill badge */}
+                      <td className="p-4 text-center">
+                        <span className={`inline-flex items-center text-[9px] font-extrabold px-2 py-0.5 rounded-full border ${status.className}`}>
+                          {status.text}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
       {/* Pricing Selection Tiers */}
-      <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 px-2">
+      <div id="pricing-selection-tiers" className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 px-2 pt-6">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-          Choose Your Subscription Plan
+          Choose Your Lifetime Plan
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-          Activate premium layout features, catalog uploads, and rich profile metrics instantly.
+          Activate premium layout features, catalog uploads, and rich profile metrics instantly with a one-time payment.
         </p>
-
-        {/* Toggle Switch */}
-        <div className="flex items-center justify-center gap-2.5 sm:gap-4 pt-2 sm:pt-4">
-          <span className={`text-[11px] sm:text-xs font-bold ${billingPeriod === 'yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors`}>
-            1 Year Plan
-          </span>
-          <div 
-            onClick={() => setBillingPeriod(billingPeriod === 'yearly' ? '3yearly' : 'yearly')}
-            className="w-12 h-6 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-0.5 cursor-pointer relative flex items-center shrink-0"
-          >
-            <div 
-              className="w-5 h-5 rounded-full bg-blue-500 absolute transition-all duration-300"
-              style={{
-                left: billingPeriod === 'yearly' ? '2px' : 'calc(100% - 22px)'
-              }}
-            />
-          </div>
-          <span className={`text-[11px] sm:text-xs font-bold flex items-center gap-1.5 sm:gap-1.5 ${billingPeriod === '3yearly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'} transition-colors whitespace-nowrap`}>
-            3 Year Plan
-            <span className="text-[8px] sm:text-[9px] font-black uppercase px-1 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              Save 20%
-            </span>
-          </span>
-        </div>
       </div>
 
       {/* DESKTOP VIEW: Side-by-side original pricing cards */}
       <div className="hidden md:grid md:grid-cols-3 gap-6 items-stretch max-w-6xl mx-auto">
         {pricingPlans.map((plan) => {
-          const planKey = `${plan.id}_${billingPeriod}`;
-          const isActivePlan = currentPlanId === planKey && isSubscribed;
-          const price = billingPeriod === 'yearly' ? plan.yearlyPrice : plan.threeYearlyPrice;
-          const originalPrice = billingPeriod === 'yearly' ? plan.yearlyOriginalPrice : plan.threeYearlyOriginalPrice;
-          const savingsText = billingPeriod === 'yearly' ? plan.savings.yearly : plan.savings.three_yearly;
+          const isActivePlan = currentPlanId === plan.id;
+          const price = plan.price;
+          const originalPrice = plan.originalPrice;
+          const savingsText = plan.savings;
           
           return (
             <div
@@ -280,7 +329,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                   <span className="text-base font-bold text-slate-900 dark:text-white">{plan.name}</span>
                   {isActivePlan ? (
                     <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/35 text-emerald-450 text-[8px] font-extrabold uppercase tracking-widest">
-                      Current
+                      Current Plan
                     </span>
                   ) : plan.id === 'premium' ? (
                     <span className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[8px] font-extrabold uppercase tracking-widest">
@@ -305,9 +354,9 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
                     <span className="text-slate-500 text-[10px] font-semibold">
-                      Billed / {billingPeriod === 'yearly' ? '1 Year' : '3 Years'}
+                      One-time payment
                     </span>
-                    <span className="text-[9px] font-extrabold text-emerald-650 dark:text-emerald-450 bg-emerald-500/10 border border-emerald-555 px-2 py-0.5 rounded-md">
+                    <span className="text-[9px] font-extrabold text-emerald-655 dark:text-emerald-450 bg-emerald-500/10 border border-emerald-555 px-2 py-0.5 rounded-md">
                       {savingsText}
                     </span>
                   </div>
@@ -336,17 +385,17 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
 
               <button
                 type="button"
-                disabled={isActivePlan || isPaymentLoading}
-                onClick={() => handleUpgrade(planKey)}
+                disabled={isPaymentLoading || isActivePlan}
+                onClick={() => handleUpgrade(plan.id)}
                 className={`w-full py-3 rounded-xl font-bold text-xs text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${
                   isActivePlan 
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default' 
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 cursor-not-allowed' 
                     : plan.id === 'premium'
                       ? 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white border-transparent shadow-lg shadow-blue-500/20'
                       : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white hover:text-slate-900'
                 }`}
               >
-                {isPaymentLoading ? 'Processing...' : isActivePlan ? 'Active Subscribed' : 'Upgrade to Plan'}
+                {isPaymentLoading ? 'Processing...' : isActivePlan ? 'Active Plan' : 'Select Plan'}
               </button>
             </div>
           );
@@ -356,11 +405,10 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
       {/* MOBILE VIEW: Telecom style vertical plans list */}
       <div className="block md:hidden space-y-4 max-w-2xl mx-auto px-2">
         {pricingPlans.map((plan) => {
-          const planKey = `${plan.id}_${billingPeriod}`;
-          const isActivePlan = currentPlanId === planKey && isSubscribed;
-          const price = billingPeriod === 'yearly' ? plan.yearlyPrice : plan.threeYearlyPrice;
-          const originalPrice = billingPeriod === 'yearly' ? plan.yearlyOriginalPrice : plan.threeYearlyOriginalPrice;
-          const savingsText = billingPeriod === 'yearly' ? plan.savings.yearly : plan.savings.three_yearly;
+          const isActivePlan = currentPlanId === plan.id;
+          const price = plan.price;
+          const originalPrice = plan.originalPrice;
+          const savingsText = plan.savings;
           
           return (
             <div
@@ -406,7 +454,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                     </span>
                   </div>
                   <span className="text-slate-500 text-[9px] mt-1">
-                    / {billingPeriod === 'yearly' ? '1 year' : '3 years'}
+                    / lifetime
                   </span>
                 </div>
 
@@ -415,7 +463,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                   <div className="flex flex-col">
                     <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Validity</span>
                     <span className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-0.5">
-                      {billingPeriod === 'yearly' ? plan.validity.yearly : plan.validity.three_yearly}
+                      {plan.validity}
                     </span>
                   </div>
                   <div className="flex flex-col">
@@ -438,11 +486,11 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
 
                   <button
                     type="button"
-                    disabled={isActivePlan || isPaymentLoading}
-                    onClick={() => handleUpgrade(planKey)}
+                    disabled={isPaymentLoading || isActivePlan}
+                    onClick={() => handleUpgrade(plan.id)}
                     className={`px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-bold text-xs text-center border transition-all cursor-pointer shadow-md ${
                       isActivePlan 
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default shadow-none' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 cursor-not-allowed shadow-none' 
                         : plan.id === 'premium'
                           ? 'bg-blue-600 hover:bg-blue-500 text-white border-transparent'
                           : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white hover:text-slate-900'
@@ -571,18 +619,18 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                   <div className="flex flex-col mt-2">
                     <div className="flex items-baseline gap-2">
                       <span className="text-4xl font-black text-slate-900 dark:text-white">
-                        ₹{billingPeriod === 'yearly' ? selectedPlanDetails.yearlyPrice : selectedPlanDetails.threeYearlyPrice}
+                        ₹{selectedPlanDetails.price}
                       </span>
                       <span className="text-slate-400 dark:text-slate-555 text-xl font-medium line-through">
-                        ₹{billingPeriod === 'yearly' ? selectedPlanDetails.yearlyOriginalPrice : selectedPlanDetails.threeYearlyOriginalPrice}
+                        ₹{selectedPlanDetails.originalPrice}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className="text-slate-555 dark:text-slate-400 text-xs font-bold">
-                        / {billingPeriod === 'yearly' ? '1 year' : '3 years'}
+                        / lifetime
                       </span>
                       <span className="text-[10px] font-bold text-emerald-650 dark:text-emerald-450 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        {billingPeriod === 'yearly' ? selectedPlanDetails.savings.yearly : selectedPlanDetails.savings.three_yearly}
+                        {selectedPlanDetails.savings}
                       </span>
                     </div>
                   </div>
@@ -627,10 +675,7 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                   
                   <div className="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-white/5 bg-slate-50/50 dark:bg-white/5">
                     {selectedPlanDetails.specs.map((spec, index) => {
-                      const specValue = spec.name === 'Pack validity'
-                        ? (billingPeriod === 'yearly' ? spec.value.yearly : spec.value.three_yearly)
-                        : spec.value;
-                      
+                      const specValue = spec.value;
                       const isNotIncluded = specValue === 'Not Included';
 
                       return (
@@ -656,23 +701,23 @@ export default function BillingTab({ currentUser, activeQr, isPaymentLoading, ha
                 </button>
                 <button
                   type="button"
-                  disabled={(currentPlanId === `${selectedPlanDetails.id}_${billingPeriod}` && isSubscribed) || isPaymentLoading}
+                  disabled={isPaymentLoading || currentPlanId === selectedPlanDetails.id}
                   onClick={() => {
-                    const planKey = `${selectedPlanDetails.id}_${billingPeriod}`;
+                    const planId = selectedPlanDetails.id;
                     setSelectedPlanDetails(null);
-                    handleUpgrade(planKey);
+                    handleUpgrade(planId);
                   }}
-                  className={`flex-1 py-3.5 rounded-2xl font-black text-xs text-center flex items-center justify-center gap-2 border transition-all cursor-pointer shadow-lg ${
-                    currentPlanId === `${selectedPlanDetails.id}_${billingPeriod}` && isSubscribed
-                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 cursor-default shadow-none'
-                      : 'bg-blue-600 border-transparent text-white hover:bg-blue-500 shadow-blue-500/25'
+                  className={`flex-1 py-3.5 rounded-2xl font-black text-xs text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                    currentPlanId === selectedPlanDetails.id 
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 cursor-not-allowed'
+                      : 'bg-blue-600 border-transparent text-white hover:bg-blue-500 shadow-lg shadow-blue-500/25'
                   }`}
                 >
                   {isPaymentLoading 
                     ? 'Processing...' 
-                    : currentPlanId === `${selectedPlanDetails.id}_${billingPeriod}` && isSubscribed
-                      ? 'Active Plan' 
-                      : `Buy Now - Pay ₹${billingPeriod === 'yearly' ? selectedPlanDetails.yearlyPrice : selectedPlanDetails.threeYearlyPrice}.00`}
+                    : currentPlanId === selectedPlanDetails.id
+                      ? 'Active Plan'
+                      : `Buy Now - Pay ₹${selectedPlanDetails.price}.00`}
                 </button>
               </div>
 
