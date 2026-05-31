@@ -2,6 +2,7 @@ const config = require("../config/config");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const User = require("../models/User");
+const OneQr = require("../models/OneQr");
 const { UserResponseDto } = require("../dtos/userDto");
 
 // Initialize Razorpay instance if keys are configured
@@ -30,7 +31,7 @@ const plansConfig = {
  */
 exports.createOrder = async (req, res) => {
   try {
-    const { planId } = req.body;
+    const { planId, qrId } = req.body;
     const plan = plansConfig[planId];
     if (!plan) {
       return res.status(400).json({
@@ -52,6 +53,11 @@ exports.createOrder = async (req, res) => {
       // Save pending order ID to user record
       await User.findByIdAndUpdate(req.user._id, { razorpayOrderId: order.id });
 
+      // Save pending order ID to QR Code record if provided
+      if (qrId) {
+        await OneQr.findOneAndUpdate({ qrId: qrId.trim() }, { razorpayOrderId: order.id });
+      }
+
       return res.status(200).json({
         status: "success",
         data: {
@@ -67,6 +73,10 @@ exports.createOrder = async (req, res) => {
       // Simulation/Sandbox mode if keys are not ready
       const mockOrderId = `order_mock_${Math.random().toString(36).substring(2, 15)}`;
       await User.findByIdAndUpdate(req.user._id, { razorpayOrderId: mockOrderId });
+
+      if (qrId) {
+        await OneQr.findOneAndUpdate({ qrId: qrId.trim() }, { razorpayOrderId: mockOrderId });
+      }
 
       return res.status(200).json({
         status: "success",
@@ -96,7 +106,7 @@ exports.createOrder = async (req, res) => {
  */
 exports.verifyPayment = async (req, res) => {
   try {
-    const { razorpayPaymentId, razorpayOrderId, razorpaySignature, planId } = req.body;
+    const { razorpayPaymentId, razorpayOrderId, razorpaySignature, planId, qrId } = req.body;
     const plan = plansConfig[planId];
     if (!plan) {
       return res.status(400).json({
@@ -107,10 +117,14 @@ exports.verifyPayment = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (!user || user.razorpayOrderId !== razorpayOrderId) {
-      return res.status(400).json({
-        status: "error",
-        message: "Session or order verification mismatch.",
-      });
+      // Allow verification if matching razorpayOrderId is found on one of the user's QR codes
+      const qrMatch = await OneQr.findOne({ razorpayOrderId, assignedTo: req.user._id });
+      if (!qrMatch) {
+        return res.status(400).json({
+          status: "error",
+          message: "Session or order verification mismatch.",
+        });
+      }
     }
 
     let verified = false;
@@ -136,7 +150,24 @@ exports.verifyPayment = async (req, res) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + plan.durationDays);
 
-      // Save user details
+      // Find the QR Code document
+      let qr = null;
+      if (qrId) {
+        qr = await OneQr.findOne({ qrId: qrId.trim() });
+      } else {
+        qr = await OneQr.findOne({ razorpayOrderId });
+      }
+
+      if (qr) {
+        qr.plan = planId;
+        qr.subscriptionStatus = "active";
+        qr.subscriptionExpiresAt = expiresAt;
+        qr.razorpayPaymentId = razorpayPaymentId || `mock_pay_${Date.now()}`;
+        qr.planAssignedByAdmin = false;
+        await qr.save();
+      }
+
+      // Save user details for backward compatibility
       user.plan = planId;
       user.subscriptionStatus = "active";
       user.subscriptionExpiresAt = expiresAt;
@@ -150,7 +181,7 @@ exports.verifyPayment = async (req, res) => {
         orderId: razorpayOrderId,
         paymentId: razorpayPaymentId || `mock_pay_${Date.now()}`,
         planId: planId,
-        planName: plan.name,
+        planName: qr ? `${plan.name} (QR: ${qr.qrId})` : plan.name,
         amount: plan.amount / 100,
         status: "success",
         paidAt: new Date(),
@@ -160,9 +191,10 @@ exports.verifyPayment = async (req, res) => {
 
       return res.status(200).json({
         status: "success",
-        message: `Payment successful! Upgraded to ${plan.name}.`,
+        message: `Payment successful! Upgraded QR ${qr ? qr.qrId : ""} to ${plan.name}.`,
         data: {
           user: UserResponseDto.transform(user),
+          qr: qr,
         },
       });
     } else {

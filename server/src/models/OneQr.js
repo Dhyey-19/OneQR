@@ -17,6 +17,29 @@ const OneQrSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    plan: {
+      type: String,
+      enum: ['free', 'basic_yearly', 'basic_3yearly', 'premium_yearly', 'premium_3yearly', 'enterprise_yearly', 'enterprise_3yearly'],
+      default: 'free',
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'inactive',
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    planAssignedByAdmin: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

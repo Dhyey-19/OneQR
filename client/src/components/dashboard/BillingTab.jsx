@@ -5,7 +5,7 @@ import {
   CreditCard, Check, X, ChevronRight, Globe, FileText, BarChart3, Smile, QrCode, Sparkles 
 } from 'lucide-react';
 
-export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrade }) {
+export default function BillingTab({ currentUser, activeQr, isPaymentLoading, handleUpgrade }) {
   const navigate = useNavigate();
   const [billingPeriod, setBillingPeriod] = useState('yearly'); // 'yearly' | '3yearly'
   const [selectedPlanDetails, setSelectedPlanDetails] = useState(null);
@@ -154,8 +154,8 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
     }
   };
 
-  const currentPlanId = currentUser?.plan || 'free';
-  const isSubscribed = currentUser?.subscriptionStatus === 'active';
+  const currentPlanId = activeQr?.plan || 'free';
+  const isSubscribed = activeQr?.subscriptionStatus === 'active';
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in max-w-5xl mx-auto px-1 sm:px-0">
@@ -211,8 +211,8 @@ export default function BillingTab({ currentUser, isPaymentLoading, handleUpgrad
           <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl flex sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-2">
             <span className="text-[10px] font-bold text-slate-555 uppercase tracking-wider block">Valid Until</span>
             <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 block sm:mt-1.5">
-              {isSubscribed && currentUser?.subscriptionExpiresAt 
-                ? formatDate(currentUser.subscriptionExpiresAt) 
+              {isSubscribed && activeQr?.subscriptionExpiresAt 
+                ? formatDate(activeQr.subscriptionExpiresAt) 
                 : 'N/A'}
             </span>
           </div>
