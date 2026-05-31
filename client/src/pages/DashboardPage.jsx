@@ -141,6 +141,15 @@ export default function DashboardPage({ subViewProp }) {
     if (user) {
       setCurrentUser(user);
       fetchQrsAndProfile();
+
+      // Fetch fresh user profile from server to keep session in-sync
+      authService.getProfile()
+        .then(freshUser => {
+          setCurrentUser(freshUser);
+        })
+        .catch(err => {
+          console.error('Failed to sync profile on mount:', err);
+        });
     }
   }, []);
 
