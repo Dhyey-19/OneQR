@@ -10,6 +10,7 @@ import OverviewTab from '../components/dashboard/OverviewTab';
 // BillingTab removed
 import QrScanTab from '../components/dashboard/QrScanTab';
 import ManageQrTab from '../components/dashboard/ManageQrTab';
+import FeedbacksTab from '../components/dashboard/FeedbacksTab';
 import MockPaymentModal from '../components/dashboard/MockPaymentModal';
 import SuccessModal from '../components/dashboard/SuccessModal';
 import ClaimQrModal from '../components/dashboard/ClaimQrModal';
@@ -164,6 +165,8 @@ export default function DashboardPage({ subViewProp }) {
       setSubView('overview');
     } else if (subViewProp === 'qr-scan') {
       setSubView('qr-scan');
+    } else if (subViewProp === 'feedbacks') {
+      setSubView('feedbacks');
     } else {
       setSubView('overview');
     }
@@ -519,6 +522,10 @@ export default function DashboardPage({ subViewProp }) {
             onSelectAndManageQr={handleSelectAndManageQr}
             onRefreshQrs={handleRefreshQrs}
           />
+        )}
+
+        {subView === 'feedbacks' && (
+          <FeedbacksTab />
         )}
 
         {subView === 'manage-qr' && (

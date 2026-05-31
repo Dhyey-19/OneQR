@@ -22,5 +22,6 @@ router.post("/upload", upload.single("file"), profileController.uploadFile);
 router.get("/qrs", profileController.getUserQrCodes);
 router.post("/qrs/claim", profileController.claimQrCode);
 router.post("/qrs/scan", profileController.scanAndAssignQrCode);
+router.get("/feedbacks", require("../controllers/feedbackController").getFeedbacks);
 
 module.exports = router;

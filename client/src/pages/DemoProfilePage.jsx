@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Smartphone, MapPin, Mail, Phone, Globe, Link2, 
   ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download,
-  Copy, X, Check, Clock
+  Copy, X, Check, Clock, Star, RefreshCw
 } from 'lucide-react';
 import { 
   FaFacebook, FaInstagram, FaYoutube, 
@@ -29,6 +29,95 @@ export default function DemoProfilePage() {
   const [upiModalOpen, setUpiModalOpen] = useState(false);
   const [upiModalData, setUpiModalData] = useState({ upiId: '', upiLink: '', payeeName: '' });
   const [copiedUpi, setCopiedUpi] = useState(false);
+
+  // Google Review Feedback Modal States
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [googleReviewLink, setGoogleReviewLink] = useState('');
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [reviewSuggestion, setReviewSuggestion] = useState('');
+  const [fetchingSuggestion, setFetchingSuggestion] = useState(false);
+  const [copiedReview, setCopiedReview] = useState(false);
+
+  const fetchSuggestion = async () => {
+    setFetchingSuggestion(true);
+    setCopiedReview(false);
+    try {
+      const res = await apiRequest(`/public/profile/${slug}/review-suggestions`);
+      if (res.status === 'success' && res.data?.suggestion) {
+        setReviewSuggestion(res.data.suggestion);
+      }
+    } catch (err) {
+      console.error('Error fetching suggestion:', err);
+      const companyName = profileData?.profileCompany || profileData?.profileName || 'this business';
+      setReviewSuggestion(`Excellent experience overall with ${companyName}. Friendly team, quick service, and top-tier quality!`);
+    } finally {
+      setFetchingSuggestion(false);
+    }
+  };
+
+  const handleGoogleReviewClick = (e, googleLink) => {
+    if (e) e.preventDefault();
+    setGoogleReviewLink(googleLink);
+    setSelectedRating(0);
+    setHoveredRating(0);
+    setFeedbackText('');
+    setFeedbackSubmitted(false);
+    setReviewSuggestion('');
+    setCopiedReview(false);
+    setReviewModalOpen(true);
+  };
+
+  const handleSelectRating = (rating) => {
+    setSelectedRating(rating);
+    setCopiedReview(false);
+    if (rating === 4 || rating === 5) {
+      fetchSuggestion();
+    }
+  };
+
+  const handleCopyAndRedirect = async () => {
+    try {
+      await navigator.clipboard.writeText(reviewSuggestion);
+      setCopiedReview(true);
+    } catch (err) {
+      console.error('Clipboard copy failed:', err);
+    }
+    
+    const formattedLink = formatUrl(googleReviewLink);
+    window.open(formattedLink, '_blank');
+    
+    setTimeout(() => {
+      setReviewModalOpen(false);
+    }, 800);
+  };
+
+  const handleSubmitFeedback = async (e) => {
+    if (e) e.preventDefault();
+    if (selectedRating === 0) return;
+    setIsSubmittingFeedback(true);
+    try {
+      await apiRequest(`/public/profile/${slug}/feedback`, {
+        method: 'POST',
+        body: JSON.stringify({
+          rating: selectedRating,
+          feedbackText,
+        }),
+      });
+      setFeedbackSubmitted(true);
+      setTimeout(() => {
+        setReviewModalOpen(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Error submitting feedback:', err);
+      alert(err.message || 'Failed to submit feedback. Please try again.');
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
 
   // UPI Simulation & Helper States
   const [mobileConfirmOpen, setMobileConfirmOpen] = useState(false);
@@ -488,10 +577,16 @@ export default function DemoProfilePage() {
                   return (
                     <a 
                       key={key}
-                      href={key === 'upi' ? '#' : formatUrl(p.value)}
-                      onClick={key === 'upi' ? (e) => handleUpiClick(e, p.value) : undefined}
-                      target={key === 'upi' ? undefined : "_blank"}
-                      rel={key === 'upi' ? undefined : "noopener noreferrer"}
+                      href={key === 'upi' || key === 'google' ? '#' : formatUrl(p.value)}
+                      onClick={(e) => {
+                        if (key === 'upi') {
+                          handleUpiClick(e, p.value);
+                        } else if (key === 'google') {
+                          handleGoogleReviewClick(e, p.value);
+                        }
+                      }}
+                      target={key === 'upi' || key === 'google' ? undefined : "_blank"}
+                      rel={key === 'upi' || key === 'google' ? undefined : "noopener noreferrer"}
                       className={`py-3 px-4 rounded-2xl flex items-center gap-2.5 text-sm font-bold hover:scale-[1.02] active:scale-95 transition-all ${activeTheme.buttonBg} ${activeTheme.text}`}
                     >
                       {p.imgSrc ? (
@@ -604,6 +699,183 @@ export default function DemoProfilePage() {
       <div className="flex-grow flex flex-col relative">
         {profileContent}
       </div>
+
+      {/* Google Review Filtering Modal */}
+      <AnimatePresence>
+        {reviewModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl relative space-y-6 text-center text-slate-900 dark:text-white"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setReviewModalOpen(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-655 dark:hover:text-slate-300 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Google Brand Header */}
+              <div className="flex flex-col items-center gap-2 pt-2">
+                <div className="flex items-center justify-center p-2 bg-slate-50/10 dark:bg-white/5 rounded-full border border-slate-100/50 dark:border-white/5">
+                  <svg viewBox="0 0 24 24" width="28" height="28" className="w-7 h-7">
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                </div>
+                <h3 className="font-extrabold text-lg tracking-tight text-slate-800 dark:text-slate-100">Google Review</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal max-w-[220px]">
+                  Share your experience about <span className="font-bold text-slate-700 dark:text-slate-200">{profileData?.profileCompany || 'our business'}</span>
+                </p>
+              </div>
+
+              {!feedbackSubmitted ? (
+                <div className="space-y-6">
+                  {/* Star selection widget (Always visible) */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex justify-center items-center gap-2.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => handleSelectRating(star)}
+                          onMouseEnter={() => setHoveredRating(star)}
+                          onMouseLeave={() => setHoveredRating(0)}
+                          className="p-0.5 hover:scale-115 active:scale-90 transition-transform cursor-pointer"
+                        >
+                          <Star
+                            className={`w-9 h-9 ${
+                              star <= (hoveredRating || selectedRating)
+                                ? 'text-[#fbbc05] fill-[#fbbc05]'
+                                : 'text-slate-200 dark:text-slate-700'
+                            } transition-colors duration-150`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dynamic sub-views based on selectedRating */}
+                  {selectedRating === 0 && (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium py-4">
+                      Please tap a star above to rate us.
+                    </p>
+                  )}
+
+                  {selectedRating >= 4 && (
+                    <motion.div 
+                      key="suggestion-view"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4 text-left"
+                    >
+                      <div className="relative p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl flex items-start gap-3 min-h-[90px] pr-10">
+                        <div className="flex-grow">
+                          {fetchingSuggestion ? (
+                            <div className="flex items-center justify-center gap-2 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                              <div className="w-4 h-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin" />
+                              <span>Generating suggestion...</span>
+                            </div>
+                          ) : (
+                            <p className="text-slate-700 dark:text-slate-300 text-xs font-semibold leading-relaxed italic">
+                              "{reviewSuggestion}"
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Shuffle button (No text, icon only) */}
+                        <button
+                          type="button"
+                          disabled={fetchingSuggestion}
+                          onClick={fetchSuggestion}
+                          className="absolute right-2 top-2 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-500 dark:text-slate-300 hover:text-slate-700 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center border border-transparent shadow-sm"
+                          title="Change Suggestion"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${fetchingSuggestion ? 'animate-spin' : ''}`} />
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={fetchingSuggestion}
+                        onClick={handleCopyAndRedirect}
+                        className="w-full py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-bold text-xs rounded-xl shadow-md transition-colors cursor-pointer select-none disabled:opacity-50 text-center"
+                      >
+                        {copiedReview ? 'Copied Review!' : 'Copy Review & Redirect'}
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {selectedRating > 0 && selectedRating <= 3 && (
+                    <motion.form 
+                      key="feedback-form"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onSubmit={handleSubmitFeedback}
+                      className="space-y-4 text-left"
+                    >
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                          Tell us how we can improve
+                        </label>
+                        <textarea
+                          required
+                          value={feedbackText}
+                          onChange={(e) => setFeedbackText(e.target.value)}
+                          placeholder="What went wrong? We value your honest feedback..."
+                          rows={3}
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none text-xs text-slate-900 dark:text-white transition-all resize-none"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmittingFeedback}
+                        className="w-full py-3 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-bold text-xs shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                      >
+                        {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                      </button>
+                    </motion.form>
+                  )}
+                </div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4 py-4 text-center"
+                >
+                  <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                    <Check className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Feedback Submitted</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Thank you for your constructive comments. We appreciate your input!
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* UPI QR Code Desktop Fallback Modal */}
       <AnimatePresence>

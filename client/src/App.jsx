@@ -91,7 +91,7 @@ export default function App() {
       const currentPath = window.location.pathname;
       
       const isSystemPath = currentPath === '/' || currentPath === '/index.html' || 
-                            ['/dashboard', '/manage-qr', '/scan-qr'].includes(currentPath);
+                            ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks'].includes(currentPath);
 
       if (!isSystemPath) return;
 
@@ -144,7 +144,7 @@ export default function App() {
   };
 
   // Check if current route is a system path or not
-  const systemPaths = ['/', '/dashboard', '/manage-qr', '/scan-qr'];
+  const systemPaths = ['/', '/dashboard', '/manage-qr', '/scan-qr', '/feedbacks'];
   const isSlugPath = !systemPaths.includes(location.pathname) && location.pathname !== '/index.html';
 
   if (isSlugPath) {
@@ -176,6 +176,11 @@ export default function App() {
         <Route path="/scan-qr" element={
           <ProtectedRoute>
             <DashboardPage subViewProp="qr-scan" />
+          </ProtectedRoute>
+        } />
+        <Route path="/feedbacks" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="feedbacks" />
           </ProtectedRoute>
         } />
         

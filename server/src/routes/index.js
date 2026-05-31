@@ -26,6 +26,8 @@ router.get("/auth/me", protect, authController.getProfile);
 const profileRoutes = require("./profileRoutes");
 router.use("/profile", profileRoutes);
 router.get("/public/profile/:slug", require("../controllers/profileController").getPublicProfile);
+router.post("/public/profile/:slug/feedback", require("../controllers/feedbackController").submitFeedback);
+router.get("/public/profile/:slug/review-suggestions", require("../controllers/feedbackController").getReviewSuggestions);
 
 // Payment & Subscription routes
 const paymentRoutes = require("./paymentRoutes");
