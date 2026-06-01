@@ -103,6 +103,11 @@ exports.getProfile = async (req, res, next) => {
             socialWhatsapp: "",
             socialUPI: "",
             socialOrder: ['facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'whatsapp', 'upi'],
+            bankUpiId: "",
+            bankName: "",
+            bankAccountNo: "",
+            bankIfsc: "",
+            bankAccountName: "",
             customLinks: [],
             profileDocuments: [],
             headerColor: "gradient",
@@ -234,13 +239,13 @@ exports.getPublicProfile = async (req, res, next) => {
       }
       
       // If assigned, find the profile linked to this user and QR ID
-      let profile = await Profile.findOne({ user: qr.assignedTo, qrId: requestedSlug });
+      let profile = await Profile.findOne({ user: qr.assignedTo, qrId: requestedSlug }).populate("selectedFeedbacks");
       if (!profile) {
-        profile = await Profile.findOne({ user: qr.assignedTo, slug: requestedSlug });
+        profile = await Profile.findOne({ user: qr.assignedTo, slug: requestedSlug }).populate("selectedFeedbacks");
       }
       if (!profile) {
         // Fallback to any profile for this user
-        profile = await Profile.findOne({ user: qr.assignedTo });
+        profile = await Profile.findOne({ user: qr.assignedTo }).populate("selectedFeedbacks");
       }
       
       if (profile) {
@@ -259,11 +264,11 @@ exports.getPublicProfile = async (req, res, next) => {
     }
     
     // 2. Otherwise, look up profile by slug or company name slug directly
-    let profile = await Profile.findOne({ slug: requestedSlug });
+    let profile = await Profile.findOne({ slug: requestedSlug }).populate("selectedFeedbacks");
     
     // Fallback for older profiles that don't have a slug saved in the database
     if (!profile) {
-      const allProfiles = await Profile.find({});
+      const allProfiles = await Profile.find({}).populate("selectedFeedbacks");
       profile = allProfiles.find(p => {
         const companyName = p.profileCompany || p.profileName || "demo-profile";
         const generatedSlug = companyName

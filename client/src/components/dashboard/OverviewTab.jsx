@@ -55,10 +55,6 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
             <Scan className="w-4 h-4" />
             <span>Scan QR Code</span>
           </button>
-          <span className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] md:text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Connected to OneQR DB
-          </span>
         </div>
       </div>
 
@@ -183,7 +179,14 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
                       {order.paymentId || 'N/A'}
                     </td>
                     <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white">
-                      ₹{order.amount || '1.00'}
+                      ₹{(() => {
+                        const pid = (order.planId || '').toLowerCase();
+                        if (pid.includes('basic')) return '999.00';
+                        if (pid.includes('premium')) return '1,999.00';
+                        if (pid.includes('enterprise')) return '4,999.00';
+                        if (pid.includes('free')) return '0.00';
+                        return order.amount ? Number(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00';
+                      })()}
                     </td>
                     <td className="py-3.5 pl-4 text-center whitespace-nowrap">
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">

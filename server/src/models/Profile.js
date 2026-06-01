@@ -124,6 +124,26 @@ const ProfileSchema = new mongoose.Schema(
       type: [String],
       default: ['facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'whatsapp', 'upi'],
     },
+    bankUpiId: {
+      type: String,
+      default: "",
+    },
+    bankName: {
+      type: String,
+      default: "",
+    },
+    bankAccountNo: {
+      type: String,
+      default: "",
+    },
+    bankIfsc: {
+      type: String,
+      default: "",
+    },
+    bankAccountName: {
+      type: String,
+      default: "",
+    },
     slug: {
       type: String,
     },
@@ -142,6 +162,12 @@ const ProfileSchema = new mongoose.Schema(
         size: String,
         url: String,
         publicId: String,
+      },
+    ],
+    selectedFeedbacks: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Feedback",
       },
     ],
   },

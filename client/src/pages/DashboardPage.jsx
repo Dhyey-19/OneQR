@@ -43,7 +43,7 @@ export default function DashboardPage({ subViewProp }) {
 
   // Digital Profile Form States
   const [profileLogo, setProfileLogo] = useState('');
-  const [headerColor, setHeaderColor] = useState('gradient');
+  const [headerColor, setHeaderColor] = useState('#2563eb');
   const [qrUrl, setQrUrl] = useState('https://oneqr.co/user/profile');
   const [qrColor, setQrColor] = useState('000000'); 
   const [profileName, setProfileName] = useState('');
@@ -66,13 +66,22 @@ export default function DashboardPage({ subViewProp }) {
   const [socialX, setSocialX] = useState('');
   const [socialWhatsapp, setSocialWhatsapp] = useState('');
   const [socialUPI, setSocialUPI] = useState('');
-  const [socialOrder, setSocialOrder] = useState(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
+  const [socialOrder, setSocialOrder] = useState(['whatsapp', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x', 'upi']);
+
+  // Bank & UPI Details States
+  const [bankUpiId, setBankUpiId] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [bankAccountNo, setBankAccountNo] = useState('');
+  const [bankIfsc, setBankIfsc] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
 
   // Custom lists & upload states
   const [customLinks, setCustomLinks] = useState([]);
   const [profileDocuments, setProfileDocuments] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [selectedFeedbacks, setSelectedFeedbacks] = useState([]);
+  const [profilePlan, setProfilePlan] = useState('free');
 
   // Fetch specific profile settings for selected QR or profile ID
   const fetchProfile = async (targetQrId, targetProfileId) => {
@@ -88,8 +97,9 @@ export default function DashboardPage({ subViewProp }) {
         const profile = response.data.profile;
         setActiveProfileId(profile._id);
         setActiveQrId(profile.slug || null);
+        setProfilePlan(profile.plan || 'free');
         setProfileLogo(profile.profileLogo || '');
-        setHeaderColor(profile.headerColor || 'gradient');
+        setHeaderColor(profile.headerColor || '#2563eb');
         setQrUrl(profile.qrUrl || (profile.slug ? `${qrUrlPrefix}/${profile.slug}` : 'https://oneqr.co/user/profile'));
         setQrColor(profile.qrColor || '000000');
         setProfileCompany(profile.profileCompany || '');
@@ -110,13 +120,22 @@ export default function DashboardPage({ subViewProp }) {
         setSocialX(profile.socialX || '');
         setSocialWhatsapp(profile.socialWhatsapp || '');
         setSocialUPI(profile.socialUPI || '');
-        if (profile.socialOrder && profile.socialOrder.length > 0) {
-          setSocialOrder(profile.socialOrder);
+        setBankUpiId(profile.bankUpiId || profile.socialUPI || '');
+        setBankName(profile.bankName || '');
+        setBankAccountNo(profile.bankAccountNo || '');
+        setBankIfsc(profile.bankIfsc || '');
+        setBankAccountName(profile.bankAccountName || '');
+
+        let incomingOrder = profile.socialOrder || [];
+        if (incomingOrder.length > 0) {
+          if (!incomingOrder.includes('upi')) incomingOrder.push('upi');
+          setSocialOrder(incomingOrder);
         } else {
-          setSocialOrder(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
+          setSocialOrder(['whatsapp', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x', 'upi']);
         }
         setCustomLinks(profile.customLinks || []);
         setProfileDocuments(profile.profileDocuments || []);
+        setSelectedFeedbacks(profile.selectedFeedbacks || []);
       }
     } catch (err) {
       console.error('Error fetching profile settings:', err);
@@ -376,10 +395,16 @@ export default function DashboardPage({ subViewProp }) {
     setSocialX('');
     setSocialWhatsapp('');
     setSocialUPI('');
-    setSocialOrder(['whatsapp', 'upi', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x']);
+    setSocialOrder(['whatsapp', 'facebook', 'instagram', 'youtube', 'linkedin', 'google', 'x', 'upi']);
+    setBankUpiId('');
+    setBankName('');
+    setBankAccountNo('');
+    setBankIfsc('');
+    setBankAccountName('');
     setCustomLinks([]);
     setProfileDocuments([]);
-    setHeaderColor('gradient');
+    setSelectedFeedbacks([]);
+    setHeaderColor('#2563eb');
   };
 
   // Save builder form details to Cloudinary & MongoDB
@@ -452,6 +477,11 @@ export default function DashboardPage({ subViewProp }) {
         socialWhatsapp,
         socialUPI,
         socialOrder,
+        bankUpiId,
+        bankName,
+        bankAccountNo,
+        bankIfsc,
+        bankAccountName,
         profileDocuments: updatedDocs.map((d) => ({
           id: d.id,
           label: d.label,
@@ -462,6 +492,7 @@ export default function DashboardPage({ subViewProp }) {
         })),
         customLinks: customLinks,
         slug: activeQrId,
+        selectedFeedbacks: selectedFeedbacks.map((f) => f._id || f),
       };
 
       // 3. Save to MongoDB
@@ -519,6 +550,8 @@ export default function DashboardPage({ subViewProp }) {
       socialUPI,
       socialOrder,
       headerColor,
+      plan: profilePlan,
+      selectedFeedbacks,
       customLinks: customLinks.filter(link => link.label && link.url),
       profileDocuments: profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).map(d => ({
         id: d.id,
@@ -597,11 +630,17 @@ export default function DashboardPage({ subViewProp }) {
             socialWhatsapp={socialWhatsapp} setSocialWhatsapp={setSocialWhatsapp}
             socialUPI={socialUPI} setSocialUPI={setSocialUPI}
             socialOrder={socialOrder} setSocialOrder={setSocialOrder}
+            bankUpiId={bankUpiId} setBankUpiId={setBankUpiId}
+            bankName={bankName} setBankName={setBankName}
+            bankAccountNo={bankAccountNo} setBankAccountNo={setBankAccountNo}
+            bankIfsc={bankIfsc} setBankIfsc={setBankIfsc}
+            bankAccountName={bankAccountName} setBankAccountName={setBankAccountName}
             customLinks={customLinks} setCustomLinks={setCustomLinks}
             profileDocuments={profileDocuments} setProfileDocuments={setProfileDocuments}
+            selectedFeedbacks={selectedFeedbacks} setSelectedFeedbacks={setSelectedFeedbacks}
+            profilePlan={profilePlan}
             handleClearProfileForm={handleClearProfileForm}
             handleSaveProfileForm={handleSaveProfileForm}
-            handleLaunchMobileDemo={handleLaunchMobileDemo}
           />
         )}
       </div>

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Smartphone, MapPin, Mail, Phone, Globe, Link2, 
   ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download,
-  Copy, X, Check, Clock, Star, RefreshCw
+  Copy, X, Check, Clock, Star, RefreshCw,
+  Building, User, CreditCard
 } from 'lucide-react';
 import { 
   FaFacebook, FaInstagram, FaYoutube, 
@@ -36,6 +37,7 @@ export default function DemoProfilePage() {
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
+  const [customerName, setCustomerName] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [reviewSuggestion, setReviewSuggestion] = useState('');
@@ -65,6 +67,7 @@ export default function DemoProfilePage() {
     setSelectedRating(0);
     setHoveredRating(0);
     setFeedbackText('');
+    setCustomerName('');
     setFeedbackSubmitted(false);
     setReviewSuggestion('');
     setCopiedReview(false);
@@ -80,6 +83,20 @@ export default function DemoProfilePage() {
   };
 
   const handleCopyAndRedirect = async () => {
+    // Save to the database as feedback first
+    try {
+      await apiRequest(`/public/profile/${slug}/feedback`, {
+        method: 'POST',
+        body: JSON.stringify({
+          rating: selectedRating,
+          feedbackText: reviewSuggestion,
+          customerName: customerName.trim() || 'Anonymous Client',
+        }),
+      });
+    } catch (dbErr) {
+      console.error('Error saving feedback on redirect:', dbErr);
+    }
+
     try {
       await navigator.clipboard.writeText(reviewSuggestion);
       setCopiedReview(true);
@@ -105,6 +122,7 @@ export default function DemoProfilePage() {
         body: JSON.stringify({
           rating: selectedRating,
           feedbackText,
+          customerName: customerName.trim() || 'Anonymous Client',
         }),
       });
       setFeedbackSubmitted(true);
@@ -217,6 +235,13 @@ export default function DemoProfilePage() {
     if (!url) return '';
     if (url.includes('://') || url.startsWith('mailto:') || url.startsWith('tel:')) return url;
     return `https://${url}`;
+  };
+
+  const formatWhatsappUrl = (val) => {
+    if (!val) return '';
+    if (val.includes('wa.me') || val.includes('whatsapp.com')) return formatUrl(val);
+    const clean = val.replace(/[^\d+]/g, '');
+    return `https://wa.me/${clean}`;
   };
 
   const handleSaveContact = () => {
@@ -388,22 +413,22 @@ export default function DemoProfilePage() {
 
   const profileLogo = profileData.profileLogo || '';
   const activeTheme = {
-    bg: 'bg-white text-slate-900',
-    text: 'text-slate-900',
+    bg: 'bg-[#f8fafc] text-slate-900',
+    text: 'text-slate-800',
     border: 'border-slate-200 shadow-sm',
-    avatar: 'bg-slate-100 text-slate-800',
-    tag: 'bg-slate-100 border-slate-200 text-slate-800',
-    buttonBg: 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 shadow-sm',
-    bodyCard: 'bg-white border border-slate-200 shadow-xl text-slate-900',
-    headerText: 'text-slate-950 font-black',
-    subText: 'text-slate-500',
-    itemBg: 'bg-slate-50 border border-slate-200 hover:bg-slate-100',
-    labelBg: 'bg-slate-100 text-slate-700',
-    ownerHeader: 'bg-slate-50 border-b border-slate-200 text-slate-800 shadow-sm',
-    footerText: 'text-slate-500',
-    signatureText: 'text-slate-900 font-extrabold',
-    bioColor: 'text-slate-700',
-    detailLabel: 'text-slate-800',
+    avatar: 'bg-slate-100 text-slate-600',
+    tag: 'bg-slate-50 border border-slate-200 text-slate-600',
+    buttonBg: 'bg-white border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 text-slate-700 shadow-sm transition-colors',
+    bodyCard: 'bg-white border border-slate-200/80 shadow-md shadow-slate-200/40 text-slate-900',
+    headerText: 'text-slate-900 font-extrabold',
+    subText: 'text-slate-500 font-bold',
+    itemBg: 'bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-md shadow-sm transition-all',
+    labelBg: 'bg-slate-50 text-slate-600',
+    ownerHeader: 'bg-white border-b border-slate-200/80 text-slate-700 shadow-sm',
+    footerText: 'text-slate-400',
+    signatureText: 'text-slate-800 font-black',
+    bioColor: 'text-slate-600',
+    detailLabel: 'text-slate-700',
     detailVal: 'text-slate-500'
   };
 
@@ -433,7 +458,7 @@ export default function DemoProfilePage() {
 
       {/* Decorative Top Banner */}
       <div 
-        className={`relative z-0 w-full pt-32 pb-16 shrink-0 shadow-[0_10px_30px_-10px_rgba(37,99,235,0.3)] border-b border-indigo-400/20 ${
+        className={`relative z-0 w-full pt-20 pb-10 shrink-0 shadow-[0_10px_30px_-10px_rgba(37,99,235,0.3)] border-b border-indigo-400/20 ${
           !profileData?.headerColor || profileData.headerColor === 'gradient' ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700' : ''
         }`}
         style={profileData?.headerColor && profileData.headerColor !== 'gradient' ? { backgroundColor: profileData.headerColor } : {}}
@@ -452,7 +477,7 @@ export default function DemoProfilePage() {
               transition={{ type: 'spring', duration: 0.6 }}
               className="p-1.5 bg-white rounded-full shadow-lg ring-4 ring-white flex items-center justify-center overflow-hidden h-[104px] w-[104px] mb-4"
             >
-              <img src={profileLogo} alt="Logo" className="w-full h-full object-contain" />
+              <img src={profileLogo} alt="Logo" className="w-full h-full object-cover scale-[1.18]" />
             </motion.div>
           ) : profileData.profileCompany ? (
             <motion.div 
@@ -511,14 +536,14 @@ export default function DemoProfilePage() {
             {(() => {
               const actionCards = [];
               if (profileData.profilePhone) {
-                actionCards.push({ id: 'call', type: 'link', href: `tel:${profileData.profilePhone}`, icon: Phone, iconColor: 'text-green-500', label: profileData.profilePhone });
+                actionCards.push({ id: 'call', type: 'link', href: `tel:${profileData.profilePhone}`, icon: Phone, iconColor: 'text-green-500', label: 'Call' });
                 actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Save Contact' });
               }
               if (profileData.profileEmail) {
-                actionCards.push({ id: 'email', type: 'link', href: `mailto:${profileData.profileEmail}`, icon: Mail, iconColor: 'text-yellow-500', label: profileData.profileEmail });
+                actionCards.push({ id: 'email', type: 'link', href: `mailto:${profileData.profileEmail}`, icon: Mail, iconColor: 'text-yellow-500', label: 'Email' });
               }
               if (profileData.profileWebsite) {
-                actionCards.push({ id: 'web', type: 'link', href: formatUrl(profileData.profileWebsite), target: '_blank', icon: Globe, iconColor: 'text-blue-500', label: profileData.profileWebsite });
+                actionCards.push({ id: 'web', type: 'link', href: formatUrl(profileData.profileWebsite), target: '_blank', icon: Globe, iconColor: 'text-blue-500', label: 'Website' });
               }
 
               if (actionCards.length === 0) return null;
@@ -564,10 +589,10 @@ export default function DemoProfilePage() {
             <div className="space-y-3.5">
               <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Connect</span>
               <div className="grid grid-cols-2 gap-3.5">
-                {(profileData.socialOrder || ['whatsapp', 'upi', 'facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x']).map(key => {
+                {(profileData.socialOrder || ['whatsapp', 'facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'upi']).map(key => {
                   const platforms = {
                     facebook: { icon: FaFacebook, color: 'text-blue-500', label: 'Facebook', value: profileData.socialFacebook },
-                    google: { imgSrc: '/assets/google_review.png', label: 'Google Review', value: profileData.socialGoogle },
+                    google: { icon: Star, color: 'text-[#fbbc05] fill-[#fbbc05]', label: 'Google Review', value: profileData.socialGoogle },
                     instagram: { icon: FaInstagram, color: 'text-pink-500', label: 'Instagram', value: profileData.socialInstagram },
                     youtube: { icon: FaYoutube, color: 'text-rose-500', label: 'YouTube', value: profileData.socialYoutube },
                     linkedin: { icon: FaLinkedin, color: 'text-blue-400', label: 'LinkedIn', value: profileData.socialLinkedin },
@@ -581,7 +606,7 @@ export default function DemoProfilePage() {
                   return (
                     <a 
                       key={key}
-                      href={key === 'upi' || key === 'google' ? '#' : formatUrl(p.value)}
+                      href={key === 'upi' || key === 'google' ? '#' : (key === 'whatsapp' ? formatWhatsappUrl(p.value) : formatUrl(p.value))}
                       onClick={(e) => {
                         if (key === 'upi') {
                           handleUpiClick(e, p.value);
@@ -606,8 +631,51 @@ export default function DemoProfilePage() {
             </div>
           )}
 
+          {/* Bank Details Section */}
+          {(() => {
+            const effectiveBankName = profileData.bankName || '';
+            const effectiveAccountNo = profileData.bankAccountNo || '';
+            const effectiveIfsc = profileData.bankIfsc || '';
+            const effectiveAccountName = profileData.bankAccountName || '';
+            const hasBankDetails = effectiveBankName || effectiveAccountNo || effectiveIfsc || effectiveAccountName;
+
+            if (!hasBankDetails) return null;
+
+            return (
+              <div className="space-y-3.5">
+                <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Bank Details</span>
+                <div className={`p-5 rounded-2xl flex flex-col gap-4 text-sm font-bold shadow-lg ${activeTheme.buttonBg} ${activeTheme.text}`}>
+                  {effectiveBankName && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="opacity-60 flex items-center gap-2.5"><Building className="w-5 h-5 text-blue-400 shrink-0" /> Bank Name</span>
+                      <span className="opacity-95 truncate">{effectiveBankName}</span>
+                    </div>
+                  )}
+                  {effectiveAccountName && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="opacity-60 flex items-center gap-2.5"><User className="w-5 h-5 text-blue-400 shrink-0" /> Account Holder</span>
+                      <span className="opacity-95 truncate">{effectiveAccountName}</span>
+                    </div>
+                  )}
+                  {effectiveAccountNo && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="opacity-60 flex items-center gap-2.5"><CreditCard className="w-5 h-5 text-blue-400 shrink-0" /> Account Number</span>
+                      <span className="opacity-95 truncate">{effectiveAccountNo}</span>
+                    </div>
+                  )}
+                  {effectiveIfsc && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="opacity-60 flex items-center gap-2.5"><Globe className="w-5 h-5 text-blue-400 shrink-0" /> IFSC Code</span>
+                      <span className="opacity-95 truncate">{effectiveIfsc}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Dynamic Custom Links List */}
-          {profileData.customLinks && profileData.customLinks.filter(link => link.label && link.url).length > 0 && (
+          {profileData.plan !== 'basic' && profileData.plan !== 'free' && profileData.customLinks && profileData.customLinks.filter(link => link.label && link.url).length > 0 && (
             <div className="space-y-3.5 pt-2 border-t border-white/10">
               <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Additional Links</span>
               <div className="space-y-3">
@@ -631,7 +699,7 @@ export default function DemoProfilePage() {
           )}
 
           {/* Documents / Catalogs List */}
-          {profileData.profileDocuments && profileData.profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).length > 0 && (
+          {profileData.plan !== 'basic' && profileData.plan !== 'free' && profileData.profileDocuments && profileData.profileDocuments.filter(doc => doc.filename && (doc.file || doc.url)).length > 0 && (
             <div className="space-y-3.5 pt-1 border-t border-white/10">
               <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Documents & Catalogs</span>
               <div className="grid grid-cols-2 gap-3.5">
@@ -681,6 +749,56 @@ export default function DemoProfilePage() {
               </div>
             </div>
           )}
+          {/* Client Reviews Section */}
+          {profileData.plan !== 'basic' && profileData.plan !== 'free' && profileData.selectedFeedbacks && profileData.selectedFeedbacks.filter(Boolean).length > 0 && (
+            <div className="space-y-4 pt-5 border-t border-slate-200/60 dark:border-white/5">
+              <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Client Testimonials</span>
+              <div className="space-y-3">
+                {profileData.selectedFeedbacks.filter(Boolean).map((f) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={f._id || Math.random()} 
+                    className={`p-4 px-5 rounded-2xl border transition-all flex flex-col gap-2 relative overflow-hidden shadow-md shadow-slate-200/20 dark:shadow-black/20 ${activeTheme.buttonBg} ${activeTheme.text}`}
+                  >
+                    {/* Decorative Quote Icon Watermark */}
+                    <div className="absolute top-1 right-3 text-[55px] font-serif leading-none text-slate-200/40 dark:text-slate-700/30 pointer-events-none select-none">
+                      "
+                    </div>
+                    
+                    <div className="flex items-center gap-1 z-10">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          className={`w-3.5 h-3.5 ${i < f.rating ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200 dark:fill-slate-800 dark:text-slate-800'}`} 
+                        />
+                      ))}
+                    </div>
+                    
+                    <p className={`text-[12px] md:text-[13px] font-medium leading-relaxed text-left z-10 ${activeTheme.bioColor || 'text-slate-700'}`}>
+                      "{f.feedbackText || 'No comment provided.'}"
+                    </p>
+                    
+                    <div className="flex items-center justify-between mt-0.5 pt-2 border-t border-slate-200/60 dark:border-white/10 z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-[10px] shrink-0">
+                          {getAlphabeticalLogo(f.customerName || 'A C')}
+                        </div>
+                        <span className="font-extrabold text-[12px]">
+                          {f.customerName || 'Anonymous Client'}
+                        </span>
+                      </div>
+                      {f.createdAt && (
+                        <span className="text-[9px] font-medium opacity-50">
+                          {new Date(f.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -704,7 +822,7 @@ export default function DemoProfilePage() {
         {profileContent}
       </div>
 
-      {/* Google Review Filtering Modal */}
+      {/* Google Review Filtering Modal (Strict Light Theme - Google Branded Layout) */}
       <AnimatePresence>
         {reviewModalOpen && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
@@ -712,19 +830,19 @@ export default function DemoProfilePage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl relative space-y-6 text-center text-slate-900 dark:text-white"
+              className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-6 shadow-2xl relative space-y-6 text-center text-slate-800 font-sans"
             >
               {/* Close Button */}
               <button 
                 onClick={() => setReviewModalOpen(false)}
-                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-655 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Google Brand Header */}
               <div className="flex flex-col items-center gap-2 pt-2">
-                <div className="flex items-center justify-center p-2 bg-slate-50/10 dark:bg-white/5 rounded-full border border-slate-100/50 dark:border-white/5">
+                <div className="flex items-center justify-center p-2 bg-slate-50 border border-slate-100 rounded-full">
                   <svg viewBox="0 0 24 24" width="28" height="28" className="w-7 h-7">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -744,15 +862,15 @@ export default function DemoProfilePage() {
                     />
                   </svg>
                 </div>
-                <h3 className="font-extrabold text-lg tracking-tight text-slate-800 dark:text-slate-100">Google Review</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal max-w-[220px]">
-                  Share your experience about <span className="font-bold text-slate-700 dark:text-slate-200">{profileData?.profileCompany || 'our business'}</span>
+                <h3 className="font-extrabold text-lg tracking-tight text-slate-800">Google Review</h3>
+                <p className="text-xs text-slate-500 leading-normal max-w-[220px]">
+                  Share your experience about <span className="font-bold text-slate-700">{profileData?.profileCompany || 'our business'}</span>
                 </p>
               </div>
 
               {!feedbackSubmitted ? (
                 <div className="space-y-6">
-                  {/* Star selection widget (Always visible) */}
+                  {/* Star selection widget */}
                   <div className="flex flex-col items-center gap-2">
                     <div className="flex justify-center items-center gap-2.5">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -768,7 +886,7 @@ export default function DemoProfilePage() {
                             className={`w-9 h-9 ${
                               star <= (hoveredRating || selectedRating)
                                 ? 'text-[#fbbc05] fill-[#fbbc05]'
-                                : 'text-slate-200 dark:text-slate-700'
+                                : 'text-slate-200'
                             } transition-colors duration-150`}
                           />
                         </button>
@@ -778,7 +896,7 @@ export default function DemoProfilePage() {
 
                   {/* Dynamic sub-views based on selectedRating */}
                   {selectedRating === 0 && (
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium py-4">
+                    <p className="text-[11px] text-slate-400 font-semibold py-4">
                       Please tap a star above to rate us.
                     </p>
                   )}
@@ -790,39 +908,61 @@ export default function DemoProfilePage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="space-y-4 text-left"
                     >
-                      <div className="relative p-4 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl flex items-start gap-3 min-h-[90px] pr-10">
-                        <div className="flex-grow">
-                          {fetchingSuggestion ? (
-                            <div className="flex items-center justify-center gap-2 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                              <div className="w-4 h-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin" />
-                              <span>Generating suggestion...</span>
-                            </div>
-                          ) : (
-                            <p className="text-slate-700 dark:text-slate-300 text-xs font-semibold leading-relaxed italic">
-                              "{reviewSuggestion}"
-                            </p>
-                          )}
+                      {/* Name input */}
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                          Your Name (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="e.g. John Doe"
+                          className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none text-xs text-slate-800 transition-all font-medium"
+                        />
+                      </div>
+
+                      {/* Review Suggestion (Editable Textarea) */}
+                      <div className="space-y-1.5 relative">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                            Edit Review Comment
+                          </label>
+                          {/* Shuffle button */}
+                          <button
+                            type="button"
+                            disabled={fetchingSuggestion}
+                            onClick={fetchSuggestion}
+                            className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center border border-transparent shadow-sm"
+                            title="Shuffle Suggestion"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${fetchingSuggestion ? 'animate-spin' : ''}`} />
+                          </button>
                         </div>
                         
-                        {/* Shuffle button (No text, icon only) */}
-                        <button
-                          type="button"
-                          disabled={fetchingSuggestion}
-                          onClick={fetchSuggestion}
-                          className="absolute right-2 top-2 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-slate-500 dark:text-slate-300 hover:text-slate-700 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center border border-transparent shadow-sm"
-                          title="Change Suggestion"
-                        >
-                          <RefreshCw className={`w-3.5 h-3.5 ${fetchingSuggestion ? 'animate-spin' : ''}`} />
-                        </button>
+                        {fetchingSuggestion ? (
+                          <div className="w-full h-[72px] flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 font-medium">
+                            <div className="w-4 h-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin" />
+                            <span>Generating suggestion...</span>
+                          </div>
+                        ) : (
+                          <textarea
+                            value={reviewSuggestion}
+                            onChange={(e) => setReviewSuggestion(e.target.value)}
+                            placeholder="Type your review comment..."
+                            rows={3}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none text-xs text-slate-800 transition-all resize-none font-medium leading-relaxed"
+                          />
+                        )}
                       </div>
 
                       <button
                         type="button"
                         disabled={fetchingSuggestion}
                         onClick={handleCopyAndRedirect}
-                        className="w-full py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-bold text-xs rounded-xl shadow-md transition-colors cursor-pointer select-none disabled:opacity-50 text-center"
+                        className="w-full py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-extrabold text-xs rounded-xl shadow-md transition-colors cursor-pointer select-none disabled:opacity-50 text-center uppercase tracking-wider"
                       >
-                        {copiedReview ? 'Copied Review!' : 'Copy Review & Redirect'}
+                        {copiedReview ? 'Copied Review!' : 'Copy Review & Submit to Google'}
                       </button>
                     </motion.div>
                   )}
@@ -835,8 +975,22 @@ export default function DemoProfilePage() {
                       onSubmit={handleSubmitFeedback}
                       className="space-y-4 text-left"
                     >
+                      {/* Name input */}
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                          Your Name (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="e.g. John Doe"
+                          className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none text-xs text-slate-800 transition-all font-medium"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">
                           Tell us how we can improve
                         </label>
                         <textarea
@@ -845,14 +999,14 @@ export default function DemoProfilePage() {
                           onChange={(e) => setFeedbackText(e.target.value)}
                           placeholder="What went wrong? We value your honest feedback..."
                           rows={3}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none text-xs text-slate-900 dark:text-white transition-all resize-none"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none text-xs text-slate-800 transition-all resize-none font-medium leading-relaxed"
                         />
                       </div>
 
                       <button
                         type="submit"
                         disabled={isSubmittingFeedback}
-                        className="w-full py-3 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-bold text-xs shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                        className="w-full py-3 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white font-extrabold text-xs shadow-md shadow-blue-500/10 hover:shadow-lg transition-all cursor-pointer uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed text-center"
                       >
                         {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
                       </button>
@@ -865,12 +1019,12 @@ export default function DemoProfilePage() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="space-y-4 py-4 text-center"
                 >
-                  <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full flex items-center justify-center mx-auto">
                     <Check className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Feedback Submitted</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <h4 className="font-extrabold text-base text-slate-800">Feedback Submitted</h4>
+                    <p className="text-xs text-slate-500">
                       Thank you for your constructive comments. We appreciate your input!
                     </p>
                   </div>

@@ -353,7 +353,7 @@ exports.assignQrCode = async (req, res) => {
           paymentId: `admin_pay_${Date.now()}`,
           planId: planId,
           planName: planId === 'free' ? "Free Plan reset" : `${planNames[planId]} (QR: ${qr.qrId})`,
-          amount: 0,
+          amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
           status: "success",
           paidAt: new Date(),
         });
@@ -534,7 +534,7 @@ exports.assignPlan = async (req, res) => {
           paymentId: `admin_pay_${Date.now()}`,
           planId: planId,
           planName: planId === 'free' ? "Free Plan reset" : `${planNames[planId]} (QR: ${qr.qrId})`,
-          amount: 0,
+          amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
           status: "success",
           paidAt: new Date(),
         });
@@ -735,7 +735,7 @@ exports.assignPlanToUser = async (req, res) => {
       paymentId: `admin_pay_${Date.now()}`,
       planId: planId,
       planName: planId === 'free' ? "Free Plan slot (Admin Assigned)" : `${planNames[planId]} (Admin Assigned)`,
-      amount: 0,
+      amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
       status: "success",
       paidAt: new Date(),
     });
@@ -901,7 +901,7 @@ exports.updateProfilePlan = async (req, res) => {
         paymentId: `admin_pay_${Date.now()}`,
         planId: planId,
         planName: planId === 'free' ? `Free Plan reset (Admin)` : `${planNames[planId]} (Updated by Admin)`,
-        amount: 0,
+        amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
         status: "success",
         paidAt: new Date(),
       });

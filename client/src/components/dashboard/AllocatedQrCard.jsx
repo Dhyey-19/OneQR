@@ -10,10 +10,10 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
   
   // Custom Plan Badges Configuration
   const planInfo = {
-    free: { name: 'Free Plan', badgeStyle: 'bg-slate-500/10 border-slate-500/25 text-slate-500 dark:text-slate-400' },
-    basic: { name: 'Basic Plan', badgeStyle: 'bg-blue-500/10 border-blue-500/25 text-blue-600 dark:text-blue-400' },
-    premium: { name: 'Premium Plan', badgeStyle: 'bg-indigo-500/10 border-indigo-500/25 text-indigo-600 dark:text-indigo-400' },
-    enterprise: { name: 'Enterprise Plan', badgeStyle: 'bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-450' }
+    free: { name: 'Free', badgeStyle: 'bg-slate-500/10 border-slate-500/25 text-slate-500 dark:text-slate-400' },
+    basic: { name: 'Basic', badgeStyle: 'bg-blue-500/10 border-blue-500/25 text-blue-600 dark:text-blue-400' },
+    premium: { name: 'Premium', badgeStyle: 'bg-indigo-500/10 border-indigo-500/25 text-indigo-600 dark:text-indigo-400' },
+    enterprise: { name: 'Enterprise', badgeStyle: 'bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-450' }
   };
   const currentPlan = planInfo[profile.plan || 'free'] || planInfo.free;
 
@@ -34,7 +34,7 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
     e.stopPropagation();
     if (!isStandyConnected) return;
     try {
-      await downloadFlyer(profile.qrUrl, profile.slug);
+      await downloadFlyer(profile.qrUrl, profile.slug, profile.profileCompany);
     } catch (err) {
       window.open(qrGeneratedUrl, '_blank');
     }
@@ -74,7 +74,7 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
               </span>
             </div>
             <span className="text-[10px] text-slate-550 truncate block mt-1 font-semibold">
-              {isConnected ? profile.qrUrl.replace('https://', '').replace('http://', '') : 'Setup profile & connect standy'}
+              {isConnected ? (profile.profileCompany || profile.profileName || 'Digital Profile Connected') : 'Setup profile & connect standy'}
             </span>
           </div>
         </div>
@@ -176,17 +176,11 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
         {/* Card Details & Actions */}
         <div className="w-full space-y-3.5">
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-slate-550 uppercase tracking-wider block">Profile / Standy Link</span>
+            <span className="text-[10px] font-bold text-slate-550 uppercase tracking-wider block">Business Name</span>
             {isConnected ? (
-              <a 
-                href={profile.qrUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                onClick={(e) => e.stopPropagation()}
-                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline truncate block"
-              >
-                {profile.qrUrl}
-              </a>
+              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 truncate block">
+                {profile.profileCompany || profile.profileName || 'Digital Profile Connected'}
+              </span>
             ) : (
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-450 italic block">
                 No active Standy connected.
