@@ -14,17 +14,23 @@ import FeedbacksTab from '../components/dashboard/FeedbacksTab';
 import MockPaymentModal from '../components/dashboard/MockPaymentModal';
 import SuccessModal from '../components/dashboard/SuccessModal';
 import ClaimQrModal from '../components/dashboard/ClaimQrModal';
+import ConnectStandyModal from '../components/dashboard/ConnectStandyModal';
 
 export default function DashboardPage({ subViewProp }) {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [subView, setSubView] = useState(subViewProp || 'overview');
-  const [allocatedQrs, setAllocatedQrs] = useState([]);
-  const [isLoadingQrs, setIsLoadingQrs] = useState(false);
   const [activeQrId, setActiveQrId] = useState(null);
+
+  // Profile-based slot states
+  const [profiles, setProfiles] = useState([]);
+  const [activeProfileId, setActiveProfileId] = useState(null);
+  const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
 
   // Modal display toggles
   const [showClaimModal, setShowClaimModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [connectModalProfileId, setConnectModalProfileId] = useState(null);
   const [showMockModal, setShowMockModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -68,16 +74,23 @@ export default function DashboardPage({ subViewProp }) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Fetch specific profile settings for selected QR
-  const fetchProfile = async (targetQrId) => {
+  // Fetch specific profile settings for selected QR or profile ID
+  const fetchProfile = async (targetQrId, targetProfileId) => {
     try {
-      const url = targetQrId ? `/profile?qrId=${targetQrId}` : '/profile';
+      let url = '/profile';
+      if (targetProfileId) {
+        url = `/profile?profileId=${targetProfileId}`;
+      } else if (targetQrId) {
+        url = `/profile?qrId=${targetQrId}`;
+      }
       const response = await apiRequest(url, { method: 'GET' });
       if (response.status === 'success' && response.data?.profile) {
         const profile = response.data.profile;
+        setActiveProfileId(profile._id);
+        setActiveQrId(profile.slug || null);
         setProfileLogo(profile.profileLogo || '');
         setHeaderColor(profile.headerColor || 'gradient');
-        setQrUrl(profile.qrUrl || (targetQrId ? `${qrUrlPrefix}/${targetQrId}` : 'https://oneqr.co/user/profile'));
+        setQrUrl(profile.qrUrl || (profile.slug ? `${qrUrlPrefix}/${profile.slug}` : 'https://oneqr.co/user/profile'));
         setQrColor(profile.qrColor || '000000');
         setProfileCompany(profile.profileCompany || '');
         setProfileName(profile.profileName || '');
@@ -110,28 +123,32 @@ export default function DashboardPage({ subViewProp }) {
     }
   };
 
-  // Main load allocated QR codes on mount
-  const fetchQrsAndProfile = async () => {
-    setIsLoadingQrs(true);
+  // Main load profiles on mount
+  const fetchProfilesAndQrs = async () => {
+    setIsLoadingProfiles(true);
     try {
-      const response = await apiRequest('/profile/qrs', { method: 'GET' });
-      if (response.status === 'success' && response.data?.qrs) {
-        const qrs = response.data.qrs;
-        setAllocatedQrs(qrs);
-        if (qrs.length > 0) {
-          setActiveQrId(qrs[0].qrId);
-          fetchProfile(qrs[0].qrId);
+      // Fetch all active/free profiles
+      const profileResponse = await apiRequest('/profile/all', { method: 'GET' });
+      if (profileResponse.status === 'success' && profileResponse.data?.profiles) {
+        const userProfiles = profileResponse.data.profiles;
+        setProfiles(userProfiles);
+        
+        if (userProfiles.length > 0) {
+          const firstProfile = userProfiles[0];
+          setActiveProfileId(firstProfile._id);
+          setActiveQrId(firstProfile.slug || null);
+          await fetchProfile(null, firstProfile._id);
         } else {
-          fetchProfile();
+          await fetchProfile();
         }
       } else {
-        fetchProfile();
+        await fetchProfile();
       }
     } catch (err) {
-      console.error('Error fetching assigned QRs:', err);
-      fetchProfile();
+      console.error('Error fetching assigned profiles:', err);
+      await fetchProfile();
     } finally {
-      setIsLoadingQrs(false);
+      setIsLoadingProfiles(false);
     }
   };
 
@@ -139,13 +156,15 @@ export default function DashboardPage({ subViewProp }) {
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (user) {
-      setCurrentUser(user);
-      fetchQrsAndProfile();
+      setTimeout(() => {
+        setCurrentUser(user);
+        fetchProfilesAndQrs();
+      }, 0);
 
       // Fetch fresh user profile from server to keep session in-sync
       authService.getProfile()
         .then(freshUser => {
-          setCurrentUser(freshUser);
+          setTimeout(() => setCurrentUser(freshUser), 0);
         })
         .catch(err => {
           console.error('Failed to sync profile on mount:', err);
@@ -153,54 +172,24 @@ export default function DashboardPage({ subViewProp }) {
     }
   }, []);
 
-  // Sync route param changes
-  useEffect(() => {
-    if (isLoadingQrs) return; // Prevent redirecting on initial render before QRs load
+  // Transition view to target profile settings
+  const handleSelectAndManageProfile = async (profileId) => {
+    setActiveProfileId(profileId);
+    await fetchProfile(null, profileId);
+    setSubView('manage-qr');
+    navigate('/manage-qr');
+  };
 
-    const activeQr = allocatedQrs.find(q => q.qrId === activeQrId) || allocatedQrs[0];
-    const isSubscribed = !!activeQr;
-
-    if (subViewProp === 'manage-qr') {
-      if (!isSubscribed) {
-        navigate('/dashboard', { replace: true });
-        setSubView('overview');
-      } else {
-        setSubView('manage-qr');
-      }
-    } else if (subViewProp === 'billing') {
-      navigate('/dashboard', { replace: true });
-      setSubView('overview');
-    } else if (subViewProp === 'overview') {
-      setSubView('overview');
-    } else if (subViewProp === 'qr-scan') {
-      setSubView('qr-scan');
-    } else if (subViewProp === 'feedbacks') {
-      setSubView('feedbacks');
-    } else {
-      setSubView('overview');
-    }
-  }, [subViewProp, currentUser, navigate, allocatedQrs, activeQrId, isLoadingQrs]);
-
-  // Handle pending plan upgrades on overview/dashboard load
-  useEffect(() => {
-    if (currentUser) {
-      const pendingPlan = localStorage.getItem('pending_plan_checkout');
-      if (pendingPlan) {
-        localStorage.removeItem('pending_plan_checkout');
-        handleUpgrade(pendingPlan);
-      }
-    }
-  }, [currentUser]);
-
-  // Reset scroll position on view transitions
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [subView]);
-
-  // Transition view to target QR settings
+  // Transition view to target QR settings (legacy/QR scan flow)
   const handleSelectAndManageQr = async (qrId) => {
     setActiveQrId(qrId);
-    await fetchProfile(qrId);
+    const matchingProfile = profiles.find(p => p.slug === qrId);
+    if (matchingProfile) {
+      setActiveProfileId(matchingProfile._id);
+      await fetchProfile(null, matchingProfile._id);
+    } else {
+      await fetchProfile(qrId);
+    }
     setSubView('manage-qr');
     navigate('/manage-qr');
   };
@@ -230,7 +219,7 @@ export default function DashboardPage({ subViewProp }) {
           if (verifyRes.status === 'success') {
             const updatedUser = await authService.getProfile();
             setCurrentUser(updatedUser);
-            await fetchQrsAndProfile(); // Re-fetch updated QR code plans
+            await fetchProfilesAndQrs(); // Re-fetch updated profiles
             setSuccessPlanName(orderData.planName);
             setShowSuccessModal(true);
           } else {
@@ -308,7 +297,7 @@ export default function DashboardPage({ subViewProp }) {
       if (verifyRes.status === 'success') {
         const updatedUser = await authService.getProfile();
         setCurrentUser(updatedUser);
-        await fetchQrsAndProfile(); // Re-fetch updated QR code plans
+        await fetchProfilesAndQrs(); // Re-fetch updated profiles
         setShowMockModal(false);
         setMockPaymentData(null);
         setSuccessPlanName(mockPaymentData.planName);
@@ -323,6 +312,49 @@ export default function DashboardPage({ subViewProp }) {
       setIsPaymentLoading(false);
     }
   };
+
+  // Sync route param changes
+  useEffect(() => {
+    if (isLoadingProfiles) return; // Prevent redirecting on initial render before profiles load
+
+    const isSubscribed = profiles.length > 0;
+
+    if (subViewProp === 'manage-qr') {
+      if (!isSubscribed) {
+        navigate('/dashboard', { replace: true });
+        setTimeout(() => setSubView('overview'), 0);
+      } else {
+        setTimeout(() => setSubView('manage-qr'), 0);
+      }
+    } else if (subViewProp === 'billing') {
+      navigate('/dashboard', { replace: true });
+      setTimeout(() => setSubView('overview'), 0);
+    } else if (subViewProp === 'overview') {
+      setTimeout(() => setSubView('overview'), 0);
+    } else if (subViewProp === 'qr-scan') {
+      setTimeout(() => setSubView('qr-scan'), 0);
+    } else if (subViewProp === 'feedbacks') {
+      setTimeout(() => setSubView('feedbacks'), 0);
+    } else {
+      setTimeout(() => setSubView('overview'), 0);
+    }
+  }, [subViewProp, currentUser, navigate, profiles, isLoadingProfiles]);
+
+  // Handle pending plan upgrades on overview/dashboard load
+  useEffect(() => {
+    if (currentUser) {
+      const pendingPlan = localStorage.getItem('pending_plan_checkout');
+      if (pendingPlan) {
+        localStorage.removeItem('pending_plan_checkout');
+        setTimeout(() => handleUpgrade(pendingPlan), 0);
+      }
+    }
+  }, [currentUser]);
+
+  // Reset scroll position on view transitions
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [subView]);
 
   // Clear builder form details
   const handleClearProfileForm = () => {
@@ -396,6 +428,7 @@ export default function DashboardPage({ subViewProp }) {
 
       // 2. Build payload to save in MongoDB
       const payload = {
+        profileId: activeProfileId,
         profileLogo,
         qrUrl,
         qrColor,
@@ -437,14 +470,14 @@ export default function DashboardPage({ subViewProp }) {
         body: JSON.stringify(payload),
       });
 
-      // Refresh QR codes list
+      // Refresh profiles list
       try {
-        const response = await apiRequest('/profile/qrs', { method: 'GET' });
-        if (response.status === 'success' && response.data?.qrs) {
-          setAllocatedQrs(response.data.qrs);
+        const response = await apiRequest('/profile/all', { method: 'GET' });
+        if (response.status === 'success' && response.data?.profiles) {
+          setProfiles(response.data.profiles);
         }
-      } catch (qrRefreshErr) {
-        console.error('Error refreshing QRs after profile save:', qrRefreshErr);
+      } catch (profileRefreshErr) {
+        console.error('Error refreshing profiles after save:', profileRefreshErr);
       }
 
       setSaveSuccess(true);
@@ -503,12 +536,7 @@ export default function DashboardPage({ subViewProp }) {
     window.open('/' + companySlug, '_blank');
   };
 
-  const handleRefreshQrs = async () => {
-    const response = await apiRequest('/profile/qrs', { method: 'GET' });
-    if (response.status === 'success' && response.data?.qrs) {
-      setAllocatedQrs(response.data.qrs);
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-transparent pt-28 pb-28 md:pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900 dark:text-white transition-colors duration-300">
@@ -519,9 +547,13 @@ export default function DashboardPage({ subViewProp }) {
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         {subView === 'overview' && (
           <OverviewTab 
-            isLoadingQrs={isLoadingQrs}
-            allocatedQrs={allocatedQrs}
-            onManage={handleSelectAndManageQr}
+            isLoadingProfiles={isLoadingProfiles}
+            profiles={profiles}
+            onManageProfile={handleSelectAndManageProfile}
+            onConnectStandy={(profileId) => {
+              setConnectModalProfileId(profileId);
+              setShowConnectModal(true);
+            }}
             currentUser={currentUser}
           />
         )}
@@ -529,7 +561,7 @@ export default function DashboardPage({ subViewProp }) {
         {subView === 'qr-scan' && (
           <QrScanTab 
             onSelectAndManageQr={handleSelectAndManageQr}
-            onRefreshQrs={handleRefreshQrs}
+            onRefreshQrs={fetchProfilesAndQrs}
           />
         )}
 
@@ -587,15 +619,26 @@ export default function DashboardPage({ subViewProp }) {
         isOpen={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
-          handleSelectAndManageQr(activeQrId);
+          setSubView('overview');
+          navigate('/dashboard');
         }}
         successPlanName={successPlanName}
+      />
+
+      <ConnectStandyModal 
+        isOpen={showConnectModal}
+        onClose={() => {
+          setShowConnectModal(false);
+          setConnectModalProfileId(null);
+        }}
+        profileId={connectModalProfileId}
+        onSuccess={fetchProfilesAndQrs}
       />
 
       <ClaimQrModal 
         isOpen={showClaimModal}
         onClose={() => setShowClaimModal(false)}
-        onSuccess={handleRefreshQrs}
+        onSuccess={fetchProfilesAndQrs}
       />
 
       {/* Razorpay Test Mode Helper Warning Modal */}

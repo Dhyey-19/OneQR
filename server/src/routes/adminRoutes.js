@@ -18,4 +18,12 @@ router.post("/qrs/assign", adminProtect, adminController.assignQrCode);
 router.delete("/qrs/:id", adminProtect, adminController.deleteQrCode);
 router.delete("/qrs", adminProtect, adminController.deleteAllQrCodes);
 
+// New profile slot management routes
+router.get("/users/:userId/profiles", adminProtect, adminController.getUserProfiles);
+router.post("/users/assign-plan", adminProtect, adminController.assignPlanToUser);
+router.post("/profiles/connect-qr", adminProtect, adminController.connectQrToProfile);
+router.post("/profiles/:profileId/plan", adminProtect, adminController.updateProfilePlan);
+router.post("/profiles/:profileId/unlink", adminProtect, adminController.unlinkQrFromProfile);
+router.delete("/profiles/:profileId", adminProtect, adminController.deleteProfileSlot);
+
 module.exports = router;

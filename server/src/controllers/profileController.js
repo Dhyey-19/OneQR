@@ -4,6 +4,24 @@ const OneQr = require("../models/OneQr");
 const cloudinary = require("../config/cloudinary");
 const config = require("../config/config");
 
+const generateUniqueProfileSlug = async () => {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let attempt = 0;
+  while (attempt < 100) {
+    let result = "";
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const existsProfile = await Profile.findOne({ slug: result });
+    const existsQr = await OneQr.findOne({ qrId: result });
+    if (!existsProfile && !existsQr) {
+      return result;
+    }
+    attempt++;
+  }
+  return `profile_${Date.now()}`;
+};
+
 const qrUrlPrefix = config.QR_URL_PREFIX;
 
 /**
@@ -46,12 +64,13 @@ const uploadToCloudinary = (fileBuffer, originalName, mimetype, folder = "oneqr"
  */
 exports.getProfile = async (req, res, next) => {
   try {
-    const { qrId } = req.query;
+    const { qrId, profileId } = req.query;
     let profile = null;
 
-    if (qrId) {
+    if (profileId) {
+      profile = await Profile.findOne({ user: req.user.id, _id: profileId });
+    } else if (qrId) {
       profile = await Profile.findOne({ user: req.user.id, slug: qrId.trim() });
-
     } else {
       profile = await Profile.findOne({ user: req.user.id });
     }
@@ -107,32 +126,41 @@ exports.getProfile = async (req, res, next) => {
  */
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { slug } = req.body;
-    let targetSlug = slug;
+    const { profileId, slug } = req.body;
     
-    if (!targetSlug) {
+    // Build update payload
+    const profileData = {
+      ...req.body,
+      user: req.user.id,
+    };
+
+    // Remove _id/profileId from payload to avoid immutable field error
+    delete profileData.profileId;
+    delete profileData._id;
+
+    // Handle slug fallback if not provided and updating by profileId (keep existing)
+    if (!profileId && !slug) {
       const companyName = req.body.profileCompany || req.body.profileName || "demo-profile";
-      targetSlug = companyName
+      profileData.slug = companyName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
     }
 
-    const profileData = {
-      ...req.body,
-      user: req.user.id,
-      slug: targetSlug,
-    };
-
-    const query = slug ? { user: req.user.id, slug: slug } : { user: req.user.id };
+    let query = {};
+    if (profileId) {
+      query = { _id: profileId, user: req.user.id };
+    } else if (slug) {
+      query = { slug: slug.trim(), user: req.user.id };
+    } else {
+      query = { user: req.user.id };
+    }
 
     const profile = await Profile.findOneAndUpdate(
       query,
-      profileData,
+      { $set: profileData },
       { upsert: true, new: true, runValidators: true }
     );
-
-
 
     res.json({
       status: "success",
@@ -206,13 +234,23 @@ exports.getPublicProfile = async (req, res, next) => {
       }
       
       // If assigned, find the profile linked to this user and QR ID
-      let profile = await Profile.findOne({ user: qr.assignedTo, slug: requestedSlug });
+      let profile = await Profile.findOne({ user: qr.assignedTo, qrId: requestedSlug });
+      if (!profile) {
+        profile = await Profile.findOne({ user: qr.assignedTo, slug: requestedSlug });
+      }
       if (!profile) {
         // Fallback to any profile for this user
         profile = await Profile.findOne({ user: qr.assignedTo });
       }
       
       if (profile) {
+        if (requestedSlug === qr.qrId && profile.slug && profile.slug !== requestedSlug) {
+          return res.json({
+            status: "redirect",
+            slug: profile.slug,
+          });
+        }
+
         return res.json({
           status: "success",
           data: { profile },
@@ -309,16 +347,26 @@ exports.claimQrCode = async (req, res, next) => {
     qr.assignedTo = req.user.id;
     await qr.save();
 
-    // Also link user's profile to this QR's ID/slug if user doesn't have a profile yet or needs updating
-    let profile = await Profile.findOne({ user: req.user.id });
+    // Link user's profile to this QR's ID/slug
+    let profile = await Profile.findOne({ user: req.user.id, qrId: qr.qrId });
+    if (!profile) {
+      profile = await Profile.findOne({ user: req.user.id, slug: qr.qrId });
+    }
+    if (!profile) {
+      profile = await Profile.findOne({ user: req.user.id });
+    }
     
     if (profile) {
-      profile.slug = qr.qrId;
+      profile.qrId = qr.qrId;
+      profile.isStandyConnected = true;
       await profile.save();
     } else {
+      const profileSlug = await generateUniqueProfileSlug();
       await Profile.create({
         user: req.user.id,
-        slug: qr.qrId,
+        slug: profileSlug,
+        qrId: qr.qrId,
+        isStandyConnected: true,
         profilePhone: req.user.phone || "",
       });
     }
@@ -379,15 +427,25 @@ exports.scanAndAssignQrCode = async (req, res, next) => {
     await qr.save();
 
     // Link user's profile to this QR's ID/slug
-    let profile = await Profile.findOne({ user: req.user.id });
-
+    let profile = await Profile.findOne({ user: req.user.id, qrId: qr.qrId });
+    if (!profile) {
+      profile = await Profile.findOne({ user: req.user.id, slug: qr.qrId });
+    }
+    if (!profile) {
+      profile = await Profile.findOne({ user: req.user.id });
+    }
+    
     if (profile) {
-      profile.slug = qr.qrId;
+      profile.qrId = qr.qrId;
+      profile.isStandyConnected = true;
       await profile.save();
     } else {
+      const profileSlug = await generateUniqueProfileSlug();
       await Profile.create({
         user: req.user.id,
-        slug: qr.qrId,
+        slug: profileSlug,
+        qrId: qr.qrId,
+        isStandyConnected: true,
         profilePhone: req.user.phone || "",
       });
     }
@@ -396,6 +454,99 @@ exports.scanAndAssignQrCode = async (req, res, next) => {
       status: "assigned_now",
       message: "your qr is live and link with this property",
       data: { qr }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Retrieves all profiles for the logged-in user that are either free or have active subscription status.
+ */
+exports.getAllProfiles = async (req, res, next) => {
+  try {
+    const profiles = await Profile.find({
+      user: req.user.id,
+      $or: [
+        { plan: "free" },
+        { subscriptionStatus: "active" }
+      ]
+    });
+    
+    res.json({
+      status: "success",
+      data: { profiles },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Connects an unallocated or owned QR code/Standy to a specific profile slot.
+ */
+exports.connectStandy = async (req, res, next) => {
+  try {
+    const { profileId, qrId } = req.body;
+    if (!profileId || !qrId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Profile ID and Standy QR ID are required."
+      });
+    }
+
+    const cleanQrId = qrId.trim();
+
+    // 1. Verify that the QR code exists in the ONEQRS collection
+    const qr = await OneQr.findOne({ qrId: cleanQrId });
+    if (!qr) {
+      return res.status(404).json({
+        status: "error",
+        message: "Invalid Standy QR ID. Please verify the code on your physical standy."
+      });
+    }
+
+    // 2. Check if the QR code is already assigned to someone else
+    if (qr.assignedTo && qr.assignedTo.toString() !== req.user.id.toString()) {
+      return res.status(400).json({
+        status: "error",
+        message: "This Standy is already registered to another user."
+      });
+    }
+
+    // 3. Find the profile
+    const profile = await Profile.findOne({ _id: profileId, user: req.user.id });
+    if (!profile) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile slot not found or unauthorized."
+      });
+    }
+
+    // 4. Check if the QR code is already connected to another profile of the same user
+    const existingProfileWithQr = await Profile.findOne({ qrId: cleanQrId });
+    if (existingProfileWithQr && existingProfileWithQr._id.toString() !== profileId.toString()) {
+      return res.status(400).json({
+        status: "error",
+        message: "This Standy is already connected to another profile in your account."
+      });
+    }
+
+    // 5. Connect the QR code to the profile
+    profile.qrId = cleanQrId;
+    profile.isStandyConnected = true;
+    await profile.save();
+
+    // 6. Update the OneQr record to align with the profile's plan and status
+    qr.assignedTo = req.user.id;
+    qr.plan = profile.plan;
+    qr.subscriptionStatus = profile.subscriptionStatus;
+    await qr.save();
+
+    res.json({
+      status: "success",
+      message: "Standy successfully connected to this profile!",
+      data: { profile, qr }
     });
   } catch (error) {
     next(error);

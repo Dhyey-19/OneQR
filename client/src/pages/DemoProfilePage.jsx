@@ -173,6 +173,10 @@ export default function DemoProfilePage() {
       if (slug && slug !== 'index.html') {
         apiRequest(`/public/profile/${slug}`)
           .then(res => {
+            if (res.status === 'redirect' && res.slug) {
+              navigate('/' + res.slug, { replace: true });
+              return;
+            }
             if (res.status === 'inactive') {
               setInactive(true);
             } else if (res.status === 'expired') {

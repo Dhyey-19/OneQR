@@ -7,6 +7,33 @@ const ProfileSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    plan: {
+      type: String,
+      enum: ['free', 'basic', 'premium', 'enterprise'],
+      default: 'free',
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'inactive',
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    isStandyConnected: {
+      type: Boolean,
+      default: false,
+    },
+    qrId: {
+      type: String,
+      default: null,
+    },
 
     profileLogo: {
       type: String,
@@ -127,8 +154,11 @@ const ProfileSchema = new mongoose.Schema(
 );
 
 ProfileSchema.virtual("qrUrl").get(function() {
+  const config = require("../config/config");
+  if (this.isStandyConnected && this.qrId) {
+    return `${config.QR_URL_PREFIX}/${this.qrId}`;
+  }
   if (this.slug) {
-    const config = require("../config/config");
     return `${config.QR_URL_PREFIX}/${this.slug}`;
   }
   return "https://oneqr.co/user/profile";

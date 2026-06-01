@@ -28,6 +28,24 @@ const generateRandomId = (length = 8) => {
   return result;
 };
 
+const generateUniqueProfileSlug = async () => {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let attempt = 0;
+  while (attempt < 100) {
+    let result = "";
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const existsProfile = await Profile.findOne({ slug: result });
+    const existsQr = await OneQr.findOne({ qrId: result });
+    if (!existsProfile && !existsQr) {
+      return result;
+    }
+    attempt++;
+  }
+  return `profile_${Date.now()}`;
+};
+
 /**
  * @desc    Authenticate admin and return JWT
  * @route   POST /api/admin/auth/login
@@ -622,4 +640,377 @@ exports.createUser = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Get all profiles for a specific user
+ * @route   GET /api/admin/users/:userId/profiles
+ * @access  Private (Admin)
+ */
+exports.getUserProfiles = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found.",
+      });
+    }
+
+    const profiles = await Profile.find({ user: userId }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      status: "success",
+      data: profiles,
+    });
+  } catch (error) {
+    console.error("Get user profiles error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while fetching user profiles.",
+    });
+  }
+};
+
+/**
+ * @desc    Assign a plan directly to a user (creating a profile slot without a QR)
+ * @route   POST /api/admin/users/assign-plan
+ * @access  Private (Admin)
+ */
+exports.assignPlanToUser = async (req, res) => {
+  try {
+    const { userId, planId } = req.body;
+
+    if (!userId || !planId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please provide both userId and planId.",
+      });
+    }
+
+    const validPlans = ['free', 'basic', 'premium', 'enterprise'];
+    if (!validPlans.includes(planId)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid plan selection.",
+      });
+    }
+
+    // 1. Verify User exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found.",
+      });
+    }
+
+    // 2. Create a new Profile slot for the user
+    const profileSlug = await generateUniqueProfileSlug();
+    const newProfile = new Profile({
+      user: userId,
+      plan: planId,
+      subscriptionStatus: planId === 'free' ? 'inactive' : 'active',
+      subscriptionExpiresAt: null,
+      slug: profileSlug,
+      isStandyConnected: false,
+      profilePhone: user.phone || "",
+    });
+
+    await newProfile.save();
+
+    // 3. Add to user order history
+    const planNames = {
+      basic: "Basic Plan",
+      premium: "Premium Plan",
+      enterprise: "Enterprise Plan",
+    };
+
+    if (!user.orderHistory) {
+      user.orderHistory = [];
+    }
+    user.orderHistory.push({
+      orderId: `admin_assign_${Date.now()}`,
+      paymentId: `admin_pay_${Date.now()}`,
+      planId: planId,
+      planName: planId === 'free' ? "Free Plan slot (Admin Assigned)" : `${planNames[planId]} (Admin Assigned)`,
+      amount: 0,
+      status: "success",
+      paidAt: new Date(),
+    });
+    await user.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: `Plan successfully assigned to user ${user.phone}!`,
+      data: newProfile,
+    });
+  } catch (error) {
+    console.error("Assign plan to user error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while assigning plan to user.",
+    });
+  }
+};
+
+/**
+ * @desc    Connect a physical QR/Standy code to an existing profile slot
+ * @route   POST /api/admin/profiles/connect-qr
+ * @access  Private (Admin)
+ */
+exports.connectQrToProfile = async (req, res) => {
+  try {
+    const { profileId, qrId } = req.body;
+
+    if (!profileId || !qrId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please provide both profileId and qrId.",
+      });
+    }
+
+    const cleanQrId = qrId.trim();
+
+    // 1. Verify that the QR code exists in the ONEQRS collection
+    const qr = await OneQr.findOne({ qrId: cleanQrId });
+    if (!qr) {
+      return res.status(404).json({
+        status: "error",
+        message: "QR Code ID not found. Make sure it is generated first.",
+      });
+    }
+
+    // 2. Find the profile
+    const profile = await Profile.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile slot not found.",
+      });
+    }
+
+    // 3. Check if the QR code is already assigned to someone else
+    if (qr.assignedTo && qr.assignedTo.toString() !== profile.user.toString()) {
+      return res.status(400).json({
+        status: "error",
+        message: "This QR Code is already assigned to another user.",
+      });
+    }
+
+    // 4. Check if the QR code is already connected to another profile
+    const existingProfileWithQr = await Profile.findOne({ slug: cleanQrId });
+    if (existingProfileWithQr && existingProfileWithQr._id.toString() !== profileId.toString()) {
+      return res.status(400).json({
+        status: "error",
+        message: "This QR Code is already connected to another profile.",
+      });
+    }
+
+    // 5. Connect the QR code to the profile
+    profile.slug = cleanQrId;
+    profile.isStandyConnected = true;
+    await profile.save();
+
+    // 6. Update the OneQr record to align with the profile's plan and status
+    qr.assignedTo = profile.user;
+    qr.plan = profile.plan;
+    qr.subscriptionStatus = profile.subscriptionStatus;
+    qr.planAssignedByAdmin = true;
+    await qr.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: `QR code ${cleanQrId} successfully connected to the profile!`,
+      data: {
+        profile,
+        qr,
+      },
+    });
+  } catch (error) {
+    console.error("Connect QR to profile error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while connecting QR to profile.",
+    });
+  }
+};
+
+/**
+ * @desc    Update the plan of a specific profile slot
+ * @route   POST /api/admin/profiles/:profileId/plan
+ * @access  Private (Admin)
+ */
+exports.updateProfilePlan = async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const { planId } = req.body;
+
+    if (!planId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please provide planId.",
+      });
+    }
+
+    const validPlans = ['free', 'basic', 'premium', 'enterprise'];
+    if (!validPlans.includes(planId)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid plan selection.",
+      });
+    }
+
+    const profile = await Profile.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile not found.",
+      });
+    }
+
+    profile.plan = planId;
+    profile.subscriptionStatus = planId === 'free' ? 'inactive' : 'active';
+    await profile.save();
+
+    // If there is a connected QR, update it too
+    if (profile.slug) {
+      const qr = await OneQr.findOne({ qrId: profile.slug });
+      if (qr) {
+        qr.plan = planId;
+        qr.subscriptionStatus = planId === 'free' ? 'inactive' : 'active';
+        await qr.save();
+      }
+    }
+
+    // Add to user order history
+    const user = await User.findById(profile.user);
+    if (user) {
+      const planNames = {
+        basic: "Basic Plan",
+        premium: "Premium Plan",
+        enterprise: "Enterprise Plan",
+      };
+
+      if (!user.orderHistory) {
+        user.orderHistory = [];
+      }
+      user.orderHistory.push({
+        orderId: `admin_update_${Date.now()}`,
+        paymentId: `admin_pay_${Date.now()}`,
+        planId: planId,
+        planName: planId === 'free' ? `Free Plan reset (Admin)` : `${planNames[planId]} (Updated by Admin)`,
+        amount: 0,
+        status: "success",
+        paidAt: new Date(),
+      });
+      await user.save();
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Profile plan updated successfully.",
+      data: profile,
+    });
+  } catch (error) {
+    console.error("Update profile plan error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while updating profile plan.",
+    });
+  }
+};
+
+/**
+ * @desc    Unlink a QR code from a profile slot
+ * @route   POST /api/admin/profiles/:profileId/unlink
+ * @access  Private (Admin)
+ */
+exports.unlinkQrFromProfile = async (req, res) => {
+  try {
+    const { profileId } = req.params;
+
+    const profile = await Profile.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile not found.",
+      });
+    }
+
+    const qrId = profile.slug;
+    if (qrId) {
+      const qr = await OneQr.findOne({ qrId });
+      if (qr) {
+        qr.assignedTo = null;
+        qr.plan = 'free';
+        qr.subscriptionStatus = 'inactive';
+        qr.planAssignedByAdmin = false;
+        await qr.save();
+      }
+      const newSlug = await generateUniqueProfileSlug();
+      profile.slug = newSlug;
+      profile.isStandyConnected = false;
+      await profile.save();
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "QR code unlinked successfully.",
+      data: profile,
+    });
+  } catch (error) {
+    console.error("Unlink QR error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while unlinking QR code.",
+    });
+  }
+};
+
+/**
+ * @desc    Delete a profile slot
+ * @route   DELETE /api/admin/profiles/:profileId
+ * @access  Private (Admin)
+ */
+exports.deleteProfileSlot = async (req, res) => {
+  try {
+    const { profileId } = req.params;
+
+    const profile = await Profile.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile not found.",
+      });
+    }
+
+    const qrId = profile.slug;
+    if (qrId) {
+      const qr = await OneQr.findOne({ qrId });
+      if (qr) {
+        qr.assignedTo = null;
+        qr.plan = 'free';
+        qr.subscriptionStatus = 'inactive';
+        qr.planAssignedByAdmin = false;
+        await qr.save();
+      }
+    }
+
+    await Profile.findByIdAndDelete(profileId);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Profile slot deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete profile slot error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while deleting profile slot.",
+    });
+  }
+};
+
 

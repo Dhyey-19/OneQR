@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { QrCode, Sparkles, Scan, FileText, Check } from 'lucide-react';
 import AllocatedQrCard from './AllocatedQrCard';
 
-export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, currentUser }) {
+export default function OverviewTab({ isLoadingProfiles, profiles = [], onManageProfile, onConnectStandy, currentUser }) {
   const navigate = useNavigate();
 
   // Mock telemetry data
@@ -77,7 +77,7 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, curr
         ))}
       </div>
 
-      {/* Allocated QR Codes Section */}
+      {/* Active Plans & Profiles Section */}
       <div className="glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8 space-y-4 md:space-y-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         
@@ -85,22 +85,22 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, curr
           <div>
             <h3 className="text-base md:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <QrCode className="notranslate w-5 h-5 md:w-6 md:h-6 text-blue-500" translate="no" />
-              Your Allocated QR Codes
+              Your Active Plans & Profiles
             </h3>
             <p className="hidden md:block text-slate-650 dark:text-slate-400 text-xs sm:text-sm mt-1">
-              Manage and download the dynamic QR codes assigned to your workspace.
+              Manage your dynamic digital business profiles and connect physical OneQR Standees.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <span className="px-2.5 py-1 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[9px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-              {allocatedQrs.length} Total
+              {profiles.length} Active
             </span>
           </div>
         </div>
 
         <div className="h-px bg-slate-200 dark:bg-white/5" />
 
-        {isLoadingQrs ? (
+        {isLoadingProfiles ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((n) => (
               <div key={n} className="p-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl animate-pulse space-y-4">
@@ -110,25 +110,26 @@ export default function OverviewTab({ isLoadingQrs, allocatedQrs, onManage, curr
               </div>
             ))}
           </div>
-        ) : allocatedQrs.length === 0 ? (
+        ) : profiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-500">
               <QrCode className="notranslate w-8 h-8 opacity-45 animate-pulse" translate="no" />
             </div>
             <div className="space-y-1 max-w-sm">
-              <h4 className="font-bold text-slate-800 dark:text-white text-base">No QR Codes Assigned</h4>
+              <h4 className="font-bold text-slate-800 dark:text-white text-base">No Active Plans Found</h4>
               <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
-                You don't have any dynamic QR codes assigned to your account yet. Please contact the administrator to assign one.
+                You don't have any active plans yet. Choose a plan from the home page pricing table to create a custom profile!
               </p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {allocatedQrs.map((qr) => (
+            {profiles.map((profile) => (
               <AllocatedQrCard 
-                key={qr._id} 
-                qr={qr} 
-                onManage={() => onManage(qr.qrId)} 
+                key={profile._id} 
+                profile={profile} 
+                onManage={onManageProfile}
+                onConnect={onConnectStandy}
               />
             ))}
           </div>

@@ -153,6 +153,46 @@ export default function OneQr() {
     processFoundQrId(parsedId);
   };
 
+  const executeAssignFlow = async (userId, planId, qrId) => {
+    // 1. Fetch user's profiles
+    const profilesRes = await apiRequest(`/admin/users/${userId}/profiles`);
+    if (profilesRes.status !== 'success') {
+      throw new Error(profilesRes.message || 'Failed to fetch user profiles.');
+    }
+    
+    const profiles = profilesRes.data || [];
+    
+    // 2. Find an existing slot of the same plan tier that has no QR connected
+    const existingSlot = profiles.find(p => p.plan === planId && !p.slug);
+    
+    let targetProfileId;
+    if (existingSlot) {
+      targetProfileId = existingSlot._id;
+    } else {
+      // 3. Create a new plan slot first
+      const assignPlanRes = await apiRequest('/admin/users/assign-plan', {
+        method: 'POST',
+        body: JSON.stringify({ userId, planId })
+      });
+      if (assignPlanRes.status !== 'success') {
+        throw new Error(assignPlanRes.message || 'Failed to assign plan to user.');
+      }
+      targetProfileId = assignPlanRes.data._id;
+    }
+    
+    // 4. Connect the QR to the profile slot
+    const connectRes = await apiRequest('/admin/profiles/connect-qr', {
+      method: 'POST',
+      body: JSON.stringify({ profileId: targetProfileId, qrId })
+    });
+    
+    if (connectRes.status !== 'success') {
+      throw new Error(connectRes.message || 'Failed to connect QR to profile.');
+    }
+    
+    return connectRes;
+  };
+
   const handleModalSave = async () => {
     if (!scannedQr) return;
 
@@ -175,10 +215,7 @@ export default function OneQr() {
     setModalErrorMessage('');
 
     try {
-      const res = await apiRequest('/admin/qrs/assign', {
-        method: 'POST',
-        body: JSON.stringify({ qrId, userId, planId }),
-      });
+      const res = await executeAssignFlow(userId, planId, qrId);
 
       if (res.status === 'success') {
         setSuccess(`Successfully updated QR Code ${qrId}`);
@@ -365,10 +402,7 @@ export default function OneQr() {
     setSuccess('');
 
     try {
-      const res = await apiRequest('/admin/qrs/assign', {
-        method: 'POST',
-        body: JSON.stringify({ qrId, userId, planId }),
-      });
+      const res = await executeAssignFlow(userId, planId, qrId);
 
       if (res.status === 'success') {
         setEditingQrId(null);
