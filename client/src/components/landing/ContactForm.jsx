@@ -32,7 +32,7 @@ export default function ContactForm() {
 
     try {
       // Submitting to the local backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/contact`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

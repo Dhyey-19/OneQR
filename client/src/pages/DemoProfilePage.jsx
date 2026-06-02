@@ -4,7 +4,7 @@ import {
   Smartphone, MapPin, Mail, Phone, Globe, Link2, 
   ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download,
   Copy, X, Check, Clock, Star, RefreshCw,
-  Building, User, CreditCard
+  Building, User, CreditCard, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   FaFacebook, FaInstagram, FaYoutube, 
@@ -705,8 +705,13 @@ export default function DemoProfilePage() {
               <div className="grid grid-cols-2 gap-3.5">
                 {profileData.profileDocuments.filter(doc => doc.filename && doc.url).map((doc) => {
                   const isImg = /\.(jpe?g|png|gif|webp|svg)$/i.test(doc.url) || /\.(jpe?g|png|gif|webp|svg)/i.test(doc.filename);
+                  const isPdf = /\.(pdf)$/i.test(doc.url) || /\.(pdf)/i.test(doc.filename);
+                  const isCloudinary = doc.url?.includes('cloudinary.com');
+                  const thumbnailUrl = (isPdf && isCloudinary) ? doc.url.replace(/\.pdf$/i, '.jpg') : doc.url;
+                  
+                  const showAsThumbnail = isImg || (isPdf && isCloudinary);
 
-                  if (isImg) {
+                  if (showAsThumbnail) {
                     return (
                       <a
                         key={doc.id}
@@ -717,13 +722,32 @@ export default function DemoProfilePage() {
                       >
                         <div className="aspect-[4/3] w-full bg-slate-150 dark:bg-white/5 relative overflow-hidden">
                           <img 
-                            src={doc.url} 
+                            src={thumbnailUrl} 
                             alt={doc.label || doc.filename} 
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              if (isPdf) {
+                                e.target.style.display = 'none';
+                                const iframeWrapper = e.target.parentElement.querySelector('.pdf-iframe-wrapper');
+                                if (iframeWrapper) iframeWrapper.style.display = 'block';
+                              }
+                            }}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-0"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+                          {isPdf && (
+                            <div className="pdf-iframe-wrapper hidden absolute inset-0 pointer-events-none overflow-hidden bg-white z-0">
+                              <iframe 
+                                src={`${doc.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} 
+                                className="w-full h-[150%] border-0 transform origin-top" 
+                                title="PDF Preview"
+                              />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3 z-10 pointer-events-none">
                             <span className="text-white text-xs font-extrabold truncate">{doc.label || doc.filename}</span>
-                            <span className="text-white/60 text-[9px] font-medium mt-0.5">Click to view</span>
+                            <span className="text-white/60 text-[9px] font-medium mt-0.5 flex items-center gap-1">
+                              {isPdf && <span className="bg-red-500 text-white px-1 py-0.5 rounded-[3px] text-[7px] leading-none uppercase tracking-wider mr-1">PDF</span>}
+                              Click to view
+                            </span>
                           </div>
                         </div>
                       </a>
@@ -753,50 +777,11 @@ export default function DemoProfilePage() {
           {profileData.plan !== 'basic' && profileData.plan !== 'free' && profileData.selectedFeedbacks && profileData.selectedFeedbacks.filter(Boolean).length > 0 && (
             <div className="space-y-4 pt-5 border-t border-slate-200/60 dark:border-white/5">
               <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Client Testimonials</span>
-              <div className="space-y-3">
-                {profileData.selectedFeedbacks.filter(Boolean).map((f) => (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={f._id || Math.random()} 
-                    className={`p-4 px-5 rounded-2xl border transition-all flex flex-col gap-2 relative overflow-hidden shadow-md shadow-slate-200/20 dark:shadow-black/20 ${activeTheme.buttonBg} ${activeTheme.text}`}
-                  >
-                    {/* Decorative Quote Icon Watermark */}
-                    <div className="absolute top-1 right-3 text-[55px] font-serif leading-none text-slate-200/40 dark:text-slate-700/30 pointer-events-none select-none">
-                      "
-                    </div>
-                    
-                    <div className="flex items-center gap-1 z-10">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`w-3.5 h-3.5 ${i < f.rating ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200 dark:fill-slate-800 dark:text-slate-800'}`} 
-                        />
-                      ))}
-                    </div>
-                    
-                    <p className={`text-[12px] md:text-[13px] font-medium leading-relaxed text-left z-10 ${activeTheme.bioColor || 'text-slate-700'}`}>
-                      "{f.feedbackText || 'No comment provided.'}"
-                    </p>
-                    
-                    <div className="flex items-center justify-between mt-0.5 pt-2 border-t border-slate-200/60 dark:border-white/10 z-10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-[10px] shrink-0">
-                          {getAlphabeticalLogo(f.customerName || 'A C')}
-                        </div>
-                        <span className="font-extrabold text-[12px]">
-                          {f.customerName || 'Anonymous Client'}
-                        </span>
-                      </div>
-                      {f.createdAt && (
-                        <span className="text-[9px] font-medium opacity-50">
-                          {new Date(f.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              <DemoProfileReviewCarousel 
+                feedbacks={profileData.selectedFeedbacks.filter(Boolean)} 
+                activeTheme={activeTheme} 
+                getAlphabeticalLogo={getAlphabeticalLogo} 
+              />
             </div>
           )}
         </div>
@@ -1339,6 +1324,85 @@ export default function DemoProfilePage() {
             )}
           </motion.div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function DemoProfileReviewCarousel({ feedbacks, activeTheme, getAlphabeticalLogo }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!feedbacks || feedbacks.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % feedbacks.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [feedbacks]);
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % feedbacks.length);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + feedbacks.length) % feedbacks.length);
+
+  if (!feedbacks || feedbacks.length === 0) return null;
+
+  return (
+    <div className="relative w-full overflow-hidden group">
+      <div 
+        className="flex transition-transform duration-500 ease-in-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {feedbacks.map((f, i) => (
+          <div key={f._id || i} className="w-full flex-shrink-0 px-0.5">
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-4 px-5 rounded-2xl border transition-all flex flex-col gap-2 relative overflow-hidden shadow-md shadow-slate-200/20 dark:shadow-black/20 ${activeTheme.buttonBg} ${activeTheme.text}`}
+            >
+              <div className="absolute top-1 right-3 text-[55px] font-serif leading-none text-slate-200/40 dark:text-slate-700/30 pointer-events-none select-none">
+                "
+              </div>
+              
+              <div className="flex items-center gap-1 z-10">
+                {[...Array(5)].map((_, starIndex) => (
+                  <Star 
+                    key={starIndex} 
+                    className={`w-3.5 h-3.5 ${starIndex < f.rating ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200 dark:fill-slate-800 dark:text-slate-800'}`} 
+                  />
+                ))}
+              </div>
+              
+              <p className={`text-[12px] md:text-[13px] font-medium leading-relaxed text-left z-10 ${activeTheme.bioColor || 'text-slate-700'}`}>
+                "{f.feedbackText || 'No comment provided.'}"
+              </p>
+              
+              <div className="flex items-center justify-between mt-0.5 pt-2 border-t border-slate-200/60 dark:border-white/10 z-10">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-[10px] shrink-0">
+                    {getAlphabeticalLogo(f.customerName || 'A C')}
+                  </div>
+                  <span className="font-extrabold text-[12px]">
+                    {f.customerName || 'Anonymous Client'}
+                  </span>
+                </div>
+                {f.createdAt && (
+                  <span className="text-[9px] font-medium opacity-50">
+                    {new Date(f.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        ))}
+      </div>
+      {feedbacks.length > 1 && (
+        <>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-white dark:hover:bg-slate-700">
+            <ChevronLeft className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+          </button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-white dark:hover:bg-slate-700">
+            <ChevronRight className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+          </button>
+        </>
       )}
     </div>
   );

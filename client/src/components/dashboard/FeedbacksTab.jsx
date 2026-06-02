@@ -147,7 +147,6 @@ export default function FeedbacksTab() {
     <div className="space-y-6 animate-fade-in text-slate-900 dark:text-white">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1 md:p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
@@ -182,7 +181,7 @@ export default function FeedbacksTab() {
             </div>
             <div>
               <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Submissions</span>
-              <span className="text-4xl font-black mt-2 block tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-500">{totalReviews}</span>
+              <span className="text-4xl font-black mt-2 block tracking-tight text-blue-600 dark:text-blue-400">{totalReviews}</span>
             </div>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-4 block">
               Total digital profile review submissions logged
@@ -196,7 +195,7 @@ export default function FeedbacksTab() {
             <div>
               <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Average Satisfaction</span>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">{averageRating}</span>
+                <span className="text-4xl font-black tracking-tight text-amber-600 dark:text-amber-400">{averageRating}</span>
                 <span className="text-slate-400 text-lg font-bold">/ 5.0</span>
               </div>
             </div>
@@ -248,8 +247,6 @@ export default function FeedbacksTab() {
 
       {/* Main Feedback Grid and Filtering */}
       <div className="glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8 space-y-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 via-teal-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="text-base md:text-xl font-extrabold flex items-center gap-2">
@@ -342,7 +339,7 @@ export default function FeedbacksTab() {
         ) : filteredFeedbacks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-500">
-              <Inbox className="w-8 h-8 opacity-45 animate-pulse" />
+              <Inbox className="w-8 h-8 opacity-45" />
             </div>
             <div className="space-y-1 max-w-sm">
               <h4 className="font-extrabold text-slate-800 dark:text-white text-base">No Feedback Found</h4>

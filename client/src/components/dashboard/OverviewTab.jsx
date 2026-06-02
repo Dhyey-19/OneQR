@@ -30,7 +30,6 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
     <div className="space-y-6 animate-fade-in">
       {/* Welcome Top Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1 md:p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -75,7 +74,6 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
 
       {/* Active Plans & Profiles Section */}
       <div className="glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8 space-y-4 md:space-y-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -109,7 +107,7 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
         ) : profiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-slate-500">
-              <QrCode className="notranslate w-8 h-8 opacity-45 animate-pulse" translate="no" />
+              <QrCode className="notranslate w-8 h-8 opacity-45" translate="no" />
             </div>
             <div className="space-y-1 max-w-sm">
               <h4 className="font-bold text-slate-800 dark:text-white text-base">No Active Plans Found</h4>
@@ -134,7 +132,6 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
 
       {/* Order & Payment History Section */}
       <div className="p-4 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-500/5 to-transparent blur-2xl pointer-events-none" />
         
         <div className="flex items-center gap-2 mb-6">
           <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">

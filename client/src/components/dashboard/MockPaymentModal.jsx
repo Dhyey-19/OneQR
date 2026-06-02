@@ -23,7 +23,7 @@ export default function MockPaymentModal({
         {/* Header banner */}
         <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
-            <Sparkles className="w-5 h-5 animate-pulse" />
+            <Sparkles className="w-5 h-5" />
           </div>
           <div>
             <h4 className="font-extrabold text-slate-900 dark:text-white text-base">Razorpay Payment Sandbox</h4>
@@ -70,7 +70,7 @@ export default function MockPaymentModal({
             type="button"
             onClick={onCompleteMockPayment}
             disabled={isPaymentLoading}
-            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold transition-all cursor-pointer hover:from-emerald-500 hover:to-teal-400 shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-1.5"
+            className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
             {isPaymentLoading ? 'Verifying...' : 'Authorize Payment'}
           </button>

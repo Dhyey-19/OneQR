@@ -5,7 +5,7 @@ import {
   QrCode, Smartphone, Sparkles, Link2, User, UserPlus,
   Mail, Globe, Phone, Download, Check, RefreshCw, 
   MapPin, Plus, Trash2, ArrowUpRight, ChevronDown,
-  Clock, Copy, X, Building, CreditCard, Star
+  Clock, Copy, X, Building, CreditCard, Star, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   FaFacebook, FaInstagram, FaYoutube, 
@@ -164,7 +164,15 @@ export default function ManageQrTab({
     setProfileDocuments([...profileDocuments, { id: Date.now(), label: '', filename: 'No file chosen', size: '' }]);
   };
 
-  const removeDocument = (id) => {
+  const removeDocument = async (id) => {
+    const doc = profileDocuments.find(d => d.id === id);
+    if (doc && doc.url) {
+      try {
+        await apiRequest('/profile/delete-file', 'POST', { url: doc.url });
+      } catch (err) {
+        console.error('Failed to delete file from Cloudinary', err);
+      }
+    }
     setProfileDocuments(profileDocuments.filter(doc => doc.id !== id));
   };
 
@@ -186,6 +194,7 @@ export default function ManageQrTab({
 
   const [allFeedbacks, setAllFeedbacks] = useState([]);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
+  const [feedbackError, setFeedbackError] = useState('');
 
   useEffect(() => {
     const loadFeedbacks = async () => {
@@ -207,12 +216,15 @@ export default function ManageQrTab({
     const isSelected = selectedFeedbacks.some(f => (f._id || f) === feedback._id);
     if (isSelected) {
       setSelectedFeedbacks(selectedFeedbacks.filter(f => (f._id || f) !== feedback._id));
+      setFeedbackError('');
     } else {
       if (selectedFeedbacks.length >= 3) {
-        alert("You can select up to 3 feedbacks to showcase on your profile.");
+        setFeedbackError("You can select up to 3 feedbacks to showcase on your profile.");
+        setTimeout(() => setFeedbackError(''), 3000);
         return;
       }
       setSelectedFeedbacks([...selectedFeedbacks, feedback]);
+      setFeedbackError('');
     }
   };
 
@@ -239,10 +251,10 @@ export default function ManageQrTab({
   const isFormFilled = !!profileCompany?.trim();
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="animate-fade-in h-auto lg:h-[calc(100vh-140px)] w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full items-start">
         {/* Left Column: Configuration Forms */}
-        <div className="lg:col-span-8 w-full space-y-8">
+        <div className="lg:col-span-9 w-full h-full lg:overflow-y-auto custom-scrollbar pr-0 lg:pr-4 space-y-8 pb-10" data-lenis-prevent="true">
           
           {/* 1. Digital Profile Builder Card */}
           <div className="p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl space-y-6">
@@ -307,7 +319,7 @@ export default function ManageQrTab({
                       </button>
                     </div>
                   ) : profileCompany ? (
-                    <div className="relative w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white font-bold tracking-wider flex items-center justify-center text-sm select-none border border-slate-200 dark:border-white/10">
+                    <div className="relative w-16 h-16 rounded-xl bg-indigo-600 text-white font-bold tracking-wider flex items-center justify-center text-sm select-none border border-slate-200 dark:border-white/10">
                       {getAlphabeticalLogo(profileCompany)}
                     </div>
                   ) : (
@@ -395,7 +407,7 @@ export default function ManageQrTab({
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Google Map URL</label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 animate-pulse" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input 
                       type="url"
                       value={profileMapUrl}
@@ -797,6 +809,12 @@ export default function ManageQrTab({
                       <span className="text-xs text-slate-500">Select up to 3 customer reviews/feedbacks to feature at the bottom of your profile page.</span>
                     </div>
 
+                    {feedbackError && (
+                      <div className="mb-4 text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0">!</span>
+                        {feedbackError}
+                      </div>
+                    )}
                     {loadingFeedbacks ? (
                       <div className="py-4 text-center text-xs text-slate-500 animate-pulse">Loading feedbacks...</div>
                     ) : allFeedbacks.length === 0 ? (
@@ -807,49 +825,53 @@ export default function ManageQrTab({
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2 max-h-[480px] overflow-y-auto pr-2 custom-scrollbar">
                         {allFeedbacks.map((f) => {
                           const isSelected = selectedFeedbacks.some(selected => (selected._id || selected) === f._id);
                           return (
                             <div 
                               key={f._id}
                               onClick={() => handleToggleFeedback(f)}
-                              className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 shadow-sm relative overflow-hidden ${
+                              className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm relative overflow-hidden ${
                                 isSelected 
-                                  ? 'bg-blue-500/10 border-blue-500 dark:border-blue-400 shadow-blue-500/15 animate-pulse' 
+                                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400' 
                                   : 'bg-slate-50 dark:bg-[#0c101b]/60 border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10'
                               }`}
                             >
-                              <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-0.5 text-amber-500">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star 
-                                      key={i} 
-                                      className={`w-3.5 h-3.5 ${i < f.rating ? 'fill-current' : 'opacity-25'}`} 
-                                    />
-                                  ))}
+                              <div className="flex flex-col w-full">
+                                <div className="flex justify-between items-center mb-1">
+                                  <div className="flex items-center gap-0.5 text-amber-500">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star 
+                                        key={i} 
+                                        className={`w-3 h-3 ${i < f.rating ? 'fill-current' : 'opacity-25'}`} 
+                                      />
+                                    ))}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {f.createdAt && (
+                                      <span className="text-[9px] text-slate-400 font-medium">
+                                        {new Date(f.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                                      </span>
+                                    )}
+                                    {isSelected && (
+                                      <span className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
+                                        <Check className="w-2.5 h-2.5" />
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                                {isSelected && (
-                                  <span className="p-1 rounded-full bg-blue-500 text-white flex items-center justify-center">
-                                    <Check className="w-3 h-3" />
-                                  </span>
+
+                                <p className="text-xs text-slate-700 dark:text-slate-300 italic font-medium leading-snug line-clamp-2 w-full pr-4">
+                                  "{f.feedbackText || 'No comment provided.'}"
+                                </p>
+
+                                {(f.customerName || f.customerPhone) && (
+                                  <div className="text-[10px] text-slate-500 dark:text-slate-450 mt-1 font-bold">
+                                    — {f.customerName || 'Anonymous Customer'}
+                                  </div>
                                 )}
                               </div>
-
-                              <p className="text-xs text-slate-700 dark:text-slate-300 italic font-medium leading-relaxed">
-                                "{f.feedbackText || 'No comment provided.'}"
-                              </p>
-
-                              {(f.customerName || f.customerPhone) && (
-                                <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-450 border-t border-slate-200/50 dark:border-white/5 pt-2 mt-1">
-                                  <span className="font-bold truncate max-w-[120px]">
-                                    {f.customerName || 'Anonymous Customer'}
-                                  </span>
-                                  {f.createdAt && (
-                                    <span>{new Date(f.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                                  )}
-                                </div>
-                              )}
                             </div>
                           );
                         })}
@@ -905,8 +927,7 @@ export default function ManageQrTab({
 
         {/* Right Column: Live Mobile Preview */}
         {!isMobileView && (
-          <div className="lg:col-span-4 lg:sticky lg:top-24 lg:self-start p-6 md:p-8 glass border border-slate-200 dark:border-white/5 rounded-3xl flex flex-col items-center w-full">
-            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-6 block">Live Mobile Simulator</span>
+          <div className="hidden lg:flex lg:col-span-3 lg:sticky lg:top-0 h-full flex-col items-center justify-start pt-6 w-full">
             
             {/* Phone Frame */}
             {!isFormFilled ? (
@@ -930,11 +951,11 @@ export default function ManageQrTab({
               </div>
 
               {/* Phone Scrollable Body */}
-              <div className="flex-1 flex flex-col overflow-y-auto relative no-scrollbar pb-6">
+              <div className="flex-1 flex flex-col overflow-y-auto relative no-scrollbar pb-6" data-lenis-prevent="true">
                 {/* Header Banner */}
                 <div 
                   className={`relative z-0 w-full pt-10 pb-5 shrink-0 shadow-[0_10px_30px_-10px_rgba(37,99,235,0.3)] border-b border-indigo-400/20 ${
-                    !headerColor || headerColor === 'gradient' ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700' : ''
+                    !headerColor || headerColor === 'gradient' ? 'bg-indigo-600' : ''
                   }`}
                   style={headerColor && headerColor !== 'gradient' ? { backgroundColor: headerColor } : {}}
                 />
@@ -948,7 +969,7 @@ export default function ManageQrTab({
                         <img src={profileLogo} alt="Logo" className="w-full h-full object-cover scale-[1.18]" />
                       </div>
                     ) : profileCompany ? (
-                      <div className="bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white font-extrabold tracking-wider rounded-full shadow-md ring-2 ring-white flex items-center justify-center h-[56px] w-[56px] mb-2 text-sm select-none">
+                      <div className="bg-indigo-600 text-white font-extrabold tracking-wider rounded-full shadow-md ring-2 ring-white flex items-center justify-center h-[56px] w-[56px] mb-2 text-sm select-none">
                         {getAlphabeticalLogo(profileCompany)}
                       </div>
                     ) : null}
@@ -1149,8 +1170,17 @@ export default function ManageQrTab({
                             const isImg = doc.file 
                               ? doc.file.type?.startsWith('image/')
                               : /\.(jpe?g|png|gif|webp|svg)$/i.test(doc.url) || /\.(jpe?g|png|gif|webp|svg)/i.test(doc.filename);
+                              
+                            const isPdf = doc.file 
+                              ? doc.file.type === 'application/pdf'
+                              : /\.(pdf)$/i.test(doc.url) || /\.(pdf)/i.test(doc.filename);
+                            
+                            const isCloudinary = doc.url?.includes('cloudinary.com');
+                            const thumbnailUrl = (isPdf && isCloudinary) ? doc.url.replace(/\.pdf$/i, '.jpg') : fileUrl;
+                            
+                            const showAsThumbnail = isImg || (isPdf && isCloudinary);
 
-                            if (isImg) {
+                            if (showAsThumbnail) {
                               return (
                                 <a
                                   key={doc.id}
@@ -1161,13 +1191,32 @@ export default function ManageQrTab({
                                 >
                                   <div className="aspect-[4/3] w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden">
                                     <img 
-                                      src={fileUrl} 
+                                      src={thumbnailUrl} 
                                       alt={doc.label || doc.filename} 
-                                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                      onError={(e) => {
+                                        if (isPdf) {
+                                          e.target.style.display = 'none';
+                                          const iframeWrapper = e.target.parentElement.querySelector('.pdf-iframe-wrapper');
+                                          if (iframeWrapper) iframeWrapper.style.display = 'block';
+                                        }
+                                      }}
+                                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-0"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2">
+                                    {isPdf && (
+                                      <div className="pdf-iframe-wrapper hidden absolute inset-0 pointer-events-none overflow-hidden bg-white z-0">
+                                        <iframe 
+                                          src={`${fileUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} 
+                                          className="w-full h-[150%] border-0 transform origin-top" 
+                                          title="PDF Preview"
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2 z-10 pointer-events-none">
                                       <span className="text-white text-[8px] font-extrabold truncate">{doc.label || doc.filename}</span>
-                                      <span className="text-white/60 text-[6px] font-medium mt-0.5">Click to view</span>
+                                      <span className="text-white/60 text-[6px] font-medium mt-0.5 flex items-center gap-1">
+                                        {isPdf && <span className="bg-red-500 text-white px-0.5 py-0.5 rounded-[2px] text-[5px] leading-none uppercase tracking-wider mr-0.5">PDF</span>}
+                                        Click to view
+                                      </span>
                                     </div>
                                   </div>
                                 </a>
@@ -1194,43 +1243,27 @@ export default function ManageQrTab({
                       </div>
                     )}
                     {/* Client Reviews Section in Emulator */}
-                    {selectedFeedbacks && selectedFeedbacks.filter(Boolean).length > 0 && (
-                      <div className="space-y-2 mt-2 pt-2 border-t border-slate-200">
-                        <span className="text-[8px] font-black uppercase tracking-widest block text-left text-slate-500">Client Reviews</span>
-                        <div className="space-y-2">
-                          {selectedFeedbacks.filter(Boolean).map((f) => (
-                            <div 
-                              key={f._id || Math.random()} 
-                              className={`p-2.5 rounded-xl border border-slate-200/40 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex flex-col gap-1 text-[8px] ${activeTheme.text}`}
-                            >
-                              <div className="flex items-center gap-0.5 text-amber-500">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star 
-                                    key={i} 
-                                    className={`w-2.5 h-2.5 ${i < f.rating ? 'fill-current text-amber-500' : 'opacity-25'}`} 
-                                  />
-                                ))}
-                              </div>
-                              <p className="italic text-slate-650 dark:text-slate-350 leading-relaxed text-left text-[8px]">
-                                "{f.feedbackText || 'No comment.'}"
-                              </p>
-                              {f.customerName && (
-                                <span className="font-extrabold text-right block text-slate-550 dark:text-slate-400 text-[7px] mt-0.5">
-                                  — {f.customerName}
-                                </span>
-                              )}
-                            </div>
-                          ))}
+                    {(() => {
+                      const displayFeedbacks = selectedFeedbacks
+                        .map(f => typeof f === 'string' ? allFeedbacks.find(af => af._id === f) : f)
+                        .filter(Boolean);
+                        
+                      if (displayFeedbacks.length === 0) return null;
+                      
+                      return (
+                        <div className="space-y-2 mt-2 pt-2 border-t border-slate-200">
+                          <span className="text-[8px] font-black uppercase tracking-widest block text-left text-slate-500">Client Reviews</span>
+                            <EmulatorReviewCarousel feedbacks={displayFeedbacks} activeTheme={activeTheme} />
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 </div>
 
                 {/* Branded footer in simulator */}
                 <div 
                   className={`text-center py-2 mt-auto shrink-0 ${
-                    !headerColor || headerColor === 'gradient' ? 'bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700' : ''
+                    !headerColor || headerColor === 'gradient' ? 'bg-indigo-600' : ''
                   }`}
                   style={headerColor && headerColor !== 'gradient' ? { backgroundColor: headerColor } : {}}
                 >
@@ -1302,3 +1335,63 @@ export default function ManageQrTab({
     </div>
   );
 }
+
+function EmulatorReviewCarousel({ feedbacks, activeTheme }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!feedbacks || feedbacks.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % feedbacks.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [feedbacks]);
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % feedbacks.length);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + feedbacks.length) % feedbacks.length);
+
+  if (!feedbacks || feedbacks.length === 0) return null;
+
+  return (
+    <div className="relative w-full overflow-hidden group rounded-xl">
+      <div 
+        className="flex transition-transform duration-500 ease-in-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {feedbacks.map((f, i) => (
+          <div key={f._id || i} className="w-full flex-shrink-0">
+            <div className={`p-2.5 rounded-xl border border-slate-200/40 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex flex-col gap-1 text-[8px] ${activeTheme.text}`}>
+              <div className="flex items-center gap-0.5 text-amber-500">
+                {[...Array(5)].map((_, starIndex) => (
+                  <Star 
+                    key={starIndex} 
+                    className={`w-2.5 h-2.5 ${starIndex < f.rating ? 'fill-current text-amber-500' : 'opacity-25'}`} 
+                  />
+                ))}
+              </div>
+              <p className="italic text-slate-650 dark:text-slate-350 leading-relaxed text-left text-[8px]">
+                "{f.feedbackText || 'No comment.'}"
+              </p>
+              {f.customerName && (
+                <span className="font-extrabold text-right block text-slate-550 dark:text-slate-400 text-[7px] mt-0.5">
+                  — {f.customerName}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {feedbacks.length > 1 && (
+        <>
+          <button onClick={prev} className="absolute left-1 top-1/2 -translate-y-1/2 p-0.5 bg-white/80 dark:bg-black/50 border border-slate-200 dark:border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <ChevronLeft className="w-3 h-3 text-slate-600 dark:text-slate-300" />
+          </button>
+          <button onClick={next} className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 bg-white/80 dark:bg-black/50 border border-slate-200 dark:border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <ChevronRight className="w-3 h-3 text-slate-600 dark:text-slate-300" />
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+

@@ -157,7 +157,6 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
     <div className="space-y-8 animate-fade-in max-w-xl mx-auto">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -184,7 +183,6 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
 
       {/* Scanner Card */}
       <div className="p-6 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden space-y-6">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-600/15 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         {/* Tab Selector */}
         {pageScanStatus !== 'loading' && pageScanStatus !== 'success' && (
@@ -234,7 +232,7 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
           {pageScanStatus === 'success' && (
             <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
               <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-md">
-                <Check className="w-8 h-8 animate-pulse" />
+                <Check className="w-8 h-8" />
               </div>
               <h4 className="font-extrabold text-slate-900 dark:text-white text-base">QR Live & Assigned</h4>
               <p className="text-xs text-slate-655 dark:text-slate-300 max-w-xs leading-relaxed font-bold">{pageScanMessage}</p>

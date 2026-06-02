@@ -20,6 +20,7 @@ router.get("/", profileController.getProfile);
 router.get("/all", profileController.getAllProfiles);
 router.put("/", profileController.updateProfile);
 router.post("/upload", upload.single("file"), profileController.uploadFile);
+router.post("/delete-file", profileController.deleteFile);
 router.get("/qrs", profileController.getUserQrCodes);
 router.post("/qrs/claim", profileController.claimQrCode);
 router.post("/qrs/scan", profileController.scanAndAssignQrCode);

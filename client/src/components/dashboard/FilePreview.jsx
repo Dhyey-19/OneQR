@@ -64,15 +64,39 @@ export default function FilePreview({ doc }) {
   }
 
   if (isPdf()) {
+    const thumbnailUrl = (doc.url && doc.url.includes('cloudinary.com')) ? doc.url.replace(/\.pdf$/i, '.jpg') : null;
+
     return (
-      <div className="w-16 h-16 rounded-xl bg-rose-950/20 border border-rose-500/20 flex flex-col items-center justify-center text-rose-400 shrink-0 relative group/thumb cursor-pointer">
-        <span className="text-[10px] font-black tracking-wider uppercase mb-1">PDF</span>
-        <div className="text-[8px] bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 text-rose-300">View</div>
+      <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 dark:border-white/10 overflow-hidden shrink-0 relative group/thumb cursor-pointer">
+        {thumbnailUrl ? (
+          <img 
+            src={thumbnailUrl} 
+            alt={doc.filename} 
+            className="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-110 relative z-0" 
+            onError={(e) => {
+              e.target.style.display = 'none';
+              const iframeWrapper = e.target.parentElement.querySelector('.pdf-iframe-wrapper');
+              if (iframeWrapper) iframeWrapper.style.display = 'block';
+            }}
+          />
+        ) : null}
+        
+        <div className={`pdf-iframe-wrapper ${thumbnailUrl ? 'hidden' : 'block'} absolute inset-0 pointer-events-none overflow-hidden bg-white z-0`}>
+          <iframe 
+            src={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} 
+            className="w-full h-[150%] border-0 transform origin-top" 
+            title="PDF Preview"
+          />
+        </div>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-transparent to-transparent flex-col items-center justify-end pb-1.5 hidden group-hover/thumb:flex z-10 pointer-events-none">
+          <span className="text-[10px] font-black tracking-wider uppercase text-rose-400">PDF</span>
+        </div>
         <a 
           href={url} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="absolute inset-0 bg-black/45 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center rounded-xl"
+          className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center rounded-xl z-20"
         >
           <ArrowUpRight className="w-4 h-4 text-white" />
         </a>

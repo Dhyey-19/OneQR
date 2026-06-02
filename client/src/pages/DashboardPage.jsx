@@ -425,13 +425,14 @@ export default function DashboardPage({ subViewProp }) {
             headers['Authorization'] = `Bearer ${token}`;
           }
 
-          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/upload`, {
+          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/profile/upload`, {
             method: 'POST',
             headers,
             body: formData,
           });
 
           if (!uploadRes.ok) {
+            console.error('Upload failed with status:', uploadRes.status);
             throw new Error(`Failed to upload file "${doc.filename}". Please try again.`);
           }
 
@@ -573,10 +574,6 @@ export default function DashboardPage({ subViewProp }) {
 
   return (
     <div className="min-h-screen bg-transparent pt-28 pb-28 md:pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900 dark:text-white transition-colors duration-300">
-      {/* Background Glows */}
-      <div className="absolute top-[10%] left-[-10vw] w-[40vw] h-[40vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[20%] right-[-10vw] w-[35vw] h-[35vw] rounded-full bg-indigo-600/5 blur-[110px] pointer-events-none" />
-
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         {subView === 'overview' && (
           <OverviewTab 

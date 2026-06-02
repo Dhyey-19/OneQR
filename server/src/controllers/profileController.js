@@ -31,11 +31,17 @@ const uploadToCloudinary = (fileBuffer, originalName, mimetype, folder = "oneqr"
   return new Promise((resolve, reject) => {
     // 1. Classify file type
     const isImage = mimetype && mimetype.startsWith("image/");
-    const resourceType = isImage ? "image" : "raw";
+    // We treat PDFs as 'image' as well so Cloudinary can generate thumbnails/previews if needed, or 'raw' if prefered.
+    // Cloudinary recommends 'image' for PDF if we want it to be viewable or transformable.
+    const isPdf = mimetype === "application/pdf" || (originalName && originalName.toLowerCase().endsWith(".pdf"));
+    const resourceType = (isImage || isPdf) ? "image" : "raw";
 
     // 2. Generate unique public ID (preserve extension for raw documents/PDFs)
     const uniqueId = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     const extension = originalName ? originalName.substring(originalName.lastIndexOf(".")) : "";
+    
+    // For PDFs uploaded as 'image', we typically don't need the extension in public_id, but keeping it is fine.
+    // For 'raw', it's mandatory.
     const publicId = resourceType === "raw" ? `${uniqueId}${extension}` : uniqueId;
 
     const stream = cloudinary.uploader.upload_stream(
@@ -180,6 +186,46 @@ exports.updateProfile = async (req, res, next) => {
 /**
  * Uploads a file buffer directly to Cloudinary
  */
+exports.deleteFile = async (req, res, next) => {
+  try {
+    const { url } = req.body;
+    if (!url || !url.includes("cloudinary.com")) {
+      return res.status(400).json({ status: "error", message: "Invalid Cloudinary URL" });
+    }
+
+    const urlParts = url.split("/");
+    const uploadIndex = urlParts.indexOf("upload");
+    if (uploadIndex === -1) {
+      return res.status(400).json({ status: "error", message: "Malformed Cloudinary URL" });
+    }
+    
+    let publicIdPart = urlParts.slice(uploadIndex + 1);
+    if (publicIdPart[0].startsWith("v") && !isNaN(publicIdPart[0].substring(1))) {
+      publicIdPart = publicIdPart.slice(1);
+    }
+    
+    let publicId = publicIdPart.join("/");
+    const extIndex = publicId.lastIndexOf(".");
+    if (extIndex !== -1) {
+      publicId = publicId.substring(0, extIndex);
+    }
+
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+    if (result.result !== "ok" && result.result !== "not found") {
+      await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
+    }
+
+    res.json({ status: "success", message: "File deleted successfully from Cloudinary." });
+  } catch (error) {
+    console.error("Cloudinary delete error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while deleting the file.",
+      error: error.message,
+    });
+  }
+};
+
 exports.uploadFile = async (req, res, next) => {
   try {
     if (!req.file) {

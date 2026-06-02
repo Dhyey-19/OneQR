@@ -156,9 +156,6 @@ export default function ConnectStandyModal({ isOpen, onClose, profileId, onSucce
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="w-full max-w-md bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-6 text-slate-900 dark:text-white"
           >
-            {/* Background light gradient */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/15 to-transparent rounded-full blur-2xl pointer-events-none" />
-
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4">
               <div>
