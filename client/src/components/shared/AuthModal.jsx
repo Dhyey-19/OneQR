@@ -4,7 +4,9 @@ import { X, Lock, Phone, ArrowRight, CheckCircle2, AlertCircle, Loader2, Eye, Ey
 import { authService } from '../../services/authService';
 
 export default function AuthModal({ onClose, initialTab = 'login' }) {
-  const [activeTab, setActiveTab] = useState(initialTab); // 'login' | 'signup'
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('oneqr_accepted_terms') === 'true' ? initialTab : 'terms';
+  }); // 'login' | 'signup' | 'terms'
   
   // Login Form States
   const [loginPhone, setLoginPhone] = useState(() => {
@@ -170,42 +172,131 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         </div>
 
         {/* Tabs Selector */}
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl mb-8">
-          <button
-            onClick={() => {
-              setActiveTab('login');
-              setStatus('idle');
-              setFeedbackMsg('');
-            }}
-            className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'login'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('signup');
-              setStatus('idle');
-              setFeedbackMsg('');
-            }}
-            className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'signup'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
-            }`}
-          >
-            Create Account
-          </button>
-        </div>
+        {activeTab !== 'terms' && (
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl mb-8">
+            <button
+              onClick={() => {
+                setActiveTab('login');
+                setStatus('idle');
+                setFeedbackMsg('');
+              }}
+              className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'login'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('signup');
+                setStatus('idle');
+                setFeedbackMsg('');
+              }}
+              className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'signup'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+        )}
 
 
         {/* Dynamic Tabs Content */}
-        <div className="min-h-[290px] flex flex-col justify-between">
+        <div className={`flex flex-col justify-between ${activeTab !== 'terms' ? 'min-h-[290px]' : ''}`}>
           <AnimatePresence mode="wait">
-            {activeTab === 'login' ? (
+            {activeTab === 'terms' ? (
+              <motion.div
+                key="terms"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex flex-col h-[60vh] max-h-[500px]"
+              >
+                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar text-sm text-slate-700 dark:text-slate-300 space-y-4">
+                  <h2 className="text-lg font-extrabold text-slate-900 dark:text-white sticky top-0 bg-white/95 dark:bg-[#02050f]/95 backdrop-blur-md py-2 border-b border-slate-100 dark:border-white/5 z-10">OneQR – Terms & Purchase Policy</h2>
+                  <p className="mt-4">By purchasing a OneQR plan, you agree to the following terms:</p>
+                  
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">1. Product Understanding</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>OneQR is a digital profile platform that allows users to create and share their profile through a single QR code.</li>
+                    <li>A demo of the product is shown before purchase.</li>
+                    <li>By purchasing, you confirm that you understand the product and its features.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">2. Plan Validity</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>All OneQR plans are valid for <strong className="text-slate-900 dark:text-white">1 year from the purchase date</strong>.</li>
+                    <li>During this period, you will receive access to the purchased features and standard support.</li>
+                    <li>After 1 year, continued service, support, renewals, or upgrades may require additional charges.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">3. No Refund Policy</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>All sales are final.</li>
+                    <li>Since the product is demonstrated before purchase, <strong className="text-slate-900 dark:text-white">no refunds will be provided</strong> after payment.</li>
+                    <li>Refunds will not be given due to change of mind, lack of usage, dissatisfaction, or because the product no longer suits your needs.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">4. Service Availability</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>We strive to keep OneQR available at all times, but temporary downtime may occur due to maintenance, server issues, database issues, security incidents, or other technical problems.</li>
+                    <li>We do not guarantee 100% uninterrupted service.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">5. Limitation of Liability</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>OneQR is a software product and is provided on a best-effort basis.</li>
+                    <li>We are not responsible for any business loss, revenue loss, missed opportunities, or damages resulting from service interruptions or technical issues.</li>
+                    <li>Our maximum liability, if applicable, will not exceed the amount paid for the plan.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">6. User Content</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>You are responsible for all content, links, and information added to your profile.</li>
+                    <li>Illegal, harmful, misleading, or offensive content is strictly prohibited.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">7. Intellectual Property</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>The OneQR software, design, branding, and technology remain the property of OneQR.</li>
+                    <li>Users may not copy, resell, reverse engineer, or redistribute the platform.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">8. Changes & Updates</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>OneQR reserves the right to improve, modify, add, or remove features as the platform evolves.</li>
+                  </ul>
+
+                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">9. Acceptance</h3>
+                  <p>By completing your purchase, you acknowledge that:</p>
+                  <ul className="list-disc pl-5 space-y-1 pb-4">
+                    <li>You have seen the product demo.</li>
+                    <li>You understand the features being purchased.</li>
+                    <li>You agree to the 1-year plan validity.</li>
+                    <li>You accept the no-refund policy.</li>
+                    <li>You agree to these Terms & Conditions.</li>
+                  </ul>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-slate-200 dark:border-white/10 shrink-0">
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('oneqr_accepted_terms', 'true');
+                      setActiveTab(initialTab);
+                    }}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 border border-white/15 shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
+                  >
+                    <span>I Agree & Continue</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            ) : activeTab === 'login' ? (
               <motion.form
                 key="login"
                 initial={{ opacity: 0, x: -10 }}

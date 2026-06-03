@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Smartphone, MapPin, Mail, Phone, Globe, Link2, 
   ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download,
-  Copy, X, Check, Clock, Star, RefreshCw,
+  Copy, X, Check, Clock, Star, RefreshCw, Share2,
   Building, User, CreditCard, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
@@ -13,6 +13,51 @@ import {
 } from 'react-icons/fa';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiRequest } from '../services/apiService';
+
+const formatTimings = (timingsStr) => {
+  if (!timingsStr || typeof timingsStr !== 'string') return timingsStr || '';
+  if (!timingsStr.startsWith('{') && !timingsStr.startsWith('[')) {
+    return timingsStr; // legacy string
+  }
+  try {
+    const data = JSON.parse(timingsStr);
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const groups = [];
+    let currentGroup = null;
+
+    for (const day of days) {
+      const info = data[day] || { isOpen: false };
+      
+      const formatTime12 = (time24) => {
+        if (!time24) return '';
+        const [h, m] = time24.split(':');
+        const hour = parseInt(h, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${m} ${ampm}`;
+      };
+
+      const timeStr = info.isOpen ? `${formatTime12(info.start)} - ${formatTime12(info.end)}` : 'Closed';
+
+      if (!currentGroup) {
+        currentGroup = { startDay: day, endDay: day, timeStr };
+      } else if (currentGroup.timeStr === timeStr) {
+        currentGroup.endDay = day;
+      } else {
+        groups.push(currentGroup);
+        currentGroup = { startDay: day, endDay: day, timeStr };
+      }
+    }
+    if (currentGroup) groups.push(currentGroup);
+
+    return groups.map(g => {
+      if (g.startDay === g.endDay) return `${g.startDay} : ${g.timeStr}`;
+      return `${g.startDay} - ${g.endDay} : ${g.timeStr}`;
+    }).join('\n');
+  } catch(e) {
+    return timingsStr;
+  }
+};
 
 export default function DemoProfilePage() {
   const { slug: routeSlug } = useParams();
@@ -43,6 +88,9 @@ export default function DemoProfilePage() {
   const [reviewSuggestion, setReviewSuggestion] = useState('');
   const [fetchingSuggestion, setFetchingSuggestion] = useState(false);
   const [copiedReview, setCopiedReview] = useState(false);
+
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const fetchSuggestion = async () => {
     setFetchingSuggestion(true);
@@ -456,6 +504,15 @@ export default function DemoProfilePage() {
         </div>
       )}
 
+      {/* Share Button Floating */}
+      <button
+        onClick={() => setShowShareModal(true)}
+        className="absolute top-4 right-4 z-[60] p-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 rounded-full text-white shadow-xl transition-all"
+        title="Share Profile"
+      >
+        <Share2 className="w-5 h-5" />
+      </button>
+
       {/* Decorative Top Banner */}
       <div 
         className={`relative z-0 w-full pt-20 pb-10 shrink-0 shadow-[0_10px_30px_-10px_rgba(37,99,235,0.3)] border-b border-indigo-400/20 ${
@@ -477,7 +534,7 @@ export default function DemoProfilePage() {
               transition={{ type: 'spring', duration: 0.6 }}
               className="p-1.5 bg-white rounded-full shadow-lg ring-4 ring-white flex items-center justify-center overflow-hidden h-[104px] w-[104px] mb-4"
             >
-              <img src={profileLogo} alt="Logo" className="w-full h-full object-cover scale-[1.18]" />
+              <img src={profileLogo} alt="Logo" fetchpriority="high" decoding="async" className="w-full h-full object-cover scale-[1.18]" />
             </motion.div>
           ) : profileData.profileCompany ? (
             <motion.div 
@@ -512,23 +569,37 @@ export default function DemoProfilePage() {
                   <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                   <span className="text-left whitespace-pre-line">{profileData.profileAddress}</span>
                 </div>
-                <a 
-                  href={profileData.profileMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profileData.profileAddress)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all hover:scale-[1.01] shadow-md"
-                >
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>View on Google Map</span>
-                </a>
+                {profileData.profileMapUrl && profileData.profileMapUrl.trim() !== '' && (
+                  <a 
+                    href={profileData.profileMapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all hover:scale-[1.01] shadow-md"
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>View on Google Map</span>
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* GST Details */}
+            {profileData.profileGst && (
+              <div className={`w-full py-4 px-5 rounded-2xl flex items-start gap-3.5 text-sm leading-relaxed ${activeTheme.itemBg} ${activeTheme.text}`}>
+                <Building className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                <span className="text-left whitespace-pre-line font-medium">
+                  GSTIN: <span className="font-bold uppercase tracking-wider">{profileData.profileGst}</span>
+                </span>
               </div>
             )}
 
             {/* Office Timings */}
             {profileData.profileTimings && (
-              <div className={`w-full py-4 px-5 rounded-2xl flex items-center gap-3.5 text-sm leading-relaxed ${activeTheme.itemBg} ${activeTheme.text}`}>
-                <Clock className="w-5 h-5 text-blue-500 shrink-0" />
-                <span className="text-left font-semibold">{profileData.profileTimings}</span>
+              <div className={`w-full py-4 px-5 rounded-2xl flex items-start gap-3.5 text-sm leading-relaxed ${activeTheme.itemBg} ${activeTheme.text}`}>
+                <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <span className="text-left font-semibold whitespace-pre-line break-words max-w-full">
+                  {formatTimings(profileData.profileTimings)}
+                </span>
               </div>
             )}
 
@@ -1325,6 +1396,88 @@ export default function DemoProfilePage() {
           </motion.div>
         </div>
       )}
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, y: "100%" }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="w-full sm:max-w-sm bg-white dark:bg-slate-900 rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col"
+            >
+              <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <Share2 className="w-6 h-6 text-indigo-500" />
+                  Share Profile
+                </h3>
+                <button 
+                  onClick={() => setShowShareModal(false)}
+                  className="p-2 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 rounded-full text-slate-500 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                {(() => {
+                  const shareUrl = window.location.href;
+                  const senderName = profileData?.profileName || profileData?.profileCompany || 'us';
+                  const shareText = `Hello! This is ${senderName}. We would love for you to check out our digital profile and connect with us here:\n\n${shareUrl}`;
+                  const encodedText = encodeURIComponent(shareText);
+
+                  return (
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* WhatsApp */}
+                      <a 
+                        href={`https://wa.me/?text=${encodedText}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-2 group cursor-pointer"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-[#25D366]/10 text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white flex items-center justify-center transition-all">
+                          <FaWhatsapp className="w-7 h-7" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">WhatsApp</span>
+                      </a>
+                      
+                      {/* Email */}
+                      <a 
+                        href={`mailto:?subject=${encodeURIComponent(`Check out ${senderName}'s Profile!`)}&body=${encodedText}`}
+                        className="flex flex-col items-center gap-2 group cursor-pointer"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white group-hover:bg-slate-800 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-slate-900 flex items-center justify-center transition-all">
+                          <Mail className="w-7 h-7" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Email</span>
+                      </a>
+                      
+                      {/* Copy Link */}
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(shareUrl);
+                          setCopiedLink(true);
+                          setTimeout(() => setCopiedLink(false), 2000);
+                        }}
+                        className="flex flex-col items-center gap-2 group cursor-pointer"
+                      >
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${copiedLink ? 'bg-emerald-500 text-white' : 'bg-blue-500/10 text-blue-500 group-hover:bg-blue-600 group-hover:text-white'}`}>
+                          {copiedLink ? <Check className="w-7 h-7" /> : <Copy className="w-6 h-6" />}
+                        </div>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                          {copiedLink ? 'Copied!' : 'Copy Link'}
+                        </span>
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

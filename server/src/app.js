@@ -1,4 +1,5 @@
 const express = require("express");
+const compression = require("compression");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
@@ -6,6 +7,9 @@ const config = require("./config/config");
 const routes = require("./routes");
 
 const app = express();
+
+// Enable Gzip compression to speed up payload delivery
+app.use(compression());
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -49,8 +53,8 @@ app.use(cors({
 }));
 
 // Body Parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // API Routes
 app.use("/api", routes);

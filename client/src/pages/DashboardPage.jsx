@@ -49,11 +49,13 @@ export default function DashboardPage({ subViewProp }) {
   const [profileName, setProfileName] = useState('');
   const [profileTitle, setProfileTitle] = useState('');
   const [profileCompany, setProfileCompany] = useState('');
+  const [profileSlug, setProfileSlug] = useState('');
   const [profileBio, setProfileBio] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
   const [profileWebsite, setProfileWebsite] = useState('');
   const [profileAddress, setProfileAddress] = useState('');
+  const [profileGst, setProfileGst] = useState('');
   const [profileMapUrl, setProfileMapUrl] = useState('');
   const [profileTimings, setProfileTimings] = useState('');
 
@@ -97,6 +99,7 @@ export default function DashboardPage({ subViewProp }) {
         const profile = response.data.profile;
         setActiveProfileId(profile._id);
         setActiveQrId(profile.slug || null);
+        setProfileSlug(profile.slug || '');
         setProfilePlan(profile.plan || 'free');
         setProfileLogo(profile.profileLogo || '');
         setHeaderColor(profile.headerColor || '#2563eb');
@@ -106,6 +109,7 @@ export default function DashboardPage({ subViewProp }) {
         setProfileName(profile.profileName || '');
         setProfileTitle(profile.profileTitle || '');
         setProfileAddress(profile.profileAddress || '');
+        setProfileGst(profile.profileGst || '');
         setProfileMapUrl(profile.profileMapUrl || '');
         setProfileTimings(profile.profileTimings || '');
         setProfileBio(profile.profileBio || '');
@@ -380,11 +384,13 @@ export default function DashboardPage({ subViewProp }) {
     setProfileName('');
     setProfileTitle('');
     setProfileCompany('');
+    setProfileSlug('');
     setProfileBio('');
     setProfileEmail('');
     setProfilePhone('');
     setProfileWebsite('');
     setProfileAddress('');
+    setProfileGst('');
     setProfileMapUrl('');
     setProfileTimings('');
     setSocialFacebook('');
@@ -409,20 +415,36 @@ export default function DashboardPage({ subViewProp }) {
 
   // Save builder form details to Cloudinary & MongoDB
   const handleSaveProfileForm = async () => {
+    // Basic validation for GST if provided
+    if (profileGst) {
+      const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!gstRegex.test(profileGst.toUpperCase())) {
+        alert('Invalid GST Number. Please check the 15-character GSTIN.');
+        return;
+      }
+    }
+
     setIsSaving(true);
+    setSaveSuccess(false);
+    window.dispatchEvent(new CustomEvent('profileSaveStart'));
+
     try {
-      // 1. Upload any new files to Cloudinary first
-      const updatedDocs = [...profileDocuments];
+      const token = localStorage.getItem('oneqr_token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      // 1. Upload new document files to Cloudinary
+      let updatedDocs = [...profileDocuments];
       for (let i = 0; i < updatedDocs.length; i++) {
         const doc = updatedDocs[i];
         if (doc.file) {
           const formData = new FormData();
-          formData.append('file', doc.file);
-
-          const token = localStorage.getItem('oneqr_token');
-          const headers = {};
-          if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+          formData.append('document', doc.file);
+          
+          if (doc.publicId) {
+            formData.append('oldPublicId', doc.publicId);
           }
 
           const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/profile/upload`, {
@@ -460,9 +482,11 @@ export default function DashboardPage({ subViewProp }) {
         qrColor,
         headerColor,
         profileCompany,
+        slug: profileSlug,
         profileName,
         profileTitle,
         profileAddress,
+        profileGst,
         profileMapUrl,
         profileTimings,
         profileBio,
@@ -492,7 +516,6 @@ export default function DashboardPage({ subViewProp }) {
           publicId: d.publicId || '',
         })),
         customLinks: customLinks,
-        slug: activeQrId,
         selectedFeedbacks: selectedFeedbacks.map((f) => f._id || f),
       };
 
@@ -513,8 +536,13 @@ export default function DashboardPage({ subViewProp }) {
       }
 
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
+      window.dispatchEvent(new CustomEvent('profileSaveSuccess'));
+      setTimeout(() => {
+        setSaveSuccess(false);
+        navigate('/dashboard');
+      }, 1500);
     } catch (err) {
+      window.dispatchEvent(new CustomEvent('profileSaveError'));
       console.error('Error saving profile settings:', err);
       alert(err.message || 'Error occurred while saving profile settings.');
     } finally {
@@ -609,6 +637,7 @@ export default function DashboardPage({ subViewProp }) {
             qrUrl={qrUrl} setQrUrl={setQrUrl}
             qrColor={qrColor} setQrColor={setQrColor}
             profileCompany={profileCompany} setProfileCompany={setProfileCompany}
+            profileSlug={profileSlug} setProfileSlug={setProfileSlug}
             profileName={profileName} setProfileName={setProfileName}
             profileTitle={profileTitle} setProfileTitle={setProfileTitle}
             profileBio={profileBio} setProfileBio={setProfileBio}
@@ -616,6 +645,7 @@ export default function DashboardPage({ subViewProp }) {
             profilePhone={profilePhone} setProfilePhone={setProfilePhone}
             profileWebsite={profileWebsite} setProfileWebsite={setProfileWebsite}
             profileAddress={profileAddress} setProfileAddress={setProfileAddress}
+            profileGst={profileGst} setProfileGst={setProfileGst}
             profileMapUrl={profileMapUrl} setProfileMapUrl={setProfileMapUrl}
             profileTimings={profileTimings} setProfileTimings={setProfileTimings}
             socialFacebook={socialFacebook} setSocialFacebook={setSocialFacebook}

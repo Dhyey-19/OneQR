@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon, Scan, MessageSquare } from 'lucide-react';
+import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon, Scan, MessageSquare, RefreshCw, Check } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { useTheme } from '../../context/ThemeContext';
@@ -14,6 +14,9 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
   const [scrolled, setScrolled] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const checkUserStatus = () => {
     setCurrentUser(authService.getCurrentUser());
@@ -37,10 +40,21 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
     const closeDropdown = () => setProfileDropdownOpen(false);
     window.addEventListener('click', closeDropdown);
 
+    const onSaveStart = () => setIsSaving(true);
+    const onSaveSuccess = () => { setIsSaving(false); setSaveSuccess(true); setTimeout(() => setSaveSuccess(false), 1500); };
+    const onSaveError = () => setIsSaving(false);
+
+    window.addEventListener('profileSaveStart', onSaveStart);
+    window.addEventListener('profileSaveSuccess', onSaveSuccess);
+    window.addEventListener('profileSaveError', onSaveError);
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('auth-state-change', checkUserStatus);
       window.removeEventListener('click', closeDropdown);
+      window.removeEventListener('profileSaveStart', onSaveStart);
+      window.removeEventListener('profileSaveSuccess', onSaveSuccess);
+      window.removeEventListener('profileSaveError', onSaveError);
     };
   }, []);
 
@@ -181,28 +195,68 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
           </a>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={(e) => {
-                  if (location.pathname !== '/') {
-                    e.preventDefault();
-                    navigate('/' + link.href);
-                  }
-                }}
-                className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
-              >
-                {link.name}
-                <span className="absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 w-0 group-hover:w-full transition-all duration-300" />
-              </a>
-            ))}
-          </div>
+          {location.pathname !== '/manage-qr' && (
+            <div className="hidden md:flex items-center gap-8">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={(e) => {
+                    if (location.pathname !== '/') {
+                      e.preventDefault();
+                      navigate('/' + link.href);
+                    }
+                  }}
+                  className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
+                >
+                  {link.name}
+                  <span className="absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 w-0 group-hover:w-full transition-all duration-300" />
+                </a>
+              ))}
+            </div>
+          )}
 
-          {/* Desktop Action Buttons / Profile Trigger */}
+          {/* Action Buttons / Profile Trigger */}
           <div className="flex items-center gap-3">
-            {/* Theme Toggle Button */}
+            {location.pathname === '/manage-qr' ? (
+              <div className="flex items-center gap-2 md:gap-4">
+                <button 
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs md:text-sm font-bold transition-all cursor-pointer shadow-md"
+                >
+                  <span className="hidden md:inline">&larr; Back to Dashboard</span>
+                  <span className="md:hidden">&larr; Back</span>
+                </button>
+                <button 
+                  disabled={isSaving}
+                  onClick={() => {
+                    const saveBtn = document.getElementById('manage-qr-save-btn');
+                    if (saveBtn) saveBtn.click();
+                  }}
+                  className={`px-4 py-2 md:px-6 md:py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    saveSuccess 
+                      ? 'bg-emerald-600 text-white shadow-emerald-500/20' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                  }`}
+                >
+                  {isSaving ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span className="hidden md:inline">Saving...</span>
+                    </>
+                  ) : saveSuccess ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span className="hidden md:inline">Saved!</span>
+                    </>
+                  ) : (
+                    <span>Save Profile</span>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm shadow-black/5 flex items-center justify-center mr-1"
@@ -249,6 +303,8 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               >
                 {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
+            )}
+              </>
             )}
           </div>
         </div>

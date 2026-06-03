@@ -94,6 +94,7 @@ exports.getProfile = async (req, res, next) => {
             profileTitle: "",
 
             profileAddress: "",
+            profileGst: "",
             profileMapUrl: "",
             profileTimings: "",
             profileBio: "",
@@ -149,13 +150,26 @@ exports.updateProfile = async (req, res, next) => {
     delete profileData.profileId;
     delete profileData._id;
 
-    // Handle slug fallback if not provided and updating by profileId (keep existing)
-    if (!profileId && !slug) {
+    // Handle slug generation if not provided (or update it if business name changed)
+    if (!profileData.slug || profileData.slug.trim() === '') {
       const companyName = req.body.profileCompany || req.body.profileName || "demo-profile";
       profileData.slug = companyName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
+    } else {
+      profileData.slug = profileData.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    // Uniqueness Check for slug
+    const existingSlug = await Profile.findOne({ slug: profileData.slug });
+    if (existingSlug) {
+      if (profileId && existingSlug._id.toString() !== profileId) {
+         return res.status(400).json({ status: "error", message: "This Profile URL / Business Name is already taken by another user." });
+      }
+      if (!profileId) {
+         return res.status(400).json({ status: "error", message: "This Profile URL / Business Name is already taken by another user." });
+      }
     }
 
     let query = {};
@@ -287,7 +301,7 @@ exports.getPublicProfile = async (req, res, next) => {
       // If assigned, find the profile linked to this user and QR ID
       let profile = await Profile.findOne({ user: qr.assignedTo, qrId: requestedSlug }).populate("selectedFeedbacks");
       if (!profile) {
-        profile = await Profile.findOne({ user: qr.assignedTo, slug: requestedSlug }).populate("selectedFeedbacks");
+        profile = await Profile.findOne({ user: qr.assignedTo, slug: requestedSlug.toLowerCase() }).populate("selectedFeedbacks");
       }
       if (!profile) {
         // Fallback to any profile for this user
@@ -310,7 +324,7 @@ exports.getPublicProfile = async (req, res, next) => {
     }
     
     // 2. Otherwise, look up profile by slug or company name slug directly
-    let profile = await Profile.findOne({ slug: requestedSlug }).populate("selectedFeedbacks");
+    let profile = await Profile.findOne({ slug: requestedSlug.toLowerCase() }).populate("selectedFeedbacks");
     
     // Fallback for older profiles that don't have a slug saved in the database
     if (!profile) {
@@ -321,7 +335,7 @@ exports.getPublicProfile = async (req, res, next) => {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
-        return generatedSlug === requestedSlug;
+        return generatedSlug === requestedSlug.toLowerCase();
       });
     }
 

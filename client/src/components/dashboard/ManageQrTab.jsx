@@ -4,7 +4,7 @@ import { motion, Reorder, AnimatePresence, useDragControls } from 'framer-motion
 import { 
   QrCode, Smartphone, Sparkles, Link2, User, UserPlus,
   Mail, Globe, Phone, Download, Check, RefreshCw, 
-  MapPin, Plus, Trash2, ArrowUpRight, ChevronDown,
+  MapPin, Plus, Trash2, ArrowUpRight, ChevronDown, Edit2,
   Clock, Copy, X, Building, CreditCard, Star, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
@@ -14,6 +14,51 @@ import {
 import FilePreview from './FilePreview';
 import { downloadFlyer } from '../../utils/flyerDownloader';
 import { apiRequest } from '../../services/apiService';
+
+const formatTimings = (timingsStr) => {
+  if (!timingsStr || typeof timingsStr !== 'string') return timingsStr || '';
+  if (!timingsStr.startsWith('{') && !timingsStr.startsWith('[')) {
+    return timingsStr; // legacy string
+  }
+  try {
+    const data = JSON.parse(timingsStr);
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const groups = [];
+    let currentGroup = null;
+
+    for (const day of days) {
+      const info = data[day] || { isOpen: false };
+      
+      const formatTime12 = (time24) => {
+        if (!time24) return '';
+        const [h, m] = time24.split(':');
+        const hour = parseInt(h, 10);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return `${hour12}:${m} ${ampm}`;
+      };
+
+      const timeStr = info.isOpen ? `${formatTime12(info.start)} - ${formatTime12(info.end)}` : 'Closed';
+
+      if (!currentGroup) {
+        currentGroup = { startDay: day, endDay: day, timeStr };
+      } else if (currentGroup.timeStr === timeStr) {
+        currentGroup.endDay = day;
+      } else {
+        groups.push(currentGroup);
+        currentGroup = { startDay: day, endDay: day, timeStr };
+      }
+    }
+    if (currentGroup) groups.push(currentGroup);
+
+    return groups.map(g => {
+      if (g.startDay === g.endDay) return `${g.startDay} : ${g.timeStr}`;
+      return `${g.startDay} - ${g.endDay} : ${g.timeStr}`;
+    }).join('\n');
+  } catch(e) {
+    return timingsStr;
+  }
+};
 
 export default function ManageQrTab({
   activeQrId,
@@ -26,6 +71,7 @@ export default function ManageQrTab({
   qrUrl, setQrUrl,
   qrColor, setQrColor,
   profileCompany, setProfileCompany,
+  profileSlug, setProfileSlug,
   profileName, setProfileName,
   profileTitle, setProfileTitle,
   profileBio, setProfileBio,
@@ -33,6 +79,7 @@ export default function ManageQrTab({
   profilePhone, setProfilePhone,
   profileWebsite, setProfileWebsite,
   profileAddress, setProfileAddress,
+  profileGst, setProfileGst,
   profileMapUrl, setProfileMapUrl,
   profileTimings, setProfileTimings,
   
@@ -72,9 +119,45 @@ export default function ManageQrTab({
   const [isCopied, setIsCopied] = useState(false);
   const [qrGeneratedUrl, setQrGeneratedUrl] = useState('');
   const logoInputRef = useRef(null);
+
   const [upiModalOpen, setUpiModalOpen] = useState(false);
+  const [showTimingsModal, setShowTimingsModal] = useState(false);
+  const [gstError, setGstError] = useState('');
   const [upiModalData, setUpiModalData] = useState({ upiId: '', upiLink: '', payeeName: '' });
   const [copiedUpi, setCopiedUpi] = useState(false);
+
+  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  const [timingsData, setTimingsData] = useState(() => {
+    try {
+      if (profileTimings && typeof profileTimings === 'string' && profileTimings.startsWith('{')) {
+        return JSON.parse(profileTimings);
+      }
+    } catch(e) {}
+    return {
+      Mon: { isOpen: false, start: '09:00', end: '18:00' },
+      Tue: { isOpen: false, start: '09:00', end: '18:00' },
+      Wed: { isOpen: false, start: '09:00', end: '18:00' },
+      Thu: { isOpen: false, start: '09:00', end: '18:00' },
+      Fri: { isOpen: false, start: '09:00', end: '18:00' },
+      Sat: { isOpen: false, start: '09:00', end: '18:00' },
+      Sun: { isOpen: false, start: '09:00', end: '18:00' }
+    };
+  });
+
+  useEffect(() => {
+    if (profileTimings && typeof profileTimings === 'string' && profileTimings.startsWith('{')) {
+      try {
+        setTimingsData(JSON.parse(profileTimings));
+      } catch(e) {}
+    }
+  }, [profileTimings]);
+
+  const handleTimingChange = (day, field, value) => {
+    const newData = { ...timingsData, [day]: { ...timingsData[day], [field]: value } };
+    setTimingsData(newData);
+    setProfileTimings(JSON.stringify(newData));
+  };
 
   const handleUpiClick = (e, upiId) => {
     if (e) e.preventDefault();
@@ -279,13 +362,6 @@ export default function ManageQrTab({
                     <span className="text-xs text-slate-500 dark:text-slate-400">Select active themes and enter contact info</span>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => { navigate('/dashboard'); }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-bold transition-all cursor-pointer shadow-md"
-                >
-                  &larr; Back to Dashboard
-                </button>
               </div>
             </div>
 
@@ -294,10 +370,14 @@ export default function ManageQrTab({
               {/* Section 1 Trigger - Mobile only */}
               <div 
                 onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'branding' ? null : 'branding')}
-                className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm"
+                className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-2 ${
+                  activeAccordion === 'branding'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                    : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                }`}
               >
-                <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">1. Profile & Branding</span>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'branding' ? 'rotate-180' : ''}`} />
+                <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'branding' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>1. Profile & Branding</span>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'branding' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
               </div>
 
               {/* 1. Business Logo */}
@@ -373,6 +453,24 @@ export default function ManageQrTab({
                 />
               </div>
 
+              {/* Profile URL Link */}
+              <div className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== 'branding' ? 'hidden' : 'block'}`}>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block flex justify-between">
+                  <span>Profile URL / Custom Link</span>
+                  <span className="text-[10px] text-slate-400 normal-case font-normal">(Leave empty to auto-generate from Business Name)</span>
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-slate-400 text-sm">oneqr.co/</span>
+                  <input 
+                    type="text"
+                    value={profileSlug}
+                    onChange={(e) => setProfileSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}
+                    placeholder="custom-link-name"
+                    className="w-full pl-[85px] pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all font-mono"
+                  />
+                </div>
+              </div>
+
               {/* Description */}
               <div className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== 'branding' ? 'hidden' : 'block'}`}>
                 <div className="flex justify-between items-center">
@@ -396,10 +494,39 @@ export default function ManageQrTab({
                 <textarea 
                   value={profileAddress}
                   onChange={(e) => setProfileAddress(e.target.value)}
-                  rows={2}
+                  rows={3}
                   placeholder="Enter physical address"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 resize-y leading-relaxed transition-all"
                 />
+              </div>
+
+              {/* GST Field */}
+              <div className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== 'branding' ? 'hidden' : 'block'}`}>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">GST Number</label>
+                <input 
+                  type="text"
+                  value={profileGst}
+                  onChange={(e) => {
+                    const val = e.target.value.toUpperCase();
+                    setProfileGst(val);
+                    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                    if (val && !gstRegex.test(val)) {
+                      setGstError('Invalid GSTIN format. Expected: 22AAAAA0000A1Z5');
+                    } else {
+                      setGstError('');
+                    }
+                  }}
+                  placeholder="Enter 15-digit GST Number"
+                  maxLength={15}
+                  className={`w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border text-sm transition-all focus:outline-none ${
+                    gstError 
+                      ? 'border-red-500/50 focus:border-red-500/80 focus:bg-red-50/50 dark:focus:bg-red-500/10 text-red-600 dark:text-red-400' 
+                      : 'border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80'
+                  }`}
+                />
+                {gstError && (
+                  <p className="text-[10px] text-red-500 font-bold ml-1">{gstError}</p>
+                )}
               </div>
 
               {/* Google Map Link & Timings */}
@@ -418,28 +545,107 @@ export default function ManageQrTab({
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Office Timings / Working Hours</label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                    <input 
-                      type="text"
-                      value={profileTimings}
-                      onChange={(e) => setProfileTimings(e.target.value)}
-                      placeholder="e.g. Mon - Fri: 9:00 AM - 6:00 PM"
-                      className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
-                    />
+                  <div className="w-full pl-9 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm relative flex items-center justify-between">
+                    <Clock className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" />
+                    <div className="whitespace-pre-line font-semibold leading-relaxed w-full">
+                      {profileTimings ? formatTimings(profileTimings) : 'No timings configured'}
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setShowTimingsModal(true)}
+                      className="absolute right-2 top-2 p-1.5 bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors flex items-center justify-center cursor-pointer shadow-sm border border-slate-200 dark:border-white/10"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
+
+                <AnimatePresence>
+                  {showTimingsModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+                          <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-blue-500" />
+                            Edit Office Timings
+                          </h4>
+                          <button 
+                            type="button"
+                            onClick={() => setShowTimingsModal(false)}
+                            className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                          {daysOfWeek.map(day => (
+                            <div key={day} className="flex items-center justify-between gap-2 text-sm bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5">
+                              <div className="flex items-center gap-2 w-20">
+                                <input 
+                                  type="checkbox" 
+                                  checked={timingsData[day]?.isOpen}
+                                  onChange={(e) => handleTimingChange(day, 'isOpen', e.target.checked)}
+                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className={`font-semibold ${!timingsData[day]?.isOpen ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>{day}</span>
+                              </div>
+                              {timingsData[day]?.isOpen ? (
+                                <div className="flex items-center gap-1.5 flex-1 max-w-[220px]">
+                                  <input 
+                                    type="time" 
+                                    value={timingsData[day]?.start || '09:00'}
+                                    onChange={(e) => handleTimingChange(day, 'start', e.target.value)}
+                                    className="px-2 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-xs flex-1 text-center font-medium focus:outline-none focus:border-blue-500/50"
+                                  />
+                                  <span className="text-slate-400 font-bold">-</span>
+                                  <input 
+                                    type="time" 
+                                    value={timingsData[day]?.end || '18:00'}
+                                    onChange={(e) => handleTimingChange(day, 'end', e.target.value)}
+                                    className="px-2 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-xs flex-1 text-center font-medium focus:outline-none focus:border-blue-500/50"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex-1 max-w-[220px] text-[11px] font-extrabold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-1.5 rounded-lg border border-rose-200 dark:border-rose-500/20 text-center uppercase tracking-wider">
+                                  Holiday / Closed
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="p-4 border-t border-slate-200 dark:border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => setShowTimingsModal(false)}
+                            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md cursor-pointer transition-colors"
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </motion.div>
+                    </div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Section 2 Trigger - Mobile only */}
               <div 
                 onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'contact' ? null : 'contact')}
-                className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm mt-2"
+                className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-4 ${
+                  activeAccordion === 'contact'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                    : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                }`}
               >
-                <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">2. Contact Channels</span>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'contact' ? 'rotate-180' : ''}`} />
+                <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'contact' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>2. Contact Channels</span>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'contact' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
               </div>
 
               {/* Email, Phone, and Website URL */}
@@ -491,10 +697,14 @@ export default function ManageQrTab({
               {/* Section 3 Trigger - Mobile only */}
               <div 
                 onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'social' ? null : 'social')}
-                className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm mt-2"
+                className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-4 ${
+                  activeAccordion === 'social'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                    : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                }`}
               >
-                <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">3. Social & Connect Channels</span>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'social' ? 'rotate-180' : ''}`} />
+                <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'social' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>3. Social & Connect Channels</span>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'social' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
               </div>
 
               {/* Social Links Reorder Section */}
@@ -576,10 +786,14 @@ export default function ManageQrTab({
               {/* Section Bank Trigger - Mobile only */}
               <div 
                 onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'bank' ? null : 'bank')}
-                className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm mt-2"
+                className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-4 ${
+                  activeAccordion === 'bank'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                    : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                }`}
               >
-                <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">4. Bank Details</span>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'bank' ? 'rotate-180' : ''}`} />
+                <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'bank' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>4. Bank Details</span>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'bank' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
               </div>
 
               {/* Bank Details Section */}
@@ -651,10 +865,14 @@ export default function ManageQrTab({
                   {/* Section 5 Trigger - Mobile only */}
                   <div 
                     onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'custom' ? null : 'custom')}
-                    className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm mt-2"
+                    className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-4 ${
+                      activeAccordion === 'custom'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                        : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                    }`}
                   >
-                    <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">5. Custom Panels & Buttons</span>
-                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'custom' ? 'rotate-180' : ''}`} />
+                    <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'custom' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>5. Custom Panels & Buttons</span>
+                    <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'custom' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
                   </div>
 
                   {/* Dynamic Custom Links Panels */}
@@ -716,10 +934,14 @@ export default function ManageQrTab({
                   {/* Section 6 Trigger - Mobile only */}
                   <div 
                     onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'docs' ? null : 'docs')}
-                    className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm mt-2"
+                    className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-4 ${
+                      activeAccordion === 'docs'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                        : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                    }`}
                   >
-                    <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">6. Catalog Files & PDFs</span>
-                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'docs' ? 'rotate-180' : ''}`} />
+                    <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'docs' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>6. Catalog Files & PDFs</span>
+                    <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'docs' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
                   </div>
 
                   {/* Documents & PDF Menu Catalog Uploader */}
@@ -796,10 +1018,14 @@ export default function ManageQrTab({
                   {/* Section 7 Trigger - Mobile only */}
                   <div 
                     onClick={() => isMobileView && setActiveAccordion(activeAccordion === 'feedbacks' ? null : 'feedbacks')}
-                    className="md:hidden p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm mt-2"
+                    className={`md:hidden p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm transition-all duration-300 mt-4 ${
+                      activeAccordion === 'feedbacks'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border border-transparent shadow-blue-500/30 text-white'
+                        : 'bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                    }`}
                   >
-                    <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">7. Showcase Client Reviews</span>
-                    <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${activeAccordion === 'feedbacks' ? 'rotate-180' : ''}`} />
+                    <span className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === 'feedbacks' ? 'text-white' : 'text-slate-800 dark:text-white'}`}>7. Showcase Client Reviews</span>
+                    <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === 'feedbacks' ? 'rotate-180 text-white' : 'text-slate-500'}`} />
                   </div>
 
                   {/* Showcase Client Reviews Section */}
@@ -884,17 +1110,7 @@ export default function ManageQrTab({
             </div>
 
             {/* Form Actions Footer Panel */}
-            <div className="pt-8 border-t border-slate-200 dark:border-white/5 flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleClearProfileForm}
-                  className="px-5 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-extrabold transition-all cursor-pointer"
-                >
-                  Clear Form
-                </button>
-              </div>
-
+            <div className="pt-8 border-t border-slate-200 dark:border-white/5 flex flex-wrap gap-4 items-center justify-end">
               <button
                 type="button"
                 disabled={isSaving}
@@ -904,6 +1120,7 @@ export default function ManageQrTab({
                     ? 'bg-emerald-600 text-white shadow-emerald-500/20' 
                     : 'bg-[#2563eb] text-white hover:bg-[#1d4ed8] shadow-blue-500/20'
                 }`}
+                id="manage-qr-save-btn"
               >
                 {isSaving ? (
                   <>
@@ -997,23 +1214,37 @@ export default function ManageQrTab({
                             <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
                             <span className="text-left whitespace-pre-line truncate max-w-[200px]">{profileAddress}</span>
                           </div>
-                          <a 
-                            href={profileMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profileAddress)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 text-[8px] font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
-                          >
-                            <MapPin className="w-2.5 h-2.5" />
-                            <span>View on Google Map</span>
-                          </a>
+                          {profileMapUrl && profileMapUrl.trim() !== '' && (
+                            <a 
+                              href={profileMapUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 text-[8px] font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
+                            >
+                              <MapPin className="w-2.5 h-2.5" />
+                              <span>View on Google Map</span>
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* GST Details Card */}
+                      {profileGst && (
+                        <div className={`w-full py-2 px-3 rounded-xl flex items-start gap-1.5 text-[9px] leading-normal ${activeTheme.itemBg} ${activeTheme.text}`}>
+                          <Building className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                          <span className="text-left font-medium whitespace-pre-line truncate max-w-[200px]">
+                            GSTIN: <span className="font-bold uppercase tracking-wider">{profileGst}</span>
+                          </span>
                         </div>
                       )}
 
                       {/* Timings Card */}
                       {profileTimings && (
-                        <div className={`w-full py-2 px-3 rounded-xl flex items-center gap-1.5 text-[9px] leading-normal ${activeTheme.itemBg} ${activeTheme.text}`}>
-                          <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                          <span className="text-left font-semibold truncate max-w-[200px]">{profileTimings}</span>
+                        <div className={`w-full py-2 px-3 rounded-xl flex items-start gap-1.5 text-[9px] leading-normal ${activeTheme.itemBg} ${activeTheme.text}`}>
+                          <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                          <span className="text-left font-semibold whitespace-pre-line break-words max-w-full">
+                            {formatTimings(profileTimings)}
+                          </span>
                         </div>
                       )}
 

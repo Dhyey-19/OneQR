@@ -17,7 +17,7 @@ exports.submitFeedback = async (req, res, next) => {
     }
 
     // 1. Locate profile by slug
-    let profile = await Profile.findOne({ slug: slug.trim() });
+    let profile = await Profile.findOne({ slug: slug.trim().toLowerCase() });
 
     // 2. Fallback direct match for older profiles that don't have slugs stored
     if (!profile) {
@@ -28,7 +28,7 @@ exports.submitFeedback = async (req, res, next) => {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
-        return generatedSlug === slug.trim();
+        return generatedSlug === slug.trim().toLowerCase();
       });
     }
 
@@ -89,7 +89,7 @@ exports.getReviewSuggestions = async (req, res, next) => {
     const { slug } = req.params;
 
     // 1. Locate profile by slug
-    let profile = await Profile.findOne({ slug: slug.trim() });
+    let profile = await Profile.findOne({ slug: slug.trim().toLowerCase() });
 
     // 2. Fallback direct match
     if (!profile) {
@@ -100,7 +100,7 @@ exports.getReviewSuggestions = async (req, res, next) => {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
-        return generatedSlug === slug.trim();
+        return generatedSlug === slug.trim().toLowerCase();
       });
     }
 

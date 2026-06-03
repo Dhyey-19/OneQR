@@ -64,6 +64,10 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    profileGst: {
+      type: String,
+      default: "",
+    },
     profileMapUrl: {
       type: String,
       default: "",
