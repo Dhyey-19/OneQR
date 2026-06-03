@@ -312,10 +312,6 @@ exports.getPublicProfile = async (req, res, next) => {
         });
       }
       
-      // Increment qrScanCount
-      qr.qrScanCount = (qr.qrScanCount || 0) + 1;
-      await qr.save();
-      
       // If assigned, find the profile linked to this user and QR ID
       let profile = await Profile.findOne({ user: qr.assignedTo, qrId: requestedSlug }).populate("selectedFeedbacks");
       if (!profile) {
@@ -669,5 +665,49 @@ exports.connectStandy = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Redirects to the frontend page for a given QR ID, incrementing its scan count.
+ */
+exports.handleQrRedirect = async (req, res, next) => {
+  try {
+    const { qrId } = req.params;
+    const cleanQrId = qrId ? qrId.trim() : "";
+    
+    if (!cleanQrId) {
+      return res.redirect(config.QR_URL_PREFIX);
+    }
+
+    // 1. Find the QR Code in ONEQRS collection
+    const qr = await OneQr.findOne({ qrId: cleanQrId });
+    if (qr) {
+      // Increment qrScanCount
+      qr.qrScanCount = (qr.qrScanCount || 0) + 1;
+      await qr.save();
+
+      // Find the associated profile to see if there is a custom slug
+      const profile = await Profile.findOne({ qrId: cleanQrId });
+      const targetSlug = profile && profile.slug ? profile.slug : cleanQrId;
+
+      return res.redirect(`${config.QR_URL_PREFIX}/${targetSlug}`);
+    }
+
+    // 2. Otherwise, check if it's a profile slug directly
+    const profileBySlug = await Profile.findOne({ slug: cleanQrId.toLowerCase() });
+    if (profileBySlug) {
+      // Increment profileViewCount
+      profileBySlug.profileViewCount = (profileBySlug.profileViewCount || 0) + 1;
+      await profileBySlug.save();
+
+      return res.redirect(`${config.QR_URL_PREFIX}/${profileBySlug.slug}`);
+    }
+
+    // 3. Fallback: redirect to frontend with the qrId so frontend shows 404/not found
+    return res.redirect(`${config.QR_URL_PREFIX}/${cleanQrId}`);
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 

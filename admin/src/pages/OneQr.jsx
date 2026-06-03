@@ -299,10 +299,14 @@ export default function OneQr() {
     }
   };
 
-  const handleDownload = async (qrId, qrUrl) => {
+  const handleDownload = async (qrId) => {
     try {
+      const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || 'http://localhost:5000/qr';
+      const cleanPrefix = qrUrlPrefix.endsWith('/') ? qrUrlPrefix : `${qrUrlPrefix}/`;
+      const finalQrUrl = `${cleanPrefix}${qrId}`;
+
       // 1. Fetch QR Code Image
-      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(qrUrl)}`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(finalQrUrl)}`;
       
       // Load both images using Promises
       const loadBackground = new Promise((resolve, reject) => {
@@ -887,7 +891,7 @@ export default function OneQr() {
                           <div className="actions-wrapper">
                             {/* Download button */}
                             <button 
-                              onClick={() => handleDownload(qr.qrId, qr.qrUrl)}
+                              onClick={() => handleDownload(qr.qrId)}
                               className="btn-primary btn-action-icon"
                               title="Download QR Image"
                             >

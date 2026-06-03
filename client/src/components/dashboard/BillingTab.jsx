@@ -256,11 +256,18 @@ export default function BillingTab({ currentUser, activeQr, allocatedQrs = [], a
                       {/* Small preview thumbnail */}
                       <td className="p-4">
                         <div className="w-9 h-9 rounded-lg bg-white p-0.5 border border-slate-200 dark:border-white/10 flex items-center justify-center">
-                          <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&hidesource=1&data=${encodeURIComponent(qr.qrUrl)}`}
-                            alt="QR"
-                            className="w-8 h-8 object-contain"
-                          />
+                          {(() => {
+                            const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || 'http://localhost:5000/';
+                            const cleanPrefix = qrUrlPrefix.endsWith('/') ? qrUrlPrefix : `${qrUrlPrefix}/`;
+                            const finalQrUrl = `${cleanPrefix}qr/${qr.qrId}`;
+                            return (
+                              <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&hidesource=1&data=${encodeURIComponent(finalQrUrl)}`}
+                                alt="QR"
+                                className="w-8 h-8 object-contain"
+                              />
+                            );
+                          })()}
                         </div>
                       </td>
 
@@ -271,7 +278,12 @@ export default function BillingTab({ currentUser, activeQr, allocatedQrs = [], a
 
                       {/* Redirect Path */}
                       <td className="p-4 max-w-[220px] truncate font-medium">
-                        {qr.qrUrl.replace('https://', '')}
+                        {(() => {
+                          const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || 'http://localhost:5000/';
+                          const cleanPrefix = qrUrlPrefix.endsWith('/') ? qrUrlPrefix : `${qrUrlPrefix}/`;
+                          const finalQrUrl = `${cleanPrefix}qr/${qr.qrId}`;
+                          return finalQrUrl.replace('https://', '').replace('http://', '');
+                        })()}
                       </td>
 
                       {/* Plan Description */}

@@ -5,6 +5,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 const config = require("./config/config");
 const routes = require("./routes");
+const profileController = require("./controllers/profileController");
 
 const app = express();
 
@@ -58,6 +59,9 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // API Routes
 app.use("/api", routes);
+
+// QR Redirect Route
+app.get("/qr/:qrId", profileController.handleQrRedirect);
 
 // Health check
 app.get("/", (req, res) => {

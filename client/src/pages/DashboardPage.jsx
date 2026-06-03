@@ -105,7 +105,9 @@ export default function DashboardPage({ subViewProp }) {
         setProfilePlan(profile.plan || 'free');
         setProfileLogo(profile.profileLogo || '');
         setHeaderColor(profile.headerColor || '#2563eb');
-        setQrUrl(profile.qrUrl || (profile.slug ? `${qrUrlPrefix}/${profile.slug}` : 'https://oneqr.co/user/profile'));
+        const cleanPrefix = qrUrlPrefix.endsWith('/') ? qrUrlPrefix : `${qrUrlPrefix}/`;
+        const connectedQrId = profile.qrId || profile.slug || '';
+        setQrUrl(connectedQrId ? `${cleanPrefix}qr/${connectedQrId}` : 'https://oneqr.co/user/profile');
         setQrColor(profile.qrColor || '000000');
         setProfileCompany(profile.profileCompany || '');
         setProfileName(profile.profileName || '');
@@ -237,7 +239,6 @@ export default function DashboardPage({ subViewProp }) {
               razorpayOrderId: response.razorpay_order_id,
               razorpaySignature: response.razorpay_signature,
               planId,
-              qrId: activeQrId,
             }),
           });
 
@@ -272,7 +273,7 @@ export default function DashboardPage({ subViewProp }) {
     try {
       const res = await apiRequest('/payment/create-order', {
         method: 'POST',
-        body: JSON.stringify({ planId, qrId: activeQrId }),
+        body: JSON.stringify({ planId }),
       });
 
       if (res.status === 'success' && res.data) {
@@ -315,7 +316,6 @@ export default function DashboardPage({ subViewProp }) {
           razorpayOrderId: mockPaymentData.orderId,
           razorpaySignature: "mock_signature",
           planId: mockPaymentData.planId,
-          qrId: activeQrId,
         }),
       });
 
