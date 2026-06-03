@@ -14,7 +14,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
   const [scrolled, setScrolled] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -107,7 +107,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                   Acc: {currentUser.phone}
                 </div>
               )}
-              
+
 
 
               <button
@@ -168,16 +168,15 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? 'py-4 bg-white/70 dark:bg-[#030712]/70 backdrop-blur-md border-b border-slate-200 dark:border-white/5 shadow-sm' 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+            ? 'py-4 bg-white/70 dark:bg-[#030712]/70 backdrop-blur-md border-b border-slate-200 dark:border-white/5 shadow-sm'
             : 'py-6 bg-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <a 
-            href="#home" 
+          <a
+            href="#home"
             onClick={(e) => {
               if (location.pathname !== '/') {
                 e.preventDefault();
@@ -220,24 +219,23 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
           <div className="flex items-center gap-3">
             {location.pathname === '/manage-qr' ? (
               <div className="flex items-center gap-2 md:gap-4">
-                <button 
+                <button
                   onClick={() => navigate('/dashboard')}
                   className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs md:text-sm font-bold transition-all cursor-pointer shadow-md"
                 >
                   <span className="hidden md:inline">&larr; Back to Dashboard</span>
                   <span className="md:hidden">&larr; Back</span>
                 </button>
-                <button 
+                <button
                   disabled={isSaving}
                   onClick={() => {
                     const saveBtn = document.getElementById('manage-qr-save-btn');
                     if (saveBtn) saveBtn.click();
                   }}
-                  className={`px-4 py-2 md:px-6 md:py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    saveSuccess 
-                      ? 'bg-emerald-600 text-white shadow-emerald-500/20' 
+                  className={`px-4 py-2 md:px-6 md:py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${saveSuccess
+                      ? 'bg-emerald-600 text-white shadow-emerald-500/20'
                       : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
-                  }`}
+                    }`}
                 >
                   {isSaving ? (
                     <>
@@ -257,53 +255,53 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             ) : (
               <>
                 {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm shadow-black/5 flex items-center justify-center mr-1"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-600" />
-              )}
-            </button>
-
-            {/* Desktop-only auth buttons / Profile dropdown */}
-            <div className="hidden md:flex items-center gap-4">
-              {currentUser ? (
-                <ProfileDropdown isMobile={false} />
-              ) : (
                 <button
-                  onClick={() => onOpenAuth('login')}
-                  className="relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm text-white !text-white overflow-hidden group cursor-pointer shadow-md"
+                  onClick={toggleTheme}
+                  className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm shadow-black/5 flex items-center justify-center mr-1"
+                  aria-label="Toggle theme"
                 >
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-cyan-500" />
-                  <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <span className="relative flex items-center gap-2 z-10 text-white !text-white">
-                    Login
-                  </span>
-                  <span className="absolute -inset-px rounded-xl border border-white/20 pointer-events-none" />
+                  {theme === 'dark' ? (
+                    <Sun className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-indigo-600" />
+                  )}
                 </button>
-              )}
-            </div>
 
-            {/* Mobile Profile Trigger (Only outside system dashboard paths to avoid duplication with BottomNavbar!) */}
-            {currentUser && !['/dashboard', '/manage-qr', '/scan-qr'].includes(location.pathname) && (
-              <div className="md:hidden flex items-center mr-1">
-                <ProfileDropdown isMobile={true} />
-              </div>
-            )}
+                {/* Desktop-only auth buttons / Profile dropdown */}
+                <div className="hidden md:flex items-center gap-4">
+                  {currentUser ? (
+                    <ProfileDropdown isMobile={false} />
+                  ) : (
+                    <button
+                      onClick={() => onOpenAuth('login')}
+                      className="relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm text-white !text-white overflow-hidden group cursor-pointer shadow-md"
+                    >
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-cyan-500" />
+                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <span className="relative flex items-center gap-2 z-10 text-white !text-white">
+                        Login
+                      </span>
+                      <span className="absolute -inset-px rounded-xl border border-white/20 pointer-events-none" />
+                    </button>
+                  )}
+                </div>
 
-            {/* Mobile Hamburger Button (Only outside system dashboard paths) */}
-            {!['/dashboard', '/manage-qr', '/scan-qr'].includes(location.pathname) && (
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            )}
+                {/* Mobile Profile Trigger (Only outside system dashboard paths to avoid duplication with BottomNavbar!) */}
+                {currentUser && !['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(location.pathname) && (
+                  <div className="md:hidden flex items-center mr-1">
+                    <ProfileDropdown isMobile={true} />
+                  </div>
+                )}
+
+                {/* Mobile Hamburger Button (Only outside system dashboard paths) */}
+                {!['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(location.pathname) && (
+                  <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -337,7 +335,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                   {link.name}
                 </a>
               ))}
-              
+
               {!currentUser && (
                 <>
                   <div className="h-px bg-slate-200/50 dark:bg-white/5 my-2" />

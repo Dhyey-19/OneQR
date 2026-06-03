@@ -36,6 +36,10 @@ const OneQrSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    qrScanCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

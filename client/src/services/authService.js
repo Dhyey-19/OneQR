@@ -100,6 +100,32 @@ export const authService = {
   },
 
   /**
+   * Updates user account profile details (email, password)
+   * @param {Object} data 
+   * @param {string} [data.email] 
+   * @param {string} [data.password] 
+   * @returns {Promise<Object>} containing updated user details
+   */
+  async updateProfile(data) {
+    const responseData = await apiRequest('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+
+    if (responseData.status === 'success' && responseData.data?.user) {
+      const userProfile = responseData.data.user;
+      localStorage.setItem('oneqr_current_user', JSON.stringify(userProfile));
+      
+      // Notify other modules of session changes
+      window.dispatchEvent(new Event('auth-state-change'));
+      
+      return userProfile;
+    }
+
+    throw new Error(responseData.message || 'Unable to update user profile.');
+  },
+
+  /**
    * Checks if user has a valid stored token session
    * @returns {boolean}
    */

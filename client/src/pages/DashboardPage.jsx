@@ -11,6 +11,8 @@ import OverviewTab from '../components/dashboard/OverviewTab';
 import QrScanTab from '../components/dashboard/QrScanTab';
 import ManageQrTab from '../components/dashboard/ManageQrTab';
 import FeedbacksTab from '../components/dashboard/FeedbacksTab';
+import ProfileTab from '../components/dashboard/ProfileTab';
+import PlansTab from '../components/dashboard/PlansTab';
 import MockPaymentModal from '../components/dashboard/MockPaymentModal';
 import SuccessModal from '../components/dashboard/SuccessModal';
 import ClaimQrModal from '../components/dashboard/ClaimQrModal';
@@ -358,6 +360,10 @@ export default function DashboardPage({ subViewProp }) {
       setTimeout(() => setSubView('qr-scan'), 0);
     } else if (subViewProp === 'feedbacks') {
       setTimeout(() => setSubView('feedbacks'), 0);
+    } else if (subViewProp === 'profile') {
+      setTimeout(() => setSubView('profile'), 0);
+    } else if (subViewProp === 'plans') {
+      setTimeout(() => setSubView('plans'), 0);
     } else {
       setTimeout(() => setSubView('overview'), 0);
     }
@@ -602,7 +608,7 @@ export default function DashboardPage({ subViewProp }) {
 
   return (
     <div className="min-h-screen bg-transparent pt-28 pb-28 md:pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900 dark:text-white transition-colors duration-300">
-      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+      <div className="max-w-7xl mx-auto space-y-8 relative">
         {subView === 'overview' && (
           <OverviewTab 
             isLoadingProfiles={isLoadingProfiles}
@@ -625,6 +631,18 @@ export default function DashboardPage({ subViewProp }) {
 
         {subView === 'feedbacks' && (
           <FeedbacksTab />
+        )}
+
+        {subView === 'profile' && (
+          <ProfileTab profiles={profiles} />
+        )}
+
+        {subView === 'plans' && (
+          <PlansTab 
+            onUpgrade={handleUpgrade}
+            isPaymentLoading={isPaymentLoading}
+            currentUser={currentUser}
+          />
         )}
 
         {subView === 'manage-qr' && (

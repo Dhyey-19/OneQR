@@ -124,9 +124,17 @@ exports.getProfile = async (req, res, next) => {
       });
     }
 
+    const profileObj = profile.toObject();
+    if (profile.qrId) {
+      const qr = await OneQr.findOne({ qrId: profile.qrId });
+      profileObj.qrScanCount = qr ? (qr.qrScanCount || 0) : 0;
+    } else {
+      profileObj.qrScanCount = 0;
+    }
+
     res.json({
       status: "success",
-      data: { profile },
+      data: { profile: profileObj },
     });
   } catch (error) {
     next(error);
@@ -187,10 +195,18 @@ exports.updateProfile = async (req, res, next) => {
       { upsert: true, new: true, runValidators: true }
     );
 
+    const profileObj = profile.toObject();
+    if (profile.qrId) {
+      const qr = await OneQr.findOne({ qrId: profile.qrId });
+      profileObj.qrScanCount = qr ? (qr.qrScanCount || 0) : 0;
+    } else {
+      profileObj.qrScanCount = 0;
+    }
+
     res.json({
       status: "success",
       message: "Profile saved successfully",
-      data: { profile },
+      data: { profile: profileObj },
     });
   } catch (error) {
     next(error);
@@ -288,8 +304,6 @@ exports.getPublicProfile = async (req, res, next) => {
         });
       }
 
-
-
       // Check if plan is active (if not on free plan)
       if (qr.plan && qr.plan !== 'free' && qr.subscriptionStatus !== 'active') {
         return res.json({
@@ -297,6 +311,10 @@ exports.getPublicProfile = async (req, res, next) => {
           message: "This QR Code's premium subscription is expired or inactive.",
         });
       }
+      
+      // Increment qrScanCount
+      qr.qrScanCount = (qr.qrScanCount || 0) + 1;
+      await qr.save();
       
       // If assigned, find the profile linked to this user and QR ID
       let profile = await Profile.findOne({ user: qr.assignedTo, qrId: requestedSlug }).populate("selectedFeedbacks");
@@ -310,15 +328,24 @@ exports.getPublicProfile = async (req, res, next) => {
       
       if (profile) {
         if (requestedSlug === qr.qrId && profile.slug && profile.slug !== requestedSlug) {
+          // Client will navigate to the profile slug and query the public endpoint again.
+          // The direct slug query will increment the profileViewCount, so we just redirect now.
           return res.json({
             status: "redirect",
             slug: profile.slug,
           });
         }
 
+        // Direct scan without redirect (e.g. slug is the same as qrId or not set)
+        profile.profileViewCount = (profile.profileViewCount || 0) + 1;
+        await profile.save();
+
+        const profileObj = profile.toObject();
+        profileObj.qrScanCount = qr.qrScanCount;
+
         return res.json({
           status: "success",
-          data: { profile },
+          data: { profile: profileObj },
         });
       }
     }
@@ -346,9 +373,21 @@ exports.getPublicProfile = async (req, res, next) => {
       });
     }
 
+    // Increment profileViewCount
+    profile.profileViewCount = (profile.profileViewCount || 0) + 1;
+    await profile.save();
+
+    const profileObj = profile.toObject();
+    if (profile.qrId) {
+      const relatedQr = await OneQr.findOne({ qrId: profile.qrId });
+      profileObj.qrScanCount = relatedQr ? (relatedQr.qrScanCount || 0) : 0;
+    } else {
+      profileObj.qrScanCount = 0;
+    }
+
     res.json({
       status: "success",
-      data: { profile },
+      data: { profile: profileObj },
     });
   } catch (error) {
     next(error);
@@ -538,9 +577,22 @@ exports.getAllProfiles = async (req, res, next) => {
       ]
     });
     
+    const profilesWithQrScans = await Promise.all(
+      profiles.map(async (profile) => {
+        const profileObj = profile.toObject();
+        if (profile.qrId) {
+          const qr = await OneQr.findOne({ qrId: profile.qrId });
+          profileObj.qrScanCount = qr ? (qr.qrScanCount || 0) : 0;
+        } else {
+          profileObj.qrScanCount = 0;
+        }
+        return profileObj;
+      })
+    );
+    
     res.json({
       status: "success",
-      data: { profiles },
+      data: { profiles: profilesWithQrScans },
     });
   } catch (error) {
     next(error);

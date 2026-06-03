@@ -230,9 +230,9 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
 
                   <h3 className="font-bold text-slate-900 dark:text-white mt-4">2. Plan Validity</h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>All OneQR plans are valid for <strong className="text-slate-900 dark:text-white">1 year from the purchase date</strong>.</li>
-                    <li>During this period, you will receive access to the purchased features and standard support.</li>
-                    <li>After 1 year, continued service, support, renewals, or upgrades may require additional charges.</li>
+                    <li>All OneQR plans come with <strong className="text-slate-900 dark:text-white">Lifetime validity</strong>.</li>
+                    <li>You will receive continuous access to the purchased features and standard support.</li>
+                    <li>No renewal fees or recurring charges apply for the features included in the plan.</li>
                   </ul>
 
                   <h3 className="font-bold text-slate-900 dark:text-white mt-4">3. No Refund Policy</h3>

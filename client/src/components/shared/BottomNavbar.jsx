@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, CreditCard, Scan, User, LogOut } from 'lucide-react';
+import { Home, MessageSquare, Scan, User, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { authService } from '../../services/authService';
 
 export default function BottomNavbar() {
   const location = useLocation();
@@ -18,24 +17,21 @@ export default function BottomNavbar() {
   }, []);
 
   // Show bottom navbar only if logged in and on system routes (excluding landing)
-  const systemRoutes = ['/dashboard', '/manage-qr', '/scan-qr'];
+  const systemRoutes = ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'];
   const showNavbar = isLoggedIn && systemRoutes.includes(location.pathname);
 
   if (!showNavbar) return null;
 
   const tabs = [
     { name: 'Home', path: '/dashboard', icon: Home },
-    { name: 'Scan', path: '/scan-qr', icon: Scan, isFab: true },
-    { name: 'Logout', path: 'logout', icon: LogOut },
+    { name: 'Scan', path: '/scan-qr', icon: Scan },
+    { name: 'Feedback', path: '/feedbacks', icon: MessageSquare },
+    { name: 'Plans', path: '/plans', icon: CreditCard },
+    { name: 'Profile', path: '/profile', icon: User },
   ];
 
   const handleTabClick = (tab) => {
-    if (tab.path === 'logout') {
-      authService.logout();
-      navigate('/');
-    } else {
-      navigate(tab.path);
-    }
+    navigate(tab.path);
   };
 
   return (
@@ -44,31 +40,13 @@ export default function BottomNavbar() {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 100, opacity: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="md:hidden fixed bottom-4 left-4 right-4 z-50"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe"
     >
-      {/* Floating pill navigation container with glassmorphic style */}
-      <div className="relative h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 rounded-2xl shadow-2xl flex items-center justify-around px-2">
+      {/* Navigation container docked directly to bottom of viewport */}
+      <div className="h-16 flex items-center justify-around px-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = location.pathname === tab.path;
-
-          if (tab.isFab) {
-            return (
-              <div key={tab.name} className="relative -mt-6">
-                {/* Glowing ring animation behind FAB */}
-                <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-md animate-pulse -z-10 scale-110" />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleTabClick(tab)}
-                  className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-650 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 ring-4 ring-white dark:ring-slate-950 cursor-pointer"
-                  aria-label="Scan QR Code"
-                >
-                  <Icon className="w-6 h-6 text-white" />
-                </motion.button>
-              </div>
-            );
-          }
 
           return (
             <motion.button

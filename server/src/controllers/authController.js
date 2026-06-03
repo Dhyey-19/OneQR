@@ -1,5 +1,6 @@
 const authService = require("../services/authService");
 const { UserResponseDto } = require("../dtos/userDto");
+const User = require("../models/User");
 
 /**
  * @desc    Register a new user
@@ -78,6 +79,72 @@ exports.getProfile = async (req, res) => {
     return res.status(error.status || 500).json({
       status: "error",
       message: error.message || "Server error occurred while fetching user profile.",
+    });
+  }
+};
+
+/**
+ * @desc    Update currently logged-in user profile details (email, password)
+ * @route   PUT /api/auth/profile
+ * @access  Private
+ */
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    const user = req.user; // Attached by protect middleware
+
+    if (phone !== undefined) {
+      const cleanPhone = phone.trim();
+      if (!cleanPhone) {
+        return res.status(400).json({
+          status: "error",
+          message: "Phone number is required.",
+        });
+      }
+      if (cleanPhone.length < 8) {
+        return res.status(400).json({
+          status: "error",
+          message: "Phone number must be at least 8 digits.",
+        });
+      }
+      
+      // Check if phone number is already registered by someone else
+      if (cleanPhone !== user.phone) {
+        const existingUser = await User.findOne({ phone: cleanPhone });
+        if (existingUser) {
+          return res.status(400).json({
+            status: "error",
+            message: "An account with this mobile number already exists.",
+          });
+        }
+        user.phone = cleanPhone;
+      }
+    }
+
+    if (email !== undefined) {
+      user.email = email ? email.trim() : null;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Profile updated successfully.",
+      data: {
+        user: UserResponseDto.transform(user),
+      },
+    });
+  } catch (error) {
+    console.error("Update Profile error:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        status: "error",
+        message: "An account with this email already exists.",
+      });
+    }
+    return res.status(500).json({
+      status: "error",
+      message: error.message || "Server error occurred while updating user profile.",
     });
   }
 };

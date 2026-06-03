@@ -91,27 +91,32 @@ export default function App() {
       const currentPath = window.location.pathname;
       
       const isSystemPath = currentPath === '/' || currentPath === '/index.html' || 
-                            ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks'].includes(currentPath);
+                            ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(currentPath);
 
       if (!isSystemPath) return;
 
       if (!isLoggedIn) {
-        navigate('/');
+        if (currentPath !== '/' && currentPath !== '/index.html') {
+          navigate('/');
+        }
       } else {
         const pendingPlan = localStorage.getItem('pending_plan_checkout');
         if (pendingPlan) {
           navigate('/dashboard');
         } else {
           // If we are already on a dashboard path, don't force redirect to main dashboard
-          if (!['/dashboard', '/manage-qr', '/scan-qr'].includes(currentPath)) {
+          if (!['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(currentPath)) {
             navigate('/dashboard');
           }
         }
       }
     };
+
+    handleAuthChange();
+
     window.addEventListener('auth-state-change', handleAuthChange);
     return () => window.removeEventListener('auth-state-change', handleAuthChange);
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   // Guarantee instant scroll-to-top whenever the primary path switches!
   useEffect(() => {
@@ -128,6 +133,12 @@ export default function App() {
       navigate('/dashboard');
     } else if (view === 'scan-qr') {
       navigate('/scan-qr');
+    } else if (view === 'feedbacks') {
+      navigate('/feedbacks');
+    } else if (view === 'profile') {
+      navigate('/profile');
+    } else if (view === 'plans') {
+      navigate('/plans');
     } else {
       navigate('/');
     }
@@ -144,7 +155,7 @@ export default function App() {
   };
 
   // Check if current route is a system path or not
-  const systemPaths = ['/', '/dashboard', '/manage-qr', '/scan-qr', '/feedbacks'];
+  const systemPaths = ['/', '/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'];
   const isSlugPath = !systemPaths.includes(location.pathname) && location.pathname !== '/index.html';
 
   if (isSlugPath) {
@@ -181,6 +192,16 @@ export default function App() {
         <Route path="/feedbacks" element={
           <ProtectedRoute>
             <DashboardPage subViewProp="feedbacks" />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="profile" />
+          </ProtectedRoute>
+        } />
+        <Route path="/plans" element={
+          <ProtectedRoute>
+            <DashboardPage subViewProp="plans" />
           </ProtectedRoute>
         } />
         

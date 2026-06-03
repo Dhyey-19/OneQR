@@ -21,6 +21,7 @@ router.post("/contact", contactController.sendContactEmail);
 router.post("/auth/signup", validate(UserSignupDto), authController.signup);
 router.post("/auth/login", validate(UserLoginDto), authController.login);
 router.get("/auth/me", protect, authController.getProfile);
+router.put("/auth/profile", protect, authController.updateUserProfile);
 
 // Profile & QR management routes
 const profileRoutes = require("./profileRoutes");

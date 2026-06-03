@@ -1,16 +1,19 @@
 import { useNavigate } from 'react-router-dom';
-import { QrCode, Sparkles, Scan, FileText, Check } from 'lucide-react';
+import { QrCode } from 'lucide-react';
 import AllocatedQrCard from './AllocatedQrCard';
 
 export default function OverviewTab({ isLoadingProfiles, profiles = [], onManageProfile, onConnectStandy, currentUser }) {
   const navigate = useNavigate();
 
-  // Mock telemetry data
+  const totalScans = profiles.reduce((acc, curr) => acc + (curr.qrScanCount || 0), 0);
+  const totalViews = profiles.reduce((acc, curr) => acc + (curr.profileViewCount || 0), 0);
+
+  // Real-time telemetry data
   const stats = [
-    { name: 'Total QR Scans', value: '1,842', change: '+24% this week', color: 'text-blue-500' },
-    { name: 'Unique Visitors', value: '1,280', change: '+18% this week', color: 'text-cyan-400' },
+    { name: 'Total QR Scans', value: totalScans.toLocaleString(), change: 'Real-time scans', color: 'text-blue-500' },
+    { name: 'Profile Views', value: totalViews.toLocaleString(), change: 'Real-time views', color: 'text-cyan-455' },
     { name: 'vCard Downloads', value: '492', change: '+32% this week', color: 'text-indigo-400' },
-    { name: 'Engagement Rate', value: '82.4%', change: '+5.3% this week', color: 'text-emerald-400' }
+    { name: 'Engagement Rate', value: totalViews > 0 ? `${Math.min(100, Math.round((totalScans / totalViews) * 100))}%` : '0%', change: 'Scans / Views', color: 'text-emerald-450' }
   ];
 
   const formatDate = (dateString) => {
@@ -28,34 +31,7 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Welcome Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1 md:p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            </span>
-            <span className="text-[10px] md:text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Workspace Dashboard</span>
-          </div>
-          <h1 className="text-lg md:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 md:mt-2">
-            Welcome back!
-          </h1>
-          <p className="hidden md:block text-slate-650 dark:text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
-            Monitor scans, check connected hardware devices, and manage your dynamic OneQR profiles.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => {
-              navigate('/scan-qr');
-            }}
-            className="hidden md:flex px-4 py-2.5 rounded-xl bg-[#2563eb] text-white font-bold text-xs hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-blue-500/20 transition-all border border-transparent dark:border-white/10 items-center gap-2 cursor-pointer shadow-md"
-          >
-            <Scan className="w-4 h-4" />
-            <span>Scan QR Code</span>
-          </button>
-        </div>
-      </div>
+
 
       {/* Core Stats Overview */}
       <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pb-3 md:pb-0 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-none">
@@ -126,75 +102,6 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
                 onConnect={onConnectStandy}
               />
             ))}
-          </div>
-        )}
-      </div>
-
-      {/* Order & Payment History Section */}
-      <div className="p-4 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
-        
-        <div className="flex items-center gap-2 mb-6">
-          <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-            <FileText className="w-4 h-4" />
-          </span>
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Order & Payment History</h3>
-        </div>
-
-        {!currentUser?.orderHistory || currentUser.orderHistory.length === 0 ? (
-          <div className="text-center py-8 text-slate-550 dark:text-slate-400 text-xs sm:text-sm">
-            No transaction records found. Your plan updates will show up here.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-[11px] sm:text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 font-bold">
-                  <th className="pb-3 pr-4 font-semibold uppercase tracking-wider">Plan Details</th>
-                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Date & Time</th>
-                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Order ID</th>
-                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider">Payment ID</th>
-                  <th className="pb-3 px-4 font-semibold uppercase tracking-wider text-right">Amount</th>
-                  <th className="pb-3 pl-4 font-semibold uppercase tracking-wider text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-white/5 text-slate-700 dark:text-slate-350 font-medium">
-                {currentUser.orderHistory.slice().reverse().map((order, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                    <td className="py-3.5 pr-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 dark:text-white">{order.planName}</span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize">{order.planId?.replace('_', ' ')}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {formatDate(order.paidAt)}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[10px] text-slate-500 dark:text-slate-400">
-                      {order.orderId || 'N/A'}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[10px] text-slate-500 dark:text-slate-400">
-                      {order.paymentId || 'N/A'}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white">
-                      ₹{(() => {
-                        const pid = (order.planId || '').toLowerCase();
-                        if (pid.includes('basic')) return '999.00';
-                        if (pid.includes('premium')) return '1,999.00';
-                        if (pid.includes('enterprise')) return '4,999.00';
-                        if (pid.includes('free')) return '0.00';
-                        return order.amount ? Number(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00';
-                      })()}
-                    </td>
-                    <td className="py-3.5 pl-4 text-center whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                        <Check className="w-3 h-3" />
-                        Paid
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
       </div>

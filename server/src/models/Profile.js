@@ -34,6 +34,10 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    profileViewCount: {
+      type: Number,
+      default: 0,
+    },
 
     profileLogo: {
       type: String,
