@@ -1,7 +1,7 @@
 module.exports = {
-  NODE_ENV: process.env.NODE_ENV || "development",
-  PORT: process.env.PORT || 5000,
-  CORS_ORIGIN: process.env.CORS_ORIGIN || "http://localhost:5173",
+  NODE_ENV: process.env.NODE_ENV ,
+  PORT: process.env.PORT ,
+  CORS_ORIGIN: process.env.CORS_ORIGIN ,
   DB_URL: process.env.DB_URL || "",
   API_VERSION: process.env.API_VERSION || "v1",
   JWT_SECRET: process.env.JWT_SECRET || "one_qr_secret_key_change_me_in_prod",
@@ -11,7 +11,7 @@ module.exports = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || "",
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || "",
-  QR_URL_PREFIX: process.env.QR_URL_PREFIX || "https://oneqr.dtechcode.in",
+  QR_URL_PREFIX: process.env.QR_URL_PREFIX ,
 };
 
 
