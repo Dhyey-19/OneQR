@@ -4,16 +4,18 @@ import { motion, Reorder, AnimatePresence, useDragControls } from 'framer-motion
 import { 
   QrCode, Smartphone, Sparkles, Link2, User, UserPlus,
   Mail, Globe, Phone, Download, Check, RefreshCw, 
-  MapPin, Plus, Trash2, ArrowUpRight, ChevronDown, Edit2,
+  Plus, Trash2, ArrowUpRight, ChevronDown, Edit2,
   Clock, Copy, X, Building, CreditCard, Star, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   FaFacebook, FaInstagram, FaYoutube, 
   FaLinkedin, FaTwitter, FaGoogle, FaWhatsapp 
 } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import FilePreview from './FilePreview';
 import { downloadFlyer } from '../../utils/flyerDownloader';
 import { apiRequest } from '../../services/apiService';
+
 
 const formatTimings = (timingsStr) => {
   if (!timingsStr || typeof timingsStr !== 'string') return timingsStr || '';
@@ -534,7 +536,7 @@ export default function ManageQrTab({
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Google Map URL</label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <img src="/assets/google_maps.png" alt="Google Maps" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 object-contain" />
                     <input 
                       type="url"
                       value={profileMapUrl}
@@ -1211,7 +1213,7 @@ export default function ManageQrTab({
                       {profileAddress && (
                         <div className={`w-full py-2 px-3 rounded-xl flex flex-col gap-2 text-[9px] leading-normal ${activeTheme.itemBg} ${activeTheme.text}`}>
                           <div className="flex items-start gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                            <img src="/assets/google_maps.png" alt="Google Maps" className="w-3.5 h-3.5 shrink-0 mt-0.5 object-contain" />
                             <span className="text-left whitespace-pre-line truncate max-w-[200px]">{profileAddress}</span>
                           </div>
                           {profileMapUrl && profileMapUrl.trim() !== '' && (
@@ -1221,7 +1223,7 @@ export default function ManageQrTab({
                               rel="noopener noreferrer"
                               className="w-full py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 text-[8px] font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
                             >
-                              <MapPin className="w-2.5 h-2.5" />
+                              <img src="/assets/google_maps.png" alt="Google Maps" className="w-2.5 h-2.5 object-contain" />
                               <span>View on Google Map</span>
                             </a>
                           )}
@@ -1301,7 +1303,7 @@ export default function ManageQrTab({
                           {socialOrder.map(key => {
                             const platforms = {
                               facebook: { icon: FaFacebook, color: 'text-blue-500', label: 'Facebook', value: socialFacebook },
-                              google: { icon: Star, color: 'text-[#fbbc05] fill-[#fbbc05]', label: 'Google Review', value: socialGoogle },
+                              google: { icon: FcGoogle, color: '', label: 'Google Review', value: socialGoogle },
                               instagram: { icon: FaInstagram, color: 'text-pink-500', label: 'Instagram', value: socialInstagram },
                               youtube: { icon: FaYoutube, color: 'text-rose-500', label: 'YouTube', value: socialYoutube },
                               linkedin: { icon: FaLinkedin, color: 'text-blue-400', label: 'LinkedIn', value: socialLinkedin },

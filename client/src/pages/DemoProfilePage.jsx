@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Smartphone, MapPin, Mail, Phone, Globe, Link2, 
+  Smartphone, Mail, Phone, Globe, Link2, 
   ArrowUpRight, ShieldAlert, ArrowLeft, UserPlus, Download,
   Copy, X, Check, Clock, Star, RefreshCw, Share2,
   Building, User, CreditCard, ChevronLeft, ChevronRight
@@ -11,8 +11,10 @@ import {
   FaLinkedin, FaTwitter, FaGoogle,
   FaWhatsapp, FaMoneyBillWave
 } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { apiRequest } from '../services/apiService';
+
 
 const formatTimings = (timingsStr) => {
   if (!timingsStr || typeof timingsStr !== 'string') return timingsStr || '';
@@ -566,7 +568,7 @@ export default function DemoProfilePage() {
             {profileData.profileAddress && (
               <div className={`w-full py-4 px-5 rounded-2xl flex flex-col gap-3.5 text-sm leading-relaxed ${activeTheme.itemBg} ${activeTheme.text}`}>
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                  <img src="/assets/google_maps.png" alt="Google Maps" className="w-5 h-5 shrink-0 mt-0.5 object-contain" />
                   <span className="text-left whitespace-pre-line">{profileData.profileAddress}</span>
                 </div>
                 {profileData.profileMapUrl && profileData.profileMapUrl.trim() !== '' && (
@@ -576,7 +578,7 @@ export default function DemoProfilePage() {
                     rel="noopener noreferrer"
                     className="w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all hover:scale-[1.01] shadow-md"
                   >
-                    <MapPin className="w-3.5 h-3.5" />
+                    <img src="/assets/google_maps.png" alt="Google Maps" className="w-3.5 h-3.5 object-contain" />
                     <span>View on Google Map</span>
                   </a>
                 )}
@@ -663,7 +665,7 @@ export default function DemoProfilePage() {
                 {(profileData.socialOrder || ['whatsapp', 'facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'upi']).map(key => {
                   const platforms = {
                     facebook: { icon: FaFacebook, color: 'text-blue-500', label: 'Facebook', value: profileData.socialFacebook },
-                    google: { icon: Star, color: 'text-[#fbbc05] fill-[#fbbc05]', label: 'Google Review', value: profileData.socialGoogle },
+                    google: { icon: FcGoogle, color: '', label: 'Google Review', value: profileData.socialGoogle },
                     instagram: { icon: FaInstagram, color: 'text-pink-500', label: 'Instagram', value: profileData.socialInstagram },
                     youtube: { icon: FaYoutube, color: 'text-rose-500', label: 'YouTube', value: profileData.socialYoutube },
                     linkedin: { icon: FaLinkedin, color: 'text-blue-400', label: 'LinkedIn', value: profileData.socialLinkedin },
