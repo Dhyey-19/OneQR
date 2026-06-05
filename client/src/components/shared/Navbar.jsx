@@ -188,7 +188,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/45 transition-all duration-300">
               <Layers className="w-5 h-5 text-white" />
             </div>
-            <span className="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400">
+            <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
               One<span className="text-blue-500">QR</span>
             </span>
           </a>

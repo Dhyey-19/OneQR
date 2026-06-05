@@ -100,7 +100,7 @@ export default function ProfileTab({ profiles = [] }) {
         <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-blue-550/20 mx-auto border-2 border-white/20 dark:border-white/10">
           OQ
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-650 dark:from-white dark:to-slate-350">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           Account Profile
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -316,7 +316,7 @@ export default function ProfileTab({ profiles = [] }) {
                   <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-500 hover:to-indigo-600 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 border border-white/10 disabled:opacity-50 transition-all cursor-pointer text-center"
+                    className="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 border border-white/10 disabled:opacity-50 transition-all cursor-pointer text-center"
                   >
                     {status === 'loading' ? (
                       <>

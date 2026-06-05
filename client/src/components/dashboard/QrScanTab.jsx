@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scan, RefreshCw, Check, Camera, Link2, Smartphone } from 'lucide-react';
+import { RefreshCw, Check, Camera, Link2, Smartphone } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { apiRequest } from '../../services/apiService';
 
@@ -155,30 +155,14 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-xl mx-auto">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass border border-slate-200 dark:border-white/10 rounded-3xl relative overflow-hidden">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <Scan className="w-4 h-4" />
-            </span>
-            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">QR Code scanner</span>
-          </div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white mt-2">
-            Scan & Activate QR
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-xs mt-1 leading-relaxed">
-            Verify QR assignment status and link it to your dynamic property profiles.
-          </p>
-        </div>
-        <div>
-          <button
-            onClick={() => { navigate('/dashboard'); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:border-slate-350 dark:hover:border-white/20 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-all cursor-pointer shadow-md"
-          >
-            &larr; Back to Dashboard
-          </button>
-        </div>
+      {/* Page Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          Scan and Manage QR
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          Verify QR assignment status and link it to your dynamic property profiles.
+        </p>
       </div>
 
       {/* Scanner Card */}
@@ -243,7 +227,7 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
           {pageScanStatus !== 'loading' && pageScanStatus !== 'success' && (
             <>
               {pageScanTab === 'scan' ? (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="relative w-full aspect-square max-w-[280px] mx-auto overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-black flex items-center justify-center">
                     <div id="page-qr-reader-container" className="w-full h-full" />
                     {pageCameraError && (
@@ -253,9 +237,39 @@ export default function QrScanTab({ onSelectAndManageQr, onRefreshQrs }) {
                       </div>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-550 dark:text-slate-400 text-center leading-relaxed max-w-xs mx-auto">
-                    Allow camera access and point your camera at the OneQR code printed/displayed.
-                  </p>
+                  
+                  {pageCameraError ? (
+                    <div className="p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl text-xs space-y-3 leading-relaxed text-left font-semibold max-w-sm mx-auto">
+                      <strong className="text-slate-700 dark:text-slate-200 font-extrabold block uppercase tracking-wider text-[10px] mb-1.5 text-center">
+                        How to Grant Camera Access:
+                      </strong>
+                      <div className="space-y-2.5 text-slate-600 dark:text-slate-350">
+                        <p className="flex items-start gap-2">
+                          <span className="w-4 h-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 text-[10px] font-black mt-0.5">1</span>
+                          <span>Tap the **lock/settings icon** next to the URL in your browser's address bar.</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <span className="w-4 h-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 text-[10px] font-black mt-0.5">2</span>
+                          <span>Locate the **Camera** option and switch it to **Allow**.</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <span className="w-4 h-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 text-[10px] font-black mt-0.5">3</span>
+                          <span>**Reload** the page to apply settings.</span>
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="w-full mt-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/10 cursor-pointer transition-all active:scale-95 text-center"
+                      >
+                        Reload Page
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-550 dark:text-slate-400 text-center leading-relaxed max-w-xs mx-auto font-semibold">
+                      Allow camera access and point your camera at the OneQR code printed/displayed.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4 text-left">

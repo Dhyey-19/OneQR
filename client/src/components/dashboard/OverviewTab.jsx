@@ -1,19 +1,42 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QrCode } from 'lucide-react';
 import AllocatedQrCard from './AllocatedQrCard';
+import { apiRequest } from '../../services/apiService';
 
 export default function OverviewTab({ isLoadingProfiles, profiles = [], onManageProfile, onConnectStandy, currentUser }) {
   const navigate = useNavigate();
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const response = await apiRequest('/profile/feedbacks');
+        if (response.status === 'success' && response.data?.feedbacks) {
+          setFeedbacks(response.data.feedbacks);
+        }
+      } catch (err) {
+        console.error('Error fetching feedbacks for overview stats:', err);
+      }
+    };
+    fetchFeedbacks();
+  }, []);
 
   const totalScans = profiles.reduce((acc, curr) => acc + (curr.qrScanCount || 0), 0);
   const totalViews = profiles.reduce((acc, curr) => acc + (curr.profileViewCount || 0), 0);
 
+  const totalFeedbacks = feedbacks.length;
+  const averageRating = totalFeedbacks > 0
+    ? (feedbacks.reduce((sum, f) => sum + f.rating, 0) / totalFeedbacks).toFixed(1)
+    : '0.0';
+
   // Real-time telemetry data
   const stats = [
     { name: 'Total QR Scans', value: totalScans.toLocaleString(), change: 'Real-time scans', color: 'text-blue-500' },
-    { name: 'Profile Views', value: totalViews.toLocaleString(), change: 'Real-time views', color: 'text-cyan-455' },
-    { name: 'vCard Downloads', value: '492', change: '+32% this week', color: 'text-indigo-400' },
-    { name: 'Engagement Rate', value: totalViews > 0 ? `${Math.min(100, Math.round((totalScans / totalViews) * 100))}%` : '0%', change: 'Scans / Views', color: 'text-emerald-450' }
+    { name: 'Profile Views', value: totalViews.toLocaleString(), change: 'Real-time views', color: 'text-cyan-500' },
+    { name: 'Average Rating', value: `${averageRating} ★`, change: `${totalFeedbacks} Customer Reviews`, color: 'text-amber-500' },
+    { name: 'Customer Feedbacks', value: totalFeedbacks.toLocaleString(), change: 'Total submissions', color: 'text-indigo-500' },
+    { name: 'Engagement Rate', value: totalViews > 0 ? `${Math.min(100, Math.round((totalScans / totalViews) * 100))}%` : '0%', change: 'Scans / Views', color: 'text-emerald-500' }
   ];
 
   const formatDate = (dateString) => {
@@ -32,9 +55,8 @@ export default function OverviewTab({ isLoadingProfiles, profiles = [], onManage
   return (
     <div className="space-y-6 animate-fade-in">
 
-
       {/* Core Stats Overview */}
-      <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pb-3 md:pb-0 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-none">
+      <div className="flex md:grid md:grid-cols-3 lg:grid-cols-5 overflow-x-auto md:overflow-x-visible pb-3 md:pb-0 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-none">
         {stats.map((stat) => (
           <div key={stat.name} className="min-w-[170px] md:min-w-0 snap-center p-4 md:p-6 glass border border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10 rounded-2xl transition-all shadow-sm dark:shadow-glass flex flex-col justify-between">
             <div>

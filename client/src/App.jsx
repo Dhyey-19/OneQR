@@ -23,13 +23,6 @@ function AppLayout({ children, openAuthModal, handleNavigate }) {
 
   return (
     <div className="relative min-h-screen bg-transparent selection:bg-blue-500/30 selection:text-slate-900 dark:selection:text-white transition-colors duration-300">
-      {/* Structural Global Background Glows */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-[-10vw] w-[45vw] h-[45vw] rounded-full bg-blue-600/5 blur-[120px]" />
-        <div className="absolute top-[35%] left-[-15vw] w-[40vw] h-[40vw] rounded-full bg-cyan-500/5 blur-[100px]" />
-        <div className="absolute bottom-[20%] right-[-10vw] w-[35vw] h-[35vw] rounded-full bg-indigo-600/5 blur-[110px]" />
-      </div>
-
       {/* Structural Sections Container */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar 

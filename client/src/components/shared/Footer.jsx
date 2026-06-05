@@ -48,7 +48,7 @@ export default function Footer() {
               <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-all duration-300">
                 <Layers className="w-4.5 h-4.5 text-white" />
               </div>
-              <span className="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-600 dark:from-white dark:via-slate-100 dark:to-slate-400">
+              <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">
                 One<span className="text-blue-500">QR</span>
               </span>
             </a>
