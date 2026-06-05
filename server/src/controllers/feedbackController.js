@@ -1,5 +1,6 @@
 const Profile = require("../models/Profile");
 const Feedback = require("../models/Feedback");
+const reviewTemplates = require("../utils/reviewTemplates");
 
 /**
  * Public handler to submit private customer feedback for a profile.
@@ -106,18 +107,9 @@ exports.getReviewSuggestions = async (req, res, next) => {
 
     const companyName = (profile && (profile.profileCompany || profile.profileName)) || "this business";
 
-    // 3. Define positive review templates with placeholders
-    const templates = [
-      `Outstanding experience at ${companyName}! The service was top-notch and the staff was extremely friendly and helpful. Highly recommend!`,
-      `Very impressed with the quality and professionalism of ${companyName}. Super fast service and wonderful customer care!`,
-      `Excellent service at ${companyName}. The team went above and beyond to make sure everything was perfect. 10/10 experience!`,
-      `Highly recommend ${companyName}! They are extremely reliable, professional, and provide top-tier services.`,
-      `Such a pleasant experience with ${companyName}. Everything was smooth, efficient, and of great quality. Will definitely visit again!`
-    ];
-
-    // Pick a random template
-    const randomIndex = Math.floor(Math.random() * templates.length);
-    const suggestion = templates[randomIndex];
+    // 3. Pick a random review template and inject the business name
+    const randomIndex = Math.floor(Math.random() * reviewTemplates.length);
+    const suggestion = reviewTemplates[randomIndex].replace(/\{\{name\}\}/g, companyName);
 
     res.json({
       status: "success",
