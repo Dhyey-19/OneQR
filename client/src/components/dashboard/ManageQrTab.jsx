@@ -1060,7 +1060,7 @@ export default function ManageQrTab({
                             <div 
                               key={f._id}
                               onClick={() => handleToggleFeedback(f)}
-                              className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm relative overflow-hidden ${
+                              className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col gap-3 shadow-sm relative overflow-hidden shrink-0 ${
                                 isSelected 
                                   ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400' 
                                   : 'bg-slate-50 dark:bg-[#0c101b]/60 border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10'

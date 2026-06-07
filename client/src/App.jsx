@@ -109,7 +109,7 @@ export default function App() {
 
     window.addEventListener('auth-state-change', handleAuthChange);
     return () => window.removeEventListener('auth-state-change', handleAuthChange);
-  }, [navigate, location.pathname]);
+  }, [navigate]);
 
   // Guarantee instant scroll-to-top whenever the primary path switches!
   useEffect(() => {

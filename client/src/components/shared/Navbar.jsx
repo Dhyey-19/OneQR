@@ -180,7 +180,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             onClick={(e) => {
               if (location.pathname !== '/') {
                 e.preventDefault();
-                navigate('/');
+                navigate({ pathname: '/' });
               }
             }}
             className="flex items-center gap-2 group"
@@ -203,7 +203,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                   onClick={(e) => {
                     if (location.pathname !== '/') {
                       e.preventDefault();
-                      navigate('/' + link.href);
+                      navigate({ pathname: '/', hash: link.href });
                     }
                   }}
                   className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
@@ -327,7 +327,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                     setIsOpen(false);
                     if (location.pathname !== '/') {
                       e.preventDefault();
-                      navigate('/' + link.href);
+                      navigate({ pathname: '/', hash: link.href });
                     }
                   }}
                   className="text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
