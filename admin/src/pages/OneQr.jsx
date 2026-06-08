@@ -8,30 +8,36 @@ import {
   CheckCircle, 
   Link as LinkIcon,
   AlertCircle,
-  Trash2,
   X,
   Edit2,
   Camera,
-  Scan
+  Scan,
+  Layers,
+  Calendar
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
+import JSZip from 'jszip';
 import { apiRequest } from '../services/apiService';
 
 export default function OneQr() {
   const [qrs, setQrs] = useState([]);
   const [users, setUsers] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [generateModalOpen, setGenerateModalOpen] = useState(false);
+  const [generateQuantity, setGenerateQuantity] = useState(10);
+  const [generateQrType, setGenerateQrType] = useState('4x6');
   const [activeQrSearchId, setActiveQrSearchId] = useState(null);
   const [editingQrId, setEditingQrId] = useState(null);
   const [activeTab, setActiveTab] = useState('inactive');
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [qrToDelete, setQrToDelete] = useState(null);
-  const [confirmInputText, setConfirmInputText] = useState('');
+  const [selectedBatchFilter, setSelectedBatchFilter] = useState('');
+  const [downloadLoading, setDownloadLoading] = useState({});
+  const [downloadProgress, setDownloadProgress] = useState({});
   
   // Track selected user for each unassigned QR code: { [qrId]: userId }
   const [selectedUserForQr, setSelectedUserForQr] = useState({});
@@ -60,6 +66,7 @@ export default function OneQr() {
     try {
       const qrsRes = await apiRequest('/admin/qrs');
       const usersRes = await apiRequest('/admin/users');
+      const batchesRes = await apiRequest('/admin/batches');
 
       if (qrsRes.status === 'success') {
         setQrs(qrsRes.data);
@@ -76,6 +83,9 @@ export default function OneQr() {
       }
       if (usersRes.status === 'success') {
         setUsers(usersRes.data);
+      }
+      if (batchesRes.status === 'success') {
+        setBatches(batchesRes.data);
       }
     } catch (err) {
       setError(err.message || 'Failed to fetch QR codes.');
@@ -280,16 +290,20 @@ export default function OneQr() {
     }
   }, [scanModalOpen, scanTab, modalScanStatus]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (quantityVal, qrTypeVal) => {
     setGenerating(true);
     setError('');
     setSuccess('');
+    const qty = parseInt(quantityVal) || 1;
+    const type = qrTypeVal || '4x6';
     try {
       const res = await apiRequest('/admin/qrs/generate', {
         method: 'POST',
+        body: JSON.stringify({ quantity: qty, qrType: type })
       });
       if (res.status === 'success') {
-        setSuccess('Successfully generated a new unique QR code!');
+        setSuccess(`Successfully generated ${qty} new unique QR code(s) in batch ${res.data?.batch?.batchId || ''}!`);
+        setGenerateModalOpen(false);
         fetchData();
       }
     } catch (err) {
@@ -305,13 +319,39 @@ export default function OneQr() {
       const cleanPrefix = qrUrlPrefix.endsWith('/') ? qrUrlPrefix : `${qrUrlPrefix}/`;
       const finalQrUrl = `${cleanPrefix}${qrId}`;
 
+      // Find QR in state to check its batch template type
+      const matchedQr = qrs.find(q => q.qrId === qrId);
+      const qrType = (matchedQr && matchedQr.batchId && matchedQr.batchId.qrType) || '4x6';
+
+      // Set coordinates & template according to QR type
+      let templateSrc = '/All In One 6x4.png';
+      let canvasWidth = 1024;
+      let canvasHeight = 1536;
+      let qx = 340;
+      let qy = 700;
+      let qSize = 343;
+      let radius = 24;
+
+      if (qrType === '4x4') {
+        templateSrc = '/All In One 4x4.png';
+        canvasWidth = 1254;
+        canvasHeight = 1254;
+        const cx = 628;
+        const cy = 761.5;
+        const qrSize = 430;
+        qx = cx - qrSize / 2;
+        qy = cy - qrSize / 2;
+        qSize = qrSize;
+        radius = 26;
+      }
+
       // 1. Fetch QR Code Image
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(finalQrUrl)}`;
       
       // Load both images using Promises
       const loadBackground = new Promise((resolve, reject) => {
         const img = new Image();
-        img.src = '/All In One 4x4.png';
+        img.src = templateSrc;
         img.onload = () => resolve(img);
         img.onerror = () => reject(new Error('Failed to load background template.'));
       });
@@ -326,41 +366,30 @@ export default function OneQr() {
 
       const [bgImg, qrImg] = await Promise.all([loadBackground, loadQr]);
 
-      // 2. Create Canvas matching the background image size (1254x1254)
+      // 2. Create Canvas matching the template dimensions
       const canvas = document.createElement('canvas');
-      canvas.width = bgImg.width || 1254;
-      canvas.height = bgImg.height || 1254;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
       const ctx = canvas.getContext('2d');
 
       // 3. Draw Background
       ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
       // 4. Draw QR Code in the centered box with rounded corners and padding
-      // Box coordinates inside newly updated All In One 4x4.png (1254x1254):
-      // Left/Right: 383 to 873 (center = 628, width = 490)
-      // Top/Bottom: 522 to 1001 (center = 761.5, height = 479)
-      const cx = 628;
-      const cy = 761.5;
-      const qrSize = 430; // 430x430 fits perfectly in the center with beautiful balanced padding
-      const radius = 26; // Sleek modern rounded corners for the QR code
-      
-      const qx = cx - qrSize / 2;
-      const qy = cy - qrSize / 2;
-
       ctx.save();
       ctx.beginPath();
       if (ctx.roundRect) {
-        ctx.roundRect(qx, qy, qrSize, qrSize, radius);
+        ctx.roundRect(qx, qy, qSize, qSize, radius);
       } else {
         ctx.moveTo(qx + radius, qy);
-        ctx.arcTo(qx + qrSize, qy, qx + qrSize, qy + qrSize, radius);
-        ctx.arcTo(qx + qrSize, qy + qrSize, qx, qy + qrSize, radius);
-        ctx.arcTo(qx, qy + qrSize, qx, qy, radius);
-        ctx.arcTo(qx, qy, qx + qrSize, qy, radius);
+        ctx.arcTo(qx + qSize, qy, qx + qSize, qy + qSize, radius);
+        ctx.arcTo(qx + qSize, qy + qSize, qx, qy + qSize, radius);
+        ctx.arcTo(qx, qy + qSize, qx, qy, radius);
+        ctx.arcTo(qx, qy, qx + qSize, qy, radius);
       }
       ctx.closePath();
       ctx.clip();
-      ctx.drawImage(qrImg, qx, qy, qrSize, qrSize);
+      ctx.drawImage(qrImg, qx, qy, qSize, qSize);
       ctx.restore();
 
       // 5. Trigger download of the merged image
@@ -419,31 +448,162 @@ export default function OneQr() {
     }
   };
 
-  const startDeleteQr = (id, qrId) => {
-    setQrToDelete({ id, qrId });
-    setConfirmInputText('');
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDeletion = async () => {
-    if (!qrToDelete) return;
-    if (confirmInputText !== 'DELETE') return;
-    
-    const { id, qrId } = qrToDelete;
-    setDeleteModalOpen(false);
-    
+  const handleStatusChange = async (batchObjectId, newStatus) => {
     setError('');
     setSuccess('');
     try {
-      const res = await apiRequest(`/admin/qrs/${id}`, {
-        method: 'DELETE',
+      const res = await apiRequest(`/admin/batches/${batchObjectId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus }),
       });
       if (res.status === 'success') {
-        setSuccess(`QR code "${qrId}" deleted successfully.`);
-        fetchData();
+        setSuccess('Batch status updated successfully.');
+        setBatches(prev => prev.map(b => b._id === batchObjectId ? { ...b, status: newStatus } : b));
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(res.message || 'Failed to update batch status.');
       }
     } catch (err) {
-      setError(err.message || 'Failed to delete QR code.');
+      setError(err.message || 'Failed to update batch status.');
+    }
+  };
+
+  const handleDownloadBatch = async (batchObjectId, batchId, qrCount) => {
+    setError('');
+    setSuccess('');
+    setDownloadLoading(prev => ({ ...prev, [batchObjectId]: true }));
+    setDownloadProgress(prev => ({ ...prev, [batchObjectId]: { current: 0, total: qrCount } }));
+
+    try {
+      const matchedBatch = batches.find(b => b._id === batchObjectId);
+      const qrType = (matchedBatch && matchedBatch.qrType) || '4x6';
+
+      // Set coordinates & template according to QR type
+      let templateSrc = '/All In One 6x4.png';
+      let canvasWidth = 1024;
+      let canvasHeight = 1536;
+      let qx = 340;
+      let qy = 700;
+      let qSize = 343;
+      let radius = 24;
+
+      if (qrType === '4x4') {
+        templateSrc = '/All In One 4x4.png';
+        canvasWidth = 1254;
+        canvasHeight = 1254;
+        const cx = 628;
+        const cy = 761.5;
+        const qrSize = 430;
+        qx = cx - qrSize / 2;
+        qy = cy - qrSize / 2;
+        qSize = qrSize;
+        radius = 26;
+      }
+
+      // 1. Fetch all QR codes in this batch
+      const res = await apiRequest(`/admin/batches/${batchObjectId}/qrs`);
+      if (res.status !== 'success') {
+        throw new Error(res.message || 'Failed to fetch QR codes for batch.');
+      }
+
+      const qrs = res.data || [];
+      if (qrs.length === 0) {
+        throw new Error('This batch has no QR codes to download.');
+      }
+
+      const zip = new JSZip();
+
+      // 2. Load the background template image once
+      const bgImg = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = templateSrc;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load background template.'));
+      });
+
+      const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || 'http://localhost:5000/qr';
+      const cleanPrefix = qrUrlPrefix.endsWith('/') ? qrUrlPrefix : `${qrUrlPrefix}/`;
+
+      // 3. Process each QR sequentially
+      for (let idx = 0; idx < qrs.length; idx++) {
+        const qr = qrs[idx];
+        const finalQrUrl = `${cleanPrefix}${qr.qrId}`;
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(finalQrUrl)}`;
+
+        // Update progress count
+        setDownloadProgress(prev => ({
+          ...prev,
+          [batchObjectId]: { current: idx + 1, total: qrs.length }
+        }));
+
+        try {
+          const qrImg = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; // Avoid tainted canvas
+            img.src = qrApiUrl;
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`Failed to load QR image for ${qr.qrId}`));
+          });
+
+          // Draw on canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+          const ctx = canvas.getContext('2d');
+
+          // Draw Background
+          ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+          // Draw QR Code inside box
+          ctx.save();
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(qx, qy, qSize, qSize, radius);
+          } else {
+            ctx.moveTo(qx + radius, qy);
+            ctx.arcTo(qx + qSize, qy, qx + qSize, qy + qSize, radius);
+            ctx.arcTo(qx + qSize, qy + qSize, qx, qy + qSize, radius);
+            ctx.arcTo(qx, qy + qSize, qx, qy, radius);
+            ctx.arcTo(qx, qy, qx + qSize, qy, radius);
+          }
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(qrImg, qx, qy, qSize, qSize);
+          ctx.restore();
+
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+          if (blob) {
+            zip.file(`oneqr_${qr.qrId}.png`, blob);
+          }
+        } catch (err) {
+          console.error(`Error processing QR ${qr.qrId}:`, err);
+        }
+      }
+
+      // 4. Generate and download ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const downloadUrl = window.URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', `oneqr_batch_${batchId}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSuccess(`Batch ${batchId} downloaded successfully!`);
+      setTimeout(() => setSuccess(''), 3000);
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to download batch QR codes.');
+    } finally {
+      setDownloadLoading(prev => ({ ...prev, [batchObjectId]: false }));
+      setDownloadProgress(prev => {
+        const copy = { ...prev };
+        delete copy[batchObjectId];
+        return copy;
+      });
     }
   };
 
@@ -507,9 +667,13 @@ export default function OneQr() {
 
 
 
-  // Filter QR codes by active/inactive tab and QR ID or target phone number
+  // Filter QR codes by active/inactive tab, batch filter, and QR ID or target phone number
   const filteredQrs = qrs
     .filter(qr => activeTab === 'active' ? !!qr.assignedTo : !qr.assignedTo)
+    .filter(qr => {
+      if (!selectedBatchFilter) return true;
+      return qr.batchId && qr.batchId._id === selectedBatchFilter;
+    })
     .filter(qr => 
       qr.qrId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (qr.assignedTo && qr.assignedTo.phone && qr.assignedTo.phone.includes(searchQuery))
@@ -545,7 +709,10 @@ export default function OneQr() {
           </button>
 
           <button 
-            onClick={handleGenerate} 
+            onClick={() => {
+              setGenerateQuantity(10);
+              setGenerateModalOpen(true);
+            }} 
             className="btn-primary"
             style={{ width: 'auto', padding: '12px 20px', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}
             disabled={generating}
@@ -609,6 +776,175 @@ export default function OneQr() {
         </div>
       </section>
 
+      {/* QR Code Batches Management Section */}
+      <section className="section-card glass-panel" style={{ marginBottom: '32px' }}>
+        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+          <h2 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Layers size={20} color="var(--accent-primary)" />
+            <span>QR Code Batches</span>
+          </h2>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+            Total Batches: {batches.length}
+          </span>
+        </div>
+
+        <div className="table-container" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+          {loading ? (
+            <div className="table-loading">
+              <div className="spinner"></div>
+              <p>Loading batches...</p>
+            </div>
+          ) : batches.length === 0 ? (
+            <div className="table-empty">
+              <p>No batches generated yet. Click "Generate QR Code" to create one.</p>
+            </div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Batch ID</th>
+                  <th>Layout Type</th>
+                  <th>Created At</th>
+                  <th>QR Count</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {batches.map((batch) => {
+                  const isDownloading = downloadLoading[batch._id];
+                  const progress = downloadProgress[batch._id];
+                  
+                  return (
+                    <tr key={batch._id}>
+                      <td data-label="Batch ID">
+                        <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                          {batch.batchId}
+                        </span>
+                      </td>
+                      <td data-label="Layout Type">
+                        <span style={{
+                          fontSize: '0.75rem',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid var(--glass-border)',
+                          fontWeight: '600',
+                          color: 'var(--text-primary)'
+                        }}>
+                          {batch.qrType || '4x6'}
+                        </span>
+                      </td>
+                      <td data-label="Created At" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={14} />
+                          {new Date(batch.createdAt).toLocaleString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </td>
+                      <td data-label="QR Count" style={{ fontWeight: 'bold' }}>
+                        {batch.qrCount}
+                      </td>
+                      <td data-label="Status">
+                        <select
+                          value={batch.status}
+                          onChange={(e) => handleStatusChange(batch._id, e.target.value)}
+                          className="form-input"
+                          style={{
+                            padding: '6px 10px',
+                            margin: 0,
+                            fontSize: '0.85rem',
+                            fontWeight: '600',
+                            borderRadius: '8px',
+                            width: 'auto',
+                            display: 'inline-block',
+                            background: 'var(--input-bg)',
+                            borderColor: 'var(--glass-border)',
+                            color: batch.status === 'ordered' ? 'var(--warning)' : 
+                                   batch.status === 'printed' ? 'var(--accent-secondary)' : 
+                                   batch.status === 'shipped' ? 'var(--accent-primary)' : 'var(--success)'
+                          }}
+                        >
+                          <option value="ordered" style={{ color: 'var(--warning)' }}>Ordered</option>
+                          <option value="printed" style={{ color: 'var(--accent-secondary)' }}>Printed</option>
+                          <option value="shipped" style={{ color: 'var(--accent-primary)' }}>Shipped</option>
+                          <option value="delivered" style={{ color: 'var(--success)' }}>Delivered</option>
+                        </select>
+                      </td>
+                      <td data-label="Actions" style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button
+                          onClick={() => {
+                            if (selectedBatchFilter === batch._id) {
+                              setSelectedBatchFilter('');
+                            } else {
+                              setSelectedBatchFilter(batch._id);
+                            }
+                          }}
+                          className="btn-primary"
+                          style={{
+                            margin: 0,
+                            width: 'auto',
+                            padding: '8px 12px',
+                            background: selectedBatchFilter === batch._id 
+                              ? 'linear-gradient(135deg, var(--accent-primary), #4f46e5)'
+                              : 'rgba(255, 255, 255, 0.05)',
+                            border: selectedBatchFilter === batch._id ? 'none' : '1px solid var(--glass-border)',
+                            color: selectedBatchFilter === batch._id ? '#fff' : 'var(--text-primary)',
+                            fontSize: '0.85rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <span>{selectedBatchFilter === batch._id ? 'Showing QRs' : 'Filter QRs'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownloadBatch(batch._id, batch.batchId, batch.qrCount)}
+                          disabled={isDownloading}
+                          className="btn-primary"
+                          style={{
+                            margin: 0,
+                            width: 'auto',
+                            padding: '8px 12px',
+                            background: isDownloading 
+                              ? 'var(--table-hover)' 
+                              : 'linear-gradient(135deg, var(--accent-secondary), #0ea5e9)',
+                            fontSize: '0.85rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          {isDownloading ? (
+                            <>
+                              <RefreshCw size={14} className="spinner" />
+                              <span style={{ fontSize: '0.75rem' }}>
+                                {progress ? `${progress.current}/${progress.total}` : 'Prep...'}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Download size={14} />
+                              <span>Download</span>
+                            </>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
+
       {/* QR Code Index Directory */}
       <section className="section-card glass-panel">
         <div className="section-header" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
@@ -616,6 +952,32 @@ export default function OneQr() {
             <h2 className="section-title" style={{ margin: 0 }}>QR Code Directory</h2>
 
             <div className="section-header-actions">
+              {/* Batch Filter Dropdown */}
+              <select
+                value={selectedBatchFilter}
+                onChange={(e) => setSelectedBatchFilter(e.target.value)}
+                className="form-input"
+                style={{
+                  padding: '10px 12px',
+                  fontSize: '0.85rem',
+                  width: 'auto',
+                  minWidth: '160px',
+                  borderRadius: '12px',
+                  margin: 0,
+                  background: 'var(--input-bg)',
+                  borderColor: 'var(--glass-border)',
+                  color: 'var(--text-primary)',
+                  fontWeight: '600'
+                }}
+              >
+                <option value="">All Batches</option>
+                {batches.map(batch => (
+                  <option key={batch._id} value={batch._id}>
+                    {batch.batchId} ({batch.qrCount} QRs)
+                  </option>
+                ))}
+              </select>
+
               <div className="input-wrapper">
                 <input
                   type="text"
@@ -734,6 +1096,7 @@ export default function OneQr() {
               <thead>
                 <tr>
                   <th>QR ID</th>
+                  <th>Batch ID</th>
                   <th>Created At</th>
                   <th>Status</th>
                   <th>Plan</th>
@@ -748,6 +1111,15 @@ export default function OneQr() {
                     <tr key={qr._id}>
                       <td data-label="QR ID">
                         <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '0.9rem' }}>{qr.qrId}</span>
+                      </td>
+                      <td data-label="Batch ID">
+                        {qr.batchId ? (
+                          <span style={{ fontSize: '0.85rem', color: 'var(--accent-secondary)', fontWeight: '600' }}>
+                            {qr.batchId.batchId}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>-</span>
+                        )}
                       </td>
                       <td data-label="Created At" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
                         {formatDate(qr.createdAt)}
@@ -898,15 +1270,6 @@ export default function OneQr() {
                               <Download size={14} />
                             </button>
 
-                            {/* Delete button */}
-                            <button 
-                              onClick={() => startDeleteQr(qr._id, qr.qrId)}
-                              className="btn-primary btn-action-icon btn-danger"
-                              title="Delete QR Code"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-
                             {/* Edit / Assign button */}
                             {qr.assignedTo ? (
                               <button 
@@ -939,111 +1302,7 @@ export default function OneQr() {
         </div>
       </section>
 
-      {/* Custom Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-card" style={{ border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: '#ef4444',
-                padding: '10px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Trash2 size={24} />
-              </div>
-              <h3 className="modal-title" style={{ margin: 0 }}>
-                Delete QR Code
-              </h3>
-            </div>
 
-            {/* Content */}
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '20px' }}>
-              Are you sure you want to delete QR code <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>"{qrToDelete?.qrId}"</strong>? This action is permanent.
-            </p>
-
-            {/* Input field */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{
-                display: 'block',
-                color: 'var(--text-muted)',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                Type <strong style={{ color: 'var(--text-primary)' }}>DELETE</strong> to confirm:
-              </label>
-              <input
-                type="text"
-                placeholder="DELETE"
-                value={confirmInputText}
-                onChange={(e) => setConfirmInputText(e.target.value)}
-                className="form-input"
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  boxSizing: 'border-box'
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && confirmInputText === 'DELETE') {
-                    confirmDeletion();
-                  }
-                }}
-              />
-            </div>
-
-            {/* Footer Buttons */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="btn-primary"
-                style={{
-                  margin: 0,
-                  width: 'auto',
-                  padding: '10px 18px',
-                  background: 'var(--input-bg)',
-                  border: '1px solid var(--glass-border)',
-                  color: 'var(--text-primary)',
-                  borderRadius: '8px',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeletion}
-                disabled={confirmInputText !== 'DELETE'}
-                className="btn-primary"
-                style={{
-                  margin: 0,
-                  width: 'auto',
-                  padding: '10px 18px',
-                  background: confirmInputText === 'DELETE' 
-                    ? 'var(--danger)' 
-                    : 'rgba(239, 68, 68, 0.1)',
-                  color: confirmInputText === 'DELETE' ? '#fff' : 'rgba(239, 68, 68, 0.4)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: confirmInputText === 'DELETE' ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s',
-                  fontWeight: '600'
-                }}
-              >
-                Confirm Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Quick Scan & Edit Modal */}
       {scanModalOpen && (
@@ -1399,6 +1658,98 @@ export default function OneQr() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Generate Batch Modal */}
+      {generateModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1000 }}>
+          <div className="modal-card" style={{ maxWidth: '400px', padding: '28px' }}>
+            <button 
+              onClick={() => setGenerateModalOpen(false)}
+              className="modal-close-btn"
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                background: 'var(--accent-glow)',
+                color: 'var(--accent-primary)',
+                padding: '10px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <QrCode size={24} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <h3 className="modal-title" style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>Generate QRs</h3>
+                <p className="modal-subtitle" style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  Create a new batch of unique QR codes.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'left', marginBottom: '20px' }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '600' }}>
+                Number of QR Codes to Generate
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="1000"
+                className="form-input"
+                style={{ padding: '12px', margin: 0 }}
+                value={generateQuantity}
+                onChange={(e) => setGenerateQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+              />
+            </div>
+
+            <div style={{ textAlign: 'left', marginBottom: '20px' }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '600' }}>
+                QR Template Size / Layout
+              </label>
+              <select
+                className="form-input"
+                style={{ padding: '12px', margin: 0, background: 'var(--input-bg)' }}
+                value={generateQrType}
+                onChange={(e) => setGenerateQrType(e.target.value)}
+              >
+                <option value="4x6">4x6 Layout (Default)</option>
+                <option value="4x4">4x4 Layout</option>
+              </select>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>
+                All generated QR codes will be grouped into a single batch and linked to the selected layout template.
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setGenerateModalOpen(false)}
+                className="btn-primary btn-logout"
+                style={{ flex: 1, padding: '12px', margin: 0 }}
+                disabled={generating}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenerate(generateQuantity, generateQrType)}
+                className="btn-primary"
+                style={{ flex: 1, padding: '12px', margin: 0 }}
+                disabled={generating}
+              >
+                {generating ? (
+                  <span className="spinner spinner-tiny"></span>
+                ) : (
+                  'Generate'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -13,6 +13,11 @@ const OneQrSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    batchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Batch",
+      default: null,
+    },
     plan: {
       type: String,
       enum: ['free', 'basic', 'premium', 'enterprise'],

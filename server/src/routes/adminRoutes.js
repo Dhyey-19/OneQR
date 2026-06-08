@@ -18,6 +18,11 @@ router.post("/qrs/assign", adminProtect, adminController.assignQrCode);
 router.delete("/qrs/:id", adminProtect, adminController.deleteQrCode);
 router.delete("/qrs", adminProtect, adminController.deleteAllQrCodes);
 
+// QR Batches routes
+router.get("/batches", adminProtect, adminController.getAllBatches);
+router.patch("/batches/:id/status", adminProtect, adminController.updateBatchStatus);
+router.get("/batches/:id/qrs", adminProtect, adminController.getBatchQrs);
+
 // New profile slot management routes
 router.get("/users/:userId/profiles", adminProtect, adminController.getUserProfiles);
 router.post("/users/assign-plan", adminProtect, adminController.assignPlanToUser);

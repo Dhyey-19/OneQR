@@ -4,6 +4,7 @@ const Admin = require("../models/Admin");
 const User = require("../models/User");
 const Profile = require("../models/Profile");
 const OneQr = require("../models/OneQr");
+const Batch = require("../models/Batch");
 
 const qrUrlPrefix = config.QR_URL_PREFIX;
 
@@ -223,6 +224,7 @@ exports.getQrCodes = async (req, res) => {
   try {
     const qrs = await OneQr.find()
       .populate("assignedTo", "phone")
+      .populate("batchId", "batchId name status qrType")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -245,36 +247,72 @@ exports.getQrCodes = async (req, res) => {
  */
 exports.generateQrCode = async (req, res) => {
   try {
-    let qrId;
-    let unique = false;
-    let attempt = 0;
-
-    while (!unique && attempt < 100) {
-      qrId = generateRandomId(8);
-      const exists = await OneQr.findOne({ qrId });
-      if (!exists) {
-        unique = true;
-      }
-      attempt++;
-    }
-
-    if (!unique) {
-      return res.status(500).json({
+    const quantity = parseInt(req.body.quantity) || 1;
+    if (quantity < 1) {
+      return res.status(400).json({
         status: "error",
-        message: "Failed to generate a unique QR code ID. Please try again.",
+        message: "Quantity must be at least 1.",
       });
     }
 
-    const newQr = new OneQr({
-      qrId,
-    });
+    // 1. Create a new Batch
+    const qrType = req.body.qrType || "4x6";
+    if (!["4x4", "4x6"].includes(qrType)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid QR type. Must be '4x4' or '4x6'.",
+      });
+    }
 
-    await newQr.save();
+    const batchId = `batch_${generateRandomId(8)}`;
+    const batch = new Batch({
+      batchId,
+      qrCount: quantity,
+      status: "ordered",
+      qrType,
+    });
+    await batch.save();
+
+    const createdQrs = [];
+
+    // 2. Generate unique QR codes and link to batch
+    for (let i = 0; i < quantity; i++) {
+      let qrId;
+      let unique = false;
+      let attempt = 0;
+
+      while (!unique && attempt < 100) {
+        qrId = generateRandomId(8);
+        const exists = await OneQr.findOne({ qrId });
+        if (!exists) {
+          unique = true;
+        }
+        attempt++;
+      }
+
+      if (!unique) {
+        return res.status(500).json({
+          status: "error",
+          message: `Failed to generate a unique QR code ID on index ${i}. Please try again.`,
+        });
+      }
+
+      const newQr = new OneQr({
+        qrId,
+        batchId: batch._id,
+      });
+
+      await newQr.save();
+      createdQrs.push(newQr);
+    }
 
     return res.status(201).json({
       status: "success",
-      message: "Unique QR code generated successfully!",
-      data: newQr,
+      message: `${quantity} QR code(s) generated successfully in batch ${batchId}!`,
+      data: {
+        batch,
+        qrs: createdQrs,
+      },
     });
   } catch (error) {
     console.error("Generate QR code error:", error);
@@ -1012,5 +1050,98 @@ exports.deleteProfileSlot = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Get all QR code batches
+ * @route   GET /api/admin/batches
+ * @access  Private (Admin)
+ */
+exports.getAllBatches = async (req, res) => {
+  try {
+    const batches = await Batch.find().sort({ createdAt: -1 });
+    return res.status(200).json({
+      status: "success",
+      data: batches,
+    });
+  } catch (error) {
+    console.error("Get all batches error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while fetching batches.",
+    });
+  }
+};
+
+/**
+ * @desc    Update batch status
+ * @route   PATCH /api/admin/batches/:id/status
+ * @access  Private (Admin)
+ */
+exports.updateBatchStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ["ordered", "printed", "shipped", "delivered"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid status value.",
+      });
+    }
+
+    const batch = await Batch.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!batch) {
+      return res.status(404).json({
+        status: "error",
+        message: "Batch not found.",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Batch status updated successfully.",
+      data: batch,
+    });
+  } catch (error) {
+    console.error("Update batch status error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while updating batch status.",
+    });
+  }
+};
+
+/**
+ * @desc    Get all QR codes inside a specific batch
+ * @route   GET /api/admin/batches/:id/qrs
+ * @access  Private (Admin)
+ */
+exports.getBatchQrs = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const qrs = await OneQr.find({ batchId: id })
+      .populate("assignedTo", "phone")
+      .populate("batchId", "batchId name status qrType")
+      .sort({ createdAt: -1 });
+    
+    return res.status(200).json({
+      status: "success",
+      data: qrs,
+    });
+  } catch (error) {
+    console.error("Get batch QR codes error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error occurred while fetching batch QR codes.",
+    });
+  }
+};
+
 
 
