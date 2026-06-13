@@ -1,7 +1,11 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Smartphone, Compass, Shield, Users, QrCode, Cpu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Hero({ onOpenAuth }) {
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -75,22 +79,39 @@ export default function Hero({ onOpenAuth }) {
             variants={itemVariants}
             className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
           >
-            <button
-              onClick={() => onOpenAuth('signup')}
-              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white !text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
-            >
-              <span className="absolute inset-0 w-full h-full bg-blue-600" />
-              <span className="absolute inset-0 w-full h-full bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <span className="relative flex items-center justify-center gap-2 z-10 text-white !text-white">
-                Get Started Free
-                <ArrowRight className="w-4 h-4 text-white !text-white group-hover:translate-x-1 transition-transform duration-300" />
-              </span>
-              <span className="absolute -inset-px rounded-2xl border border-white/20 pointer-events-none" />
-            </button>
+            {isLoggedIn ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white !text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
+              >
+                <span className="absolute inset-0 w-full h-full bg-blue-600" />
+                <span className="absolute inset-0 w-full h-full bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative flex items-center justify-center gap-2 z-10 text-white !text-white">
+                  Dashboard
+                  <ArrowRight className="w-4 h-4 text-white !text-white group-hover:translate-x-1 transition-transform duration-300" />
+                </span>
+                <span className="absolute -inset-px rounded-2xl border border-white/20 pointer-events-none" />
+              </button>
+            ) : (
+              <button
+                onClick={() => onOpenAuth('signup')}
+                className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white !text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
+              >
+                <span className="absolute inset-0 w-full h-full bg-blue-600" />
+                <span className="absolute inset-0 w-full h-full bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative flex items-center justify-center gap-2 z-10 text-white !text-white">
+                  Get Started Free
+                  <ArrowRight className="w-4 h-4 text-white !text-white group-hover:translate-x-1 transition-transform duration-300" />
+                </span>
+                <span className="absolute -inset-px rounded-2xl border border-white/20 pointer-events-none" />
+              </button>
+            )}
 
             <a
-              href="#showcase"
-              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white glass-light hover:bg-slate-100 dark:hover:bg-white/5 transition-all w-full sm:w-auto text-center"
+              href="/dtech"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white glass-light hover:bg-slate-100 dark:hover:bg-white/5 transition-all w-full sm:w-auto text-center cursor-pointer"
             >
               <span className="relative flex items-center justify-center gap-2">
                 View Demo

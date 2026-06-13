@@ -3,26 +3,17 @@ import { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('oneqr_theme');
-    // Default to dark mode if no choice has been saved
-    return savedTheme ? savedTheme : 'dark';
-  });
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      document.body?.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-      document.body?.classList.remove('dark');
-    }
-    localStorage.setItem('oneqr_theme', theme);
-  }, [theme]);
+    root.classList.remove('dark');
+    document.body?.classList.remove('dark');
+    localStorage.setItem('oneqr_theme', 'light');
+  }, []);
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
+    // Theme toggle disabled, forced to light theme
   };
 
   return (

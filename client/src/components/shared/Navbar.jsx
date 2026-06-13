@@ -73,6 +73,14 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
     { name: 'Contact', href: '#contact' },
   ];
 
+  const dashboardLinks = [
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Feedback', path: '/feedbacks' },
+    { name: 'Plans', path: '/plans' },
+  ];
+
+  const isDashboardRoute = ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(location.pathname);
+
   // Helper component for Profile Dropdown (works on desktop and mobile header)
   const ProfileDropdown = ({ isMobile = false }) => {
     if (!currentUser) return null;
@@ -169,8 +177,8 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-            ? 'py-4 bg-white/70 dark:bg-[#030712]/70 backdrop-blur-md border-b border-slate-200 dark:border-white/5 shadow-sm'
-            : 'py-6 bg-transparent'
+          ? 'py-4 bg-white/70 dark:bg-[#030712]/70 backdrop-blur-md border-b border-slate-200 dark:border-white/5 shadow-sm'
+          : 'py-6 bg-transparent'
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -196,22 +204,35 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
           {/* Desktop Nav Links */}
           {location.pathname !== '/manage-qr' && (
             <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => {
-                    if (location.pathname !== '/') {
-                      e.preventDefault();
-                      navigate({ pathname: '/', hash: link.href });
-                    }
-                  }}
-                  className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
-                >
-                  {link.name}
-                  <span className="absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 w-0 group-hover:w-full transition-all duration-300" />
-                </a>
-              ))}
+              {!isDashboardRoute ? (
+                navLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={(e) => {
+                      if (location.pathname !== '/') {
+                        e.preventDefault();
+                        navigate({ pathname: '/', hash: link.href });
+                      }
+                    }}
+                    className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
+                  >
+                    {link.name}
+                    <span className="absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 w-0 group-hover:w-full transition-all duration-300" />
+                  </a>
+                ))
+              ) : (
+                dashboardLinks.map((link) => (
+                  <button
+                    key={link.name}
+                    onClick={() => navigate(link.path)}
+                    className={`text-sm font-medium transition-colors duration-200 relative group cursor-pointer ${location.pathname === link.path ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                  >
+                    {link.name}
+                    <span className={`absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 ${location.pathname === link.path ? 'w-full' : 'w-0 group-hover:w-full'}`} />
+                  </button>
+                ))
+              )}
             </div>
           )}
 
@@ -233,8 +254,8 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
                     if (saveBtn) saveBtn.click();
                   }}
                   className={`px-4 py-2 md:px-6 md:py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${saveSuccess
-                      ? 'bg-emerald-600 text-white shadow-emerald-500/20'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                    ? 'bg-emerald-600 text-white shadow-emerald-500/20'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
                     }`}
                 >
                   {isSaving ? (
@@ -254,18 +275,7 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               </div>
             ) : (
               <>
-                {/* Theme Toggle Button */}
-                <button
-                  onClick={toggleTheme}
-                  className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-sm shadow-black/5 flex items-center justify-center mr-1"
-                  aria-label="Toggle theme"
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="w-4 h-4 text-amber-400" />
-                  ) : (
-                    <Moon className="w-4 h-4 text-indigo-600" />
-                  )}
-                </button>
+                {/* Theme Toggle Button Removed */}
 
                 {/* Desktop-only auth buttons / Profile dropdown */}
                 <div className="hidden md:flex items-center gap-4">

@@ -145,65 +145,38 @@ export default function FeedbacksTab() {
 
   return (
     <div className="space-y-6 animate-fade-in text-slate-900 dark:text-white">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 md:p-8 glass border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-3xl relative overflow-hidden">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1 md:p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center">
-              <Star className="w-3.5 h-3.5 md:w-4 md:h-4 fill-current text-blue-500" />
-            </span>
-            <span className="text-[10px] md:text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-              Unified Feedback Repository
-            </span>
-          </div>
-          <h1 className="text-xl md:text-3xl font-black mt-1 md:mt-2 tracking-tight">
-            Customer Feedback & Reviews
-          </h1>
-          <p className="hidden md:block text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
-            All client ratings, reviews, and detailed feedback (1-5 stars) submitted via your active QR profiles are logged here to keep you informed.
-          </p>
-        </div>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-350 font-bold text-xs transition-all items-center gap-2 cursor-pointer shadow-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Dashboard</span>
-        </button>
-      </div>
-
       {/* Summary Stats Panel */}
       {feedbacks.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 glass border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-slate-300 dark:hover:border-white/10 transition-all">
-            <div className="absolute top-0 right-0 p-4 opacity-15 dark:opacity-25 group-hover:scale-110 group-hover:opacity-30 dark:group-hover:opacity-45 transition-all pointer-events-none">
-              <Heart className="w-16 h-16 text-rose-500 fill-current" />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+          <div className="p-4 md:p-6 glass border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-slate-300 dark:hover:border-white/10 transition-all">
+            <div className="absolute top-0 right-0 p-3 md:p-4 opacity-15 dark:opacity-25 group-hover:scale-110 group-hover:opacity-30 dark:group-hover:opacity-45 transition-all pointer-events-none">
+              <Heart className="w-10 h-10 md:w-16 md:h-16 text-rose-500 fill-current" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Submissions</span>
-              <span className="text-4xl font-black mt-2 block tracking-tight text-blue-600 dark:text-blue-400">{totalReviews}</span>
+              <span className="text-[9px] md:text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Submissions</span>
+              <span className="text-2xl md:text-4xl font-black mt-1 md:mt-2 block tracking-tight text-blue-600 dark:text-blue-400">{totalReviews}</span>
             </div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-4 block">
+            <span className="text-[9px] md:text-[10px] text-slate-500 dark:text-slate-400 mt-2 md:mt-4 block line-clamp-2 md:line-clamp-none">
               Total digital profile review submissions logged
             </span>
           </div>
 
-          <div className="p-6 glass border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-slate-300 dark:hover:border-white/10 transition-all">
-            <div className="absolute top-0 right-0 p-4 opacity-15 dark:opacity-25 group-hover:scale-110 group-hover:opacity-30 dark:group-hover:opacity-45 transition-all pointer-events-none">
-              <Star className="w-16 h-16 text-amber-500 fill-current" />
+          <div className="p-4 md:p-6 glass border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-slate-300 dark:hover:border-white/10 transition-all">
+            <div className="absolute top-0 right-0 p-3 md:p-4 opacity-15 dark:opacity-25 group-hover:scale-110 group-hover:opacity-30 dark:group-hover:opacity-45 transition-all pointer-events-none">
+              <Star className="w-10 h-10 md:w-16 md:h-16 text-amber-500 fill-current" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Average Satisfaction</span>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-4xl font-black tracking-tight text-amber-600 dark:text-amber-400">{averageRating}</span>
-                <span className="text-slate-400 text-lg font-bold">/ 5.0</span>
+              <span className="text-[9px] md:text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Average Satisfaction</span>
+              <div className="flex items-baseline md:items-center gap-1 md:gap-2 mt-1 md:mt-2">
+                <span className="text-2xl md:text-4xl font-black tracking-tight text-amber-600 dark:text-amber-400">{averageRating}</span>
+                <span className="text-slate-400 text-xs md:text-lg font-bold">/ 5.0</span>
               </div>
             </div>
-            <div className="flex items-center gap-1 mt-4">
+            <div className="flex items-center gap-0.5 md:gap-1 mt-2 md:mt-4">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-3.5 h-3.5 ${
+                  className={`w-3 h-3 md:w-3.5 md:h-3.5 ${
                     i < Math.round(Number(averageRating))
                       ? 'text-[#fbbc05] fill-[#fbbc05]'
                       : 'text-slate-300 dark:text-slate-700'
@@ -213,8 +186,8 @@ export default function FeedbacksTab() {
             </div>
           </div>
 
-          <div className="p-6 glass border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-white/10 transition-all flex flex-col justify-between">
-            <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Rating Distribution</span>
+          <div className="col-span-2 md:col-span-1 p-4 md:p-6 glass border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:border-slate-300 dark:hover:border-white/10 transition-all flex flex-col justify-between">
+            <span className="text-[9px] md:text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Rating Distribution</span>
             <div className="space-y-1 mt-3">
               {[5, 4, 3, 2, 1].map((stars) => {
                 const count = ratingCounts[stars] || 0;
@@ -251,7 +224,7 @@ export default function FeedbacksTab() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="text-base md:text-xl font-extrabold flex items-center gap-2">
               <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
-              Feedback Database
+              Feedbacks
             </h3>
 
             {/* Quick Star Filters */}

@@ -79,7 +79,7 @@ export default function App() {
 
   // Listen to logout / auth change to auto-redirect from dashboard to landing page
   useEffect(() => {
-    const handleAuthChange = () => {
+    const handleAuthChange = (e) => {
       const isLoggedIn = !!localStorage.getItem('oneqr_current_user');
       const currentPath = window.location.pathname;
       
@@ -97,9 +97,14 @@ export default function App() {
         if (pendingPlan) {
           navigate('/dashboard');
         } else {
-          // If we are already on a dashboard path, don't force redirect to main dashboard
-          if (!['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(currentPath)) {
-            navigate('/dashboard');
+          const isDashboardPath = ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(currentPath);
+          // If we are on landing page (/)
+          if (!isDashboardPath) {
+            // If this was triggered by an auth state change event (e.g. login), redirect to dashboard
+            if (e && e.type === 'auth-state-change') {
+              navigate('/dashboard');
+            }
+            // Otherwise (initial mount), let them stay on the landing page
           }
         }
       }
