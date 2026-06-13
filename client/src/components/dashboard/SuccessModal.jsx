@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { Check, ArrowUpRight } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Check, ArrowUpRight } from "lucide-react";
 
 /**
  * Customized App Theme Premium Success Modal
@@ -12,7 +12,7 @@ export default function SuccessModal({ isOpen, onClose, successPlanName }) {
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-md bg-white dark:bg-[#070b19] border border-slate-200 dark:border-emerald-500/20 rounded-3xl p-8 shadow-2xl relative text-center space-y-6 overflow-hidden animate-fade-in"
+        className="w-full max-w-md bg-white  border border-slate-200  rounded-3xl p-8 shadow-2xl relative text-center space-y-6 overflow-hidden animate-fade-in"
       >
         {/* No background glows */}
 
@@ -23,20 +23,25 @@ export default function SuccessModal({ isOpen, onClose, successPlanName }) {
 
         {/* Copy/Content block */}
         <div className="space-y-2">
-          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Subscription Activated!</h3>
-          <p className="text-slate-655 dark:text-slate-400 text-xs leading-relaxed">
-            Thank you for upgrading! Your premium dynamic QR features, customized links, and design customizer are now fully unlocked.
+          <h3 className="text-2xl font-extrabold text-slate-900  tracking-tight">
+            Subscription Activated!
+          </h3>
+          <p className="text-slate-655  text-xs leading-relaxed">
+            Thank you for upgrading! Your premium dynamic QR features,
+            customized links, and design customizer are now fully unlocked.
           </p>
         </div>
 
         {/* Plan Details Summary Box */}
-        <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl p-4 space-y-2 text-left">
+        <div className="bg-slate-50  border border-slate-100  rounded-2xl p-4 space-y-2 text-left">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Activated Plan</span>
-            <span className="text-slate-900 dark:text-white font-bold">{successPlanName || 'Premium Plan'}</span>
+            <span className="text-slate-500  font-medium">Activated Plan</span>
+            <span className="text-slate-900  font-bold">
+              {successPlanName || "Premium Plan"}
+            </span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Status</span>
+            <span className="text-slate-500  font-medium">Status</span>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
               Active (Subscribed)
             </span>

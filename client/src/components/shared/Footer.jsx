@@ -33,32 +33,27 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#02050f]/80 backdrop-blur-xl overflow-hidden py-16">
-      {/* Background glowing blobs */}
-      <div className="absolute bottom-[-10vw] left-[10vw] w-[30vw] h-[30vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
+    <footer className="relative border-t border-slate-200 bg-[#FAFAFA] overflow-hidden py-16">
+      <div className="absolute bottom-[-10vw] left-[10vw] w-[30vw] h-[30vw] rounded-full bg-blue-100/50 blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
-        {/* Top Grid Area */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-16 border-b border-slate-200 dark:border-white/5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-16 border-b border-slate-200">
           
-          {/* Logo Column */}
           <div className="lg:col-span-4 space-y-6">
             <a href="#home" className="flex items-center gap-2 group w-fit">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-all duration-300">
-                <Layers className="w-4.5 h-4.5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300">
+                <Layers className="w-5 h-5 text-white" />
               </div>
-              <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white">
-                One<span className="text-blue-500">QR</span>
+              <span className="font-extrabold text-xl tracking-tight text-slate-900">
+                One<span className="text-blue-600">QR</span>
               </span>
             </a>
             
-            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed max-w-sm">
-
+            <p className="text-slate-600 text-sm leading-relaxed max-w-sm font-medium">
               Connecting physical spaces to instant digital presence. Build next-gen landing cards, custom NFC tags, and boost business reviews.
             </p>
 
-            {/* Social Icons */}
             <div className="flex items-center gap-3">
               {[
                 { icon: <FaTwitter className="w-4 h-4" />, href: '#', name: 'Twitter' },
@@ -69,7 +64,7 @@ export default function Footer() {
                 <a
                   key={soc.name}
                   href={soc.href}
-                  className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-blue-500/30 hover:bg-blue-500/5 transition-all shadow-sm"
+                  className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm"
                   aria-label={soc.name}
                 >
                   {soc.icon}
@@ -78,19 +73,18 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links Columns */}
           <div className="lg:col-span-5 grid grid-cols-3 gap-6 sm:gap-8">
             {quickLinks.map((col) => (
-              <div key={col.title} className="space-y-4">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
+              <div key={col.title} className="space-y-5">
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-widest block">
                   {col.title}
                 </span>
-                <ul className="space-y-2.5">
+                <ul className="space-y-3">
                   {col.links.map((link) => (
                     <li key={link.name}>
                       <a
                         href={link.href}
-                        className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:underline decoration-blue-500 underline-offset-4 transition-colors"
+                        className="text-[13px] font-medium text-slate-600 hover:text-blue-600 hover:underline decoration-blue-500 underline-offset-4 transition-colors"
                       >
                         {link.name}
                       </a>
@@ -101,21 +95,20 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Newsletter Column */}
           <div className="lg:col-span-3 space-y-4">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
+            <span className="text-[11px] font-bold text-slate-900 uppercase tracking-widest block">
               Subscribe to Newsletter
             </span>
-            <p className="text-slate-600 dark:text-slate-400 text-xs leading-normal">
+            <p className="text-slate-600 text-sm leading-relaxed font-medium">
               Stay ahead of digital networking. Receive weekly vCard tips and chip releases.
             </p>
             <div className="flex gap-2">
               <input
                 type="email"
                 placeholder="Enter email"
-                className="w-full px-3 py-2 text-xs rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 shadow-sm transition-all"
               />
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors">
+              <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
                 Join
               </button>
             </div>
@@ -123,15 +116,14 @@ export default function Footer() {
 
         </div>
 
-        {/* Bottom copyright row */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 flex-wrap">
-          <span className="text-xs text-slate-500">
+          <span className="text-sm font-medium text-slate-500">
             © {new Date().getFullYear()} OneQR Inc. All rights reserved.
           </span>
-          <div className="flex gap-6 text-xs text-slate-500">
-            <a href="#" className="hover:text-slate-300">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-300">Terms of Service</a>
-            <a href="#" className="hover:text-slate-300">SLA Agreement</a>
+          <div className="flex gap-6 text-sm font-medium text-slate-500">
+            <a href="#" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-slate-900 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-slate-900 transition-colors">SLA Agreement</a>
           </div>
         </div>
 

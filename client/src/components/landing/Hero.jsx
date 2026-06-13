@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Smartphone, Compass, Shield, Users, QrCode, Cpu } from 'lucide-react';
+import { ArrowRight, Smartphone, Compass, Shield, Users, QrCode, Cpu, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Hero({ onOpenAuth }) {
@@ -27,13 +27,14 @@ export default function Hero({ onOpenAuth }) {
   };
 
   return (
-    <section id="home" className="relative min-h-screen pt-32 pb-20 flex items-center overflow-hidden">
-      {/* Background Animated Blobs */}
+    <section id="home" className="relative min-h-[90vh] pt-32 pb-20 flex items-center overflow-hidden bg-white">
+      {/* Background Modern SaaS Accents */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[20%] left-[10%] w-[35vw] h-[35vw] rounded-full bg-blue-600/10 blur-[100px] animate-glow-slow" />
-        <div className="absolute bottom-[20%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-cyan-500/10 blur-[120px] animate-glow-reverse" />
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 dash-grid opacity-[0.25]" />
+        {/* Subtle mesh gradient background */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-50 opacity-70 blur-[100px]" />
+        <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-50/60 opacity-60 blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-cyan-50 opacity-40 blur-[140px]" />
+        <div className="absolute inset-0 dash-grid opacity-40" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
@@ -42,37 +43,36 @@ export default function Hero({ onOpenAuth }) {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="lg:col-span-7 flex flex-col items-start text-left"
+          className="lg:col-span-6 flex flex-col items-start text-left"
         >
-          {/* Badge */}
-          <motion.div
-            variants={itemVariants}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-50/50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6 hover:bg-blue-100 dark:hover:bg-blue-500/10 transition-colors"
-          >
-            <Cpu className="w-3.5 h-3.5 animate-spin-slow" />
-            <span>Next-Gen Identity Platform</span>
-          </motion.div>
+
 
 
           {/* Heading */}
           <motion.h1
             variants={itemVariants}
-            className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-slate-900 dark:text-white"
+            className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold tracking-tight leading-[1.05] mb-6 text-slate-900"
           >
-            OneQR — Smart <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400">
-              Business Presence
+            Smart Digital <br />
+            <span className="text-gradient-primary">
+              Presence
             </span> <br />
-            Platform
+            for Professionals
           </motion.h1>
 
           {/* Subheadline */}
           <motion.p
             variants={itemVariants}
-            className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 font-normal leading-relaxed max-w-xl mb-10"
+            className="text-lg sm:text-xl text-slate-600 font-medium leading-relaxed max-w-lg mb-10"
           >
-            Create interactive QR and NFC business experiences for your customers. Share contact cards, catalogs, social links, and capture leads instantly in one tap.
+            Create interactive QR and NFC experiences. Share contact cards, capture leads, and manage your professional identity in one tap.
           </motion.p>
+
+          {/* Trust Indicators inside content flow */}
+          <motion.div variants={itemVariants} className="flex items-center gap-4 mb-10 text-sm font-semibold text-slate-600">
+            <div className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> No app required</div>
+            <div className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> Free forever plan</div>
+          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
@@ -82,28 +82,24 @@ export default function Hero({ onOpenAuth }) {
             {isLoggedIn ? (
               <button
                 onClick={() => navigate('/dashboard')}
-                className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white !text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
+                className="relative inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-base text-white overflow-hidden group w-full sm:w-auto text-center shadow-[0_8px_30px_rgba(37,99,235,0.24)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.35)] hover:-translate-y-0.5 transition-all duration-300"
               >
-                <span className="absolute inset-0 w-full h-full bg-blue-600" />
-                <span className="absolute inset-0 w-full h-full bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <span className="relative flex items-center justify-center gap-2 z-10 text-white !text-white">
-                  Dashboard
-                  <ArrowRight className="w-4 h-4 text-white !text-white group-hover:translate-x-1 transition-transform duration-300" />
+                <span className="absolute inset-0 w-full h-full bg-slate-900 group-hover:bg-slate-800 transition-colors" />
+                <span className="relative flex items-center justify-center gap-2 z-10">
+                  Open Dashboard
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
-                <span className="absolute -inset-px rounded-2xl border border-white/20 pointer-events-none" />
               </button>
             ) : (
               <button
                 onClick={() => onOpenAuth('signup')}
-                className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-white !text-white overflow-hidden group w-full sm:w-auto text-center shadow-lg shadow-blue-500/20 cursor-pointer animate-pulse-subtle"
+                className="relative inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-base text-white overflow-hidden group w-full sm:w-auto text-center shadow-[0_8px_30px_rgba(37,99,235,0.24)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.35)] hover:-translate-y-0.5 transition-all duration-300"
               >
-                <span className="absolute inset-0 w-full h-full bg-blue-600" />
-                <span className="absolute inset-0 w-full h-full bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <span className="relative flex items-center justify-center gap-2 z-10 text-white !text-white">
-                  Get Started Free
-                  <ArrowRight className="w-4 h-4 text-white !text-white group-hover:translate-x-1 transition-transform duration-300" />
+                <span className="absolute inset-0 w-full h-full bg-blue-600 group-hover:bg-blue-700 transition-colors" />
+                <span className="relative flex items-center justify-center gap-2 z-10">
+                  Start for free
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
-                <span className="absolute -inset-px rounded-2xl border border-white/20 pointer-events-none" />
               </button>
             )}
 
@@ -111,135 +107,101 @@ export default function Hero({ onOpenAuth }) {
               href="/dtech"
               target="_blank"
               rel="noopener noreferrer"
-              className="relative inline-flex items-center justify-center px-8 py-4 rounded-2xl font-bold text-base text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white glass-light hover:bg-slate-100 dark:hover:bg-white/5 transition-all w-full sm:w-auto text-center cursor-pointer"
+              className="relative inline-flex items-center justify-center px-8 py-4 rounded-xl font-bold text-base text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-sm hover:shadow transition-all duration-300 w-full sm:w-auto text-center cursor-pointer"
             >
               <span className="relative flex items-center justify-center gap-2">
-                View Demo
+                View Live Demo
               </span>
             </a>
           </motion.div>
-
-          {/* Stats Bar */}
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-3 gap-8 mt-12 pt-10 border-t border-slate-200 dark:border-white/5 w-full max-w-lg"
-          >
-            <div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">10K+</div>
-              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Businesses</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">1.5M+</div>
-              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">NFC Scans</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">99.9%</div>
-              <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Uptime SLA</div>
-            </div>
-          </motion.div>
         </motion.div>
 
-        {/* Hero Right Graphic */}
+        {/* Hero Right Graphic - Premium SaaS Dashboard/Mockup Style */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 50 }}
+          initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
-          className="lg:col-span-5 relative hidden lg:flex items-center justify-center"
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+          className="lg:col-span-6 relative hidden lg:flex items-center justify-center"
         >
-          {/* Glowing backplate for phone */}
-          <div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none animate-pulse-subtle" />
-
-          {/* Device Mockup */}
-          <div className="relative w-[280px] sm:w-[320px] aspect-[9/18.5] rounded-[48px] bg-slate-950 p-3 border-[6px] border-slate-800 shadow-[0_0_80px_rgba(37,99,235,0.15)] flex flex-col overflow-hidden animate-float-slow">
-            {/* Screen Notch */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-6 rounded-2xl bg-black z-30 flex items-center justify-center">
-              <div className="w-3 h-3 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
-                <div className="w-1 h-1 rounded-full bg-blue-600" />
+          {/* Main Floating Card - Glassmorphism Dashboard snippet */}
+          <div className="relative w-full max-w-lg aspect-[4/3] rounded-3xl bg-white border border-slate-200 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.1)] overflow-hidden flex flex-col z-10">
+            {/* Window header */}
+            <div className="h-12 bg-slate-50 border-b border-slate-100 flex items-center px-4 gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-slate-200" />
+                <div className="w-3 h-3 rounded-full bg-slate-200" />
+                <div className="w-3 h-3 rounded-full bg-slate-200" />
+              </div>
+              <div className="mx-auto h-6 w-48 bg-white rounded-md border border-slate-200 flex items-center justify-center">
+                <span className="text-[10px] font-medium text-slate-400">oneqr.co/alex</span>
               </div>
             </div>
-
-            {/* Screen Content */}
-            <div className="w-full h-full rounded-[40px] bg-[#090d1a] border border-white/5 overflow-hidden flex flex-col relative">
-              {/* Header Cover */}
-              <div className="h-28 bg-gradient-to-tr from-blue-700 to-indigo-900 relative">
-                <div className="absolute -bottom-10 left-6 w-20 h-20 rounded-2xl bg-slate-900 p-1 flex items-center justify-center border-4 border-[#090d1a] shadow-lg">
-                  <div className="w-full h-full rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center">
-                    <span className="font-extrabold text-white text-base">OQ</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Profile Details */}
-              <div className="mt-12 px-6 flex-1 flex flex-col">
-                <h3 className="font-bold text-lg text-white">Alex Rivera</h3>
-                <p className="text-xs text-blue-400 font-medium">Creative Director @ OneQR</p>
-                <p className="text-[10px] text-slate-400 mt-2 line-clamp-2">
-                  Building next-gen digital connections. Tap the tags below to view links.
-                </p>
-
-                {/* Grid Links */}
-                <div className="grid grid-cols-2 gap-2 mt-4 flex-1 max-h-[140px]">
-                  <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5 flex flex-col justify-between hover:bg-slate-800 transition-colors">
-                    <Smartphone className="w-4 h-4 text-blue-400" />
-                    <span className="text-[10px] font-semibold text-white mt-1">Save Contact</span>
-                  </div>
-                  <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5 flex flex-col justify-between hover:bg-slate-800 transition-colors">
-                    <Compass className="w-4 h-4 text-cyan-400" />
-                    <span className="text-[10px] font-semibold text-white mt-1">Portfolio Link</span>
-                  </div>
-                  <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5 flex flex-col justify-between hover:bg-slate-800 transition-colors">
-                    <Users className="w-4 h-4 text-indigo-400" />
-                    <span className="text-[10px] font-semibold text-white mt-1">Social Hub</span>
-                  </div>
-                  <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5 flex flex-col justify-between hover:bg-slate-800 transition-colors">
-                    <Shield className="w-4 h-4 text-emerald-400" />
-                    <span className="text-[10px] font-semibold text-white mt-1">Verified Profile</span>
-                  </div>
-                </div>
-
-                {/* Instant NFC Tap CTA in Phone */}
-                <div className="my-4 p-3 rounded-2xl bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 text-center">
-                  <span className="text-[10px] font-bold text-blue-400 tracking-wider uppercase block">Hold Card to Phone</span>
-                  <span className="text-[9px] text-slate-500 block mt-0.5">Compatible with iOS & Android</span>
-                </div>
-              </div>
+            
+            {/* App Content Simulation */}
+            <div className="p-8 flex-1 bg-[#FAFAFA] flex flex-col items-center justify-center relative">
+               <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 border-4 border-white shadow-md flex items-center justify-center mb-4">
+                  <span className="text-3xl font-bold text-blue-600">AR</span>
+               </div>
+               <h3 className="text-xl font-bold text-slate-900 mb-1">Alex Rivera</h3>
+               <p className="text-sm font-medium text-slate-500 mb-6">Product Designer</p>
+               
+               <div className="w-full grid grid-cols-2 gap-3">
+                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                     <Smartphone className="w-4 h-4 text-blue-600" />
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-bold text-slate-400 uppercase">Action</span>
+                     <span className="text-xs font-semibold text-slate-700">Save Contact</span>
+                   </div>
+                 </div>
+                 <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                     <Compass className="w-4 h-4 text-indigo-600" />
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-bold text-slate-400 uppercase">Link</span>
+                     <span className="text-xs font-semibold text-slate-700">Portfolio</span>
+                   </div>
+                 </div>
+               </div>
             </div>
           </div>
 
-          {/* Floating Widget 1: Live QR Scans */}
+          {/* Floating Widget 1: Analytics */}
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-10 -left-10 sm:-left-16 glass p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl flex items-center gap-3.5 z-20"
+            className="absolute -left-12 top-10 bg-white p-4 rounded-2xl border border-slate-200 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] flex items-center gap-4 z-20"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
-              <QrCode className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
             </div>
             <div>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block leading-none">Weekly Scans</span>
-              <span className="text-lg font-bold text-slate-900 dark:text-white mt-1 block">4,289</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Scans</span>
+              <span className="text-xl font-extrabold text-slate-900 block">14,289</span>
             </div>
           </motion.div>
 
-          {/* Floating Widget 2: NFC Active Tap */}
+          {/* Floating Widget 2: NFC Tap */}
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            className="absolute bottom-12 -right-6 sm:-right-10 glass p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl flex items-center gap-3 z-20"
+            className="absolute -right-8 bottom-16 bg-white p-4 rounded-2xl border border-slate-200 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] flex items-center gap-3 z-20"
           >
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 animate-pulse">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block leading-none">NFC Tap Active</span>
-              <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-1 block">Instant contact shared</span>
+              <span className="text-sm font-bold text-slate-900 block">NFC Active</span>
+              <span className="text-xs font-medium text-slate-500 block">Ready to share</span>
             </div>
           </motion.div>
+          
+          {/* Background decorative ring */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border-[1px] border-slate-200 rounded-full z-0 pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] border-[1px] border-dashed border-slate-200 rounded-full z-0 pointer-events-none" />
 
-          {/* Decorative Glowing Elements */}
-          <div className="absolute top-[40%] right-[-40px] w-20 h-20 rounded-full border border-blue-500/20 flex items-center justify-center animate-spin-slow pointer-events-none">
-            <div className="w-10 h-10 rounded-full border border-dashed border-cyan-500/30" />
-          </div>
         </motion.div>
       </div>
     </section>

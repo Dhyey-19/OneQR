@@ -1,14 +1,34 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, Layers, User, Grid, LogOut, ChevronDown, CreditCard, Sun, Moon, Scan, MessageSquare, RefreshCw, Check } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
-import { useTheme } from '../../context/ThemeContext';
+import React, { useState, useEffect, Fragment } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Menu,
+  X,
+  ArrowRight,
+  Layers,
+  User,
+  Grid,
+  LogOut,
+  ChevronDown,
+  CreditCard,
+  Scan,
+  MessageSquare,
+  RefreshCw,
+  Check,
+} from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
+import {
+  SolutionsDesktopMenu,
+  SolutionsMobileAccordion,
+} from "./SolutionsMegaMenu";
 
-export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate }) {
+export default function Navbar({
+  onOpenAuth,
+  currentView = "landing",
+  onNavigate,
+}) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const [scrolled, setScrolled] = useState(false);
@@ -33,28 +53,32 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
 
     checkUserStatus();
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('auth-state-change', checkUserStatus);
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("auth-state-change", checkUserStatus);
 
     // Click outside to close profile dropdown
     const closeDropdown = () => setProfileDropdownOpen(false);
-    window.addEventListener('click', closeDropdown);
+    window.addEventListener("click", closeDropdown);
 
     const onSaveStart = () => setIsSaving(true);
-    const onSaveSuccess = () => { setIsSaving(false); setSaveSuccess(true); setTimeout(() => setSaveSuccess(false), 1500); };
+    const onSaveSuccess = () => {
+      setIsSaving(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 1500);
+    };
     const onSaveError = () => setIsSaving(false);
 
-    window.addEventListener('profileSaveStart', onSaveStart);
-    window.addEventListener('profileSaveSuccess', onSaveSuccess);
-    window.addEventListener('profileSaveError', onSaveError);
+    window.addEventListener("profileSaveStart", onSaveStart);
+    window.addEventListener("profileSaveSuccess", onSaveSuccess);
+    window.addEventListener("profileSaveError", onSaveError);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('auth-state-change', checkUserStatus);
-      window.removeEventListener('click', closeDropdown);
-      window.removeEventListener('profileSaveStart', onSaveStart);
-      window.removeEventListener('profileSaveSuccess', onSaveSuccess);
-      window.removeEventListener('profileSaveError', onSaveError);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("auth-state-change", checkUserStatus);
+      window.removeEventListener("click", closeDropdown);
+      window.removeEventListener("profileSaveStart", onSaveStart);
+      window.removeEventListener("profileSaveSuccess", onSaveSuccess);
+      window.removeEventListener("profileSaveError", onSaveError);
     };
   }, []);
 
@@ -63,42 +87,48 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
     setCurrentUser(null);
   };
 
-
-  // Plain navigation links (Dashboard removed as requested)
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'Features', href: '#features' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'FAQ', href: '#faq' },
-    { name: 'Contact', href: '#contact' },
+    { name: "Home", href: "#home" },
+    { name: "Features", href: "#features" },
+    { name: "Pricing", href: "#pricing" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Contact", href: "#contact" },
   ];
 
   const dashboardLinks = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Feedback', path: '/feedbacks' },
-    { name: 'Plans', path: '/plans' },
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Feedback", path: "/feedbacks" },
+    { name: "Plans", path: "/plans" },
   ];
 
-  const isDashboardRoute = ['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(location.pathname);
+  const isDashboardRoute = [
+    "/dashboard",
+    "/manage-qr",
+    "/scan-qr",
+    "/feedbacks",
+    "/profile",
+    "/plans",
+  ].includes(location.pathname);
 
-  // Helper component for Profile Dropdown (works on desktop and mobile header)
   const ProfileDropdown = ({ isMobile = false }) => {
     if (!currentUser) return null;
     return (
       <div className="relative z-50" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-200 dark:hover:bg-white/10 transition-all shadow-sm dark:shadow-glass cursor-pointer select-none"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm cursor-pointer select-none"
         >
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white font-extrabold text-xs shadow-inner">
-            <User className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0F172A] to-[#1E3A8A] flex items-center justify-center text-white font-bold text-xs shadow-inner">
+            <User className="w-4 h-4" />
           </div>
           {!isMobile && (
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
+            <span className="text-sm font-semibold text-slate-700 max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap">
               {currentUser.phone}
             </span>
           )}
-          <ChevronDown className={`w-3.5 h-3.5 text-slate-500 dark:text-slate-400 transition-transform duration-300 ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${profileDropdownOpen ? "rotate-180" : ""}`}
+          />
         </button>
 
         <AnimatePresence>
@@ -108,59 +138,57 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#070b19]/95 backdrop-blur-xl p-2 shadow-2xl overflow-hidden"
+              className="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl overflow-hidden"
             >
               {isMobile && (
-                <div className="px-3 py-2 border-b border-slate-100 dark:border-white/5 text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                  Acc: {currentUser.phone}
+                <div className="px-3 py-2 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                  Account: {currentUser.phone}
                 </div>
               )}
-
-
 
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  navigate('/dashboard');
+                  navigate("/dashboard");
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
               >
-                <Grid className="w-3.5 h-3.5 text-cyan-450" />
+                <Grid className="w-4 h-4 text-slate-400" />
                 <span>Dashboard</span>
               </button>
 
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  navigate('/feedbacks');
+                  navigate("/feedbacks");
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
+                <MessageSquare className="w-4 h-4 text-slate-400" />
                 <span>Feedbacks</span>
               </button>
 
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
-                  navigate('/scan-qr');
+                  navigate("/scan-qr");
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all cursor-pointer"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
               >
-                <Scan className="w-3.5 h-3.5 text-blue-500" />
+                <Scan className="w-4 h-4 text-slate-400" />
                 <span>Scan QR</span>
               </button>
 
-              <div className="h-px bg-slate-100 dark:bg-white/5 my-1" />
+              <div className="h-px bg-slate-100 my-2" />
 
               <button
                 onClick={() => {
                   setProfileDropdownOpen(false);
                   handleLogout();
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
               >
-                <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                <LogOut className="w-4 h-4 text-rose-500" />
                 <span>Log Out</span>
               </button>
             </motion.div>
@@ -176,87 +204,93 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? 'py-4 bg-white/70 dark:bg-[#030712]/70 backdrop-blur-md border-b border-slate-200 dark:border-white/5 shadow-sm'
-          : 'py-6 bg-transparent'
-          }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "py-4 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
+            : "py-6 bg-transparent"
+        }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          {/* Logo */}
           <a
             href="#home"
             onClick={(e) => {
-              if (location.pathname !== '/') {
+              if (location.pathname !== "/") {
                 e.preventDefault();
-                navigate({ pathname: '/' });
+                navigate({ pathname: "/" });
               }
             }}
-            className="flex items-center gap-2 group"
+            className="flex items-center gap-2.5 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/45 transition-all duration-300">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-md transition-transform group-hover:scale-105 duration-300">
               <Layers className="w-5 h-5 text-white" />
             </div>
-            <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
-              One<span className="text-blue-500">QR</span>
+            <span className="font-extrabold text-xl tracking-tight text-slate-900">
+              One<span className="text-blue-600">QR</span>
             </span>
           </a>
 
-          {/* Desktop Nav Links */}
-          {location.pathname !== '/manage-qr' && (
-            <div className="hidden md:flex items-center gap-8">
-              {!isDashboardRoute ? (
-                navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    onClick={(e) => {
-                      if (location.pathname !== '/') {
-                        e.preventDefault();
-                        navigate({ pathname: '/', hash: link.href });
-                      }
-                    }}
-                    className="text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white relative group"
-                  >
-                    {link.name}
-                    <span className="absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 w-0 group-hover:w-full transition-all duration-300" />
-                  </a>
-                ))
-              ) : (
-                dashboardLinks.map((link) => (
-                  <button
-                    key={link.name}
-                    onClick={() => navigate(link.path)}
-                    className={`text-sm font-medium transition-colors duration-200 relative group cursor-pointer ${location.pathname === link.path ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                  >
-                    {link.name}
-                    <span className={`absolute -inset-x-1 -bottom-1 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 ${location.pathname === link.path ? 'w-full' : 'w-0 group-hover:w-full'}`} />
-                  </button>
-                ))
-              )}
+          {location.pathname !== "/manage-qr" && (
+            <div className="hidden md:flex items-center gap-2">
+              {!isDashboardRoute
+                ? navLinks.map((link, index) => (
+                    <React.Fragment key={link.name}>
+                      {index === 1 && (
+                        <SolutionsDesktopMenu onOpenAuth={onOpenAuth} />
+                      )}
+                      <a
+                        href={link.href}
+                        onClick={(e) => {
+                          if (location.pathname !== "/") {
+                            e.preventDefault();
+                            navigate({ pathname: "/", hash: link.href });
+                          }
+                        }}
+                        className="text-sm font-semibold transition-all duration-300 text-slate-600 hover:text-blue-600 px-4 py-2 rounded-xl hover:bg-blue-50 relative group"
+                      >
+                        {link.name}
+                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-1/2 rounded-full opacity-0 group-hover:opacity-100"></span>
+                      </a>
+                    </React.Fragment>
+                  ))
+                : dashboardLinks.map((link) => (
+                    <button
+                      key={link.name}
+                      onClick={() => navigate(link.path)}
+                      className={`text-sm font-semibold transition-all duration-300 cursor-pointer px-4 py-2 rounded-xl relative group ${location.pathname === link.path ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50"}`}
+                    >
+                      {link.name}
+                      {location.pathname === link.path && (
+                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-blue-600 rounded-full"></span>
+                      )}
+                    </button>
+                  ))}
             </div>
           )}
 
-          {/* Action Buttons / Profile Trigger */}
           <div className="flex items-center gap-3">
-            {location.pathname === '/manage-qr' ? (
+            {location.pathname === "/manage-qr" ? (
               <div className="flex items-center gap-2 md:gap-4">
                 <button
-                  onClick={() => navigate('/dashboard')}
-                  className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs md:text-sm font-bold transition-all cursor-pointer shadow-md"
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all cursor-pointer shadow-sm"
                 >
-                  <span className="hidden md:inline">&larr; Back to Dashboard</span>
+                  <span className="hidden md:inline">
+                    &larr; Back to Dashboard
+                  </span>
                   <span className="md:hidden">&larr; Back</span>
                 </button>
                 <button
                   disabled={isSaving}
                   onClick={() => {
-                    const saveBtn = document.getElementById('manage-qr-save-btn');
+                    const saveBtn =
+                      document.getElementById("manage-qr-save-btn");
                     if (saveBtn) saveBtn.click();
                   }}
-                  className={`px-4 py-2 md:px-6 md:py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${saveSuccess
-                    ? 'bg-emerald-600 text-white shadow-emerald-500/20'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
-                    }`}
+                  className={`px-6 py-2 rounded-xl font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    saveSuccess
+                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                      : "bg-slate-900 hover:bg-slate-800 text-white"
+                  }`}
                 >
                   {isSaving ? (
                     <>
@@ -275,41 +309,50 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
               </div>
             ) : (
               <>
-                {/* Theme Toggle Button Removed */}
-
-                {/* Desktop-only auth buttons / Profile dropdown */}
                 <div className="hidden md:flex items-center gap-4">
                   {currentUser ? (
                     <ProfileDropdown isMobile={false} />
                   ) : (
                     <button
-                      onClick={() => onOpenAuth('login')}
-                      className="relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm text-white !text-white overflow-hidden group cursor-pointer shadow-md"
+                      onClick={() => onOpenAuth("login")}
+                      className="relative inline-flex items-center justify-center px-6 py-2.5 rounded-full font-semibold text-sm text-white bg-[#0F172A] hover:bg-[#1E3A8A] transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
                     >
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-cyan-500" />
-                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <span className="relative flex items-center gap-2 z-10 text-white !text-white">
-                        Login
-                      </span>
-                      <span className="absolute -inset-px rounded-xl border border-white/20 pointer-events-none" />
+                      Login
                     </button>
                   )}
                 </div>
 
-                {/* Mobile Profile Trigger (Only outside system dashboard paths to avoid duplication with BottomNavbar!) */}
-                {currentUser && !['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(location.pathname) && (
-                  <div className="md:hidden flex items-center mr-1">
-                    <ProfileDropdown isMobile={true} />
-                  </div>
-                )}
+                {currentUser &&
+                  ![
+                    "/dashboard",
+                    "/manage-qr",
+                    "/scan-qr",
+                    "/feedbacks",
+                    "/profile",
+                    "/plans",
+                  ].includes(location.pathname) && (
+                    <div className="md:hidden flex items-center mr-1">
+                      <ProfileDropdown isMobile={true} />
+                    </div>
+                  )}
 
-                {/* Mobile Hamburger Button (Only outside system dashboard paths) */}
-                {!['/dashboard', '/manage-qr', '/scan-qr', '/feedbacks', '/profile', '/plans'].includes(location.pathname) && (
+                {![
+                  "/dashboard",
+                  "/manage-qr",
+                  "/scan-qr",
+                  "/feedbacks",
+                  "/profile",
+                  "/plans",
+                ].includes(location.pathname) && (
                   <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="md:hidden p-2 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer bg-white rounded-xl shadow-sm border border-slate-200"
                   >
-                    {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    {isOpen ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Menu className="w-5 h-5" />
+                    )}
                   </button>
                 )}
               </>
@@ -318,7 +361,6 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
         </div>
       </motion.nav>
 
-      {/* Mobile Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -326,33 +368,43 @@ export default function Navbar({ onOpenAuth, currentView = 'landing', onNavigate
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-[72px] z-40 md:hidden glass border-b border-slate-200 dark:border-white/5 py-6 px-6 shadow-2xl"
+            className="fixed inset-x-0 top-[72px] z-40 md:hidden bg-white/95 backdrop-blur-xl border-b border-slate-200 py-6 px-6 shadow-xl"
           >
-            <div className="flex flex-col gap-5">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => {
-                    setIsOpen(false);
-                    if (location.pathname !== '/') {
-                      e.preventDefault();
-                      navigate({ pathname: '/', hash: link.href });
-                    }
-                  }}
-                  className="text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  {link.name}
-                </a>
+            <div className="flex flex-col gap-4">
+              {navLinks.map((link, index) => (
+                <Fragment key={link.name}>
+                  {index === 1 && (
+                    <SolutionsMobileAccordion
+                      onOpenAuth={onOpenAuth}
+                      closeMobileMenu={() => setIsOpen(false)}
+                    />
+                  )}
+                  <a
+                    href={link.href}
+                    onClick={(e) => {
+                      setIsOpen(false);
+                      if (location.pathname !== "/") {
+                        e.preventDefault();
+                        navigate({ pathname: "/", hash: link.href });
+                      }
+                    }}
+                    className="text-base font-semibold text-slate-600 hover:text-slate-900 transition-colors p-2 rounded-lg hover:bg-slate-50"
+                  >
+                    {link.name}
+                  </a>
+                </Fragment>
               ))}
 
               {!currentUser && (
                 <>
-                  <div className="h-px bg-slate-200/50 dark:bg-white/5 my-2" />
+                  <div className="h-px bg-slate-100 my-2" />
                   <div className="flex flex-col gap-3">
                     <button
-                      onClick={() => { setIsOpen(false); onOpenAuth('login'); }}
-                      className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-semibold text-white !text-white hover:from-blue-500 hover:to-cyan-400 transition-all shadow-lg shadow-blue-500/25 cursor-pointer"
+                      onClick={() => {
+                        setIsOpen(false);
+                        onOpenAuth("login");
+                      }}
+                      className="w-full text-center py-3 rounded-xl bg-slate-900 text-sm font-semibold text-white hover:bg-slate-800 transition-all shadow-md cursor-pointer"
                     >
                       Login
                     </button>

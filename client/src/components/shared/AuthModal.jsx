@@ -1,26 +1,38 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock, Phone, ArrowRight, CheckCircle2, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import { authService } from '../../services/authService';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  Lock,
+  Phone,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { authService } from "../../services/authService";
 
-export default function AuthModal({ onClose, initialTab = 'login' }) {
+export default function AuthModal({ onClose, initialTab = "login" }) {
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('oneqr_accepted_terms') === 'true' ? initialTab : 'terms';
+    return localStorage.getItem("oneqr_accepted_terms") === "true"
+      ? initialTab
+      : "terms";
   }); // 'login' | 'signup' | 'terms'
-  
+
   // Login Form States
   const [loginPhone, setLoginPhone] = useState(() => {
-    return localStorage.getItem('oneqr_remembered_phone') || '';
+    return localStorage.getItem("oneqr_remembered_phone") || "";
   });
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginPassword, setLoginPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(() => {
-    return !!localStorage.getItem('oneqr_remembered_phone');
+    return !!localStorage.getItem("oneqr_remembered_phone");
   });
 
   // Signup Form States
-  const [signupPhone, setSignupPhone] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [signupPhone, setSignupPhone] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
 
   // Password Visibility States
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -28,48 +40,53 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Status & Feedback States
-  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
-  const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'success' | 'error'
+  const [feedbackMsg, setFeedbackMsg] = useState("");
 
   // Handle Login submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Simple validation
     if (!loginPhone || !loginPassword) {
-      setFeedbackMsg('Please enter both mobile number and password.');
-      setStatus('error');
+      setFeedbackMsg("Please enter both mobile number and password.");
+      setStatus("error");
       return;
     }
 
     if (loginPhone.length < 8) {
-      setFeedbackMsg('Please enter a valid mobile number.');
-      setStatus('error');
+      setFeedbackMsg("Please enter a valid mobile number.");
+      setStatus("error");
       return;
     }
 
-    setStatus('loading');
+    setStatus("loading");
 
     try {
       const data = await authService.login(loginPhone, loginPassword);
 
       // Handle "Remember Me" storage
       if (rememberMe) {
-        localStorage.setItem('oneqr_remembered_phone', loginPhone);
+        localStorage.setItem("oneqr_remembered_phone", loginPhone);
       } else {
-        localStorage.removeItem('oneqr_remembered_phone');
+        localStorage.removeItem("oneqr_remembered_phone");
       }
 
-      setStatus('success');
-      setFeedbackMsg(data.message || 'Login successful! Welcome back to OneQR.');
+      setStatus("success");
+      setFeedbackMsg(
+        data.message || "Login successful! Welcome back to OneQR.",
+      );
 
       setTimeout(() => {
         onClose();
       }, 1800);
     } catch (error) {
-      console.error('Login error:', error);
-      setFeedbackMsg(error.message || 'Incorrect credentials or server error. Please try again.');
-      setStatus('error');
+      console.error("Login error:", error);
+      setFeedbackMsg(
+        error.message ||
+          "Incorrect credentials or server error. Please try again.",
+      );
+      setStatus("error");
     }
   };
 
@@ -78,57 +95,59 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
     e.preventDefault();
 
     if (!signupPhone || !signupPassword || !signupConfirmPassword) {
-      setFeedbackMsg('Please fill out all fields.');
-      setStatus('error');
+      setFeedbackMsg("Please fill out all fields.");
+      setStatus("error");
       return;
     }
 
     if (signupPhone.length < 8) {
-      setFeedbackMsg('Please enter a valid mobile number.');
-      setStatus('error');
+      setFeedbackMsg("Please enter a valid mobile number.");
+      setStatus("error");
       return;
     }
 
     if (signupPassword.length < 6) {
-      setFeedbackMsg('Password must be at least 6 characters.');
-      setStatus('error');
+      setFeedbackMsg("Password must be at least 6 characters.");
+      setStatus("error");
       return;
     }
 
     if (signupPassword !== signupConfirmPassword) {
-      setFeedbackMsg('Passwords do not match.');
-      setStatus('error');
+      setFeedbackMsg("Passwords do not match.");
+      setStatus("error");
       return;
     }
 
-    setStatus('loading');
+    setStatus("loading");
 
     try {
       const data = await authService.signup(signupPhone, signupPassword);
 
-      setStatus('success');
-      setFeedbackMsg(data.message || 'Account created successfully! Switching to Login...');
-      
+      setStatus("success");
+      setFeedbackMsg(
+        data.message || "Account created successfully! Switching to Login...",
+      );
+
       // Auto transition to login tab with prefilled mobile
       setTimeout(() => {
         setLoginPhone(signupPhone);
-        setSignupPhone('');
-        setSignupPassword('');
-        setSignupConfirmPassword('');
-        setActiveTab('login');
-        setStatus('idle');
-        setFeedbackMsg('');
+        setSignupPhone("");
+        setSignupPassword("");
+        setSignupConfirmPassword("");
+        setActiveTab("login");
+        setStatus("idle");
+        setFeedbackMsg("");
         setShowSignupPassword(false);
         setShowConfirmPassword(false);
       }, 2000);
     } catch (error) {
-      console.error('Signup error:', error);
-      setFeedbackMsg(error.message || 'An error occurred during registration. Please try again.');
+      console.error("Signup error:", error);
+      setFeedbackMsg(
+        error.message ||
+          "An error occurred during registration. Please try again.",
+      );
     }
   };
-
-
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-hidden">
@@ -138,7 +157,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-[#02050f]/80 backdrop-blur-md"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
       />
 
       {/* Modal Container */}
@@ -146,8 +165,8 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ type: 'spring', duration: 0.5 }}
-        className="relative w-full max-w-md glass rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-lg dark:shadow-2xl overflow-hidden z-10"
+        transition={{ type: "spring", duration: 0.5 }}
+        className="relative w-full max-w-md bg-white rounded-3xl p-8 border border-slate-200 shadow-lg overflow-hidden z-10"
       >
         {/* Background Blob inside modal */}
         <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-blue-500/15 blur-2xl pointer-events-none" />
@@ -156,7 +175,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -166,38 +185,38 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white font-extrabold text-sm">
             OQ
           </div>
-          <span className="font-extrabold text-lg text-slate-900 dark:text-white">
+          <span className="font-extrabold text-lg text-slate-900 ">
             One<span className="text-blue-500">QR</span>
           </span>
         </div>
 
         {/* Tabs Selector */}
-        {activeTab !== 'terms' && (
-          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl mb-8">
+        {activeTab !== "terms" && (
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-xl mb-8">
             <button
               onClick={() => {
-                setActiveTab('login');
-                setStatus('idle');
-                setFeedbackMsg('');
+                setActiveTab("login");
+                setStatus("idle");
+                setFeedbackMsg("");
               }}
               className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'login'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                activeTab === "login"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/15"
+                  : "text-slate-500 hover:text-slate-900 "
               }`}
             >
               Sign In
             </button>
             <button
               onClick={() => {
-                setActiveTab('signup');
-                setStatus('idle');
-                setFeedbackMsg('');
+                setActiveTab("signup");
+                setStatus("idle");
+                setFeedbackMsg("");
               }}
               className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'signup'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/15'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
+                activeTab === "signup"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/15"
+                  : "text-slate-500 hover:text-slate-900 "
               }`}
             >
               Create Account
@@ -205,11 +224,12 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
           </div>
         )}
 
-
         {/* Dynamic Tabs Content */}
-        <div className={`flex flex-col justify-between ${activeTab !== 'terms' ? 'min-h-[290px]' : ''}`}>
+        <div
+          className={`flex flex-col justify-between ${activeTab !== "terms" ? "min-h-[290px]" : ""}`}
+        >
           <AnimatePresence mode="wait">
-            {activeTab === 'terms' ? (
+            {activeTab === "terms" ? (
               <motion.div
                 key="terms"
                 initial={{ opacity: 0, y: 10 }}
@@ -217,62 +237,143 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                 exit={{ opacity: 0, y: -10 }}
                 className="flex flex-col h-[60vh] max-h-[500px]"
               >
-                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar text-sm text-slate-700 dark:text-slate-300 space-y-4">
-                  <h2 className="text-lg font-extrabold text-slate-900 dark:text-white sticky top-0 bg-white/95 dark:bg-[#02050f]/95 backdrop-blur-md py-2 border-b border-slate-100 dark:border-white/5 z-10">OneQR – Terms & Purchase Policy</h2>
-                  <p className="mt-4">By purchasing a OneQR plan, you agree to the following terms:</p>
-                  
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">1. Product Understanding</h3>
+                <div data-lenis-prevent className="flex-1 overflow-y-auto pr-4 custom-scrollbar text-sm text-slate-700 space-y-4">
+                  <h2 className="text-lg font-extrabold text-slate-900 sticky top-0 bg-white/95 backdrop-blur-md py-2 border-b border-slate-100 z-10">
+                    OneQR – Terms & Purchase Policy
+                  </h2>
+                  <p className="mt-4">
+                    By purchasing a OneQR plan, you agree to the following
+                    terms:
+                  </p>
+
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    1. Product Understanding
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>OneQR is a digital profile platform that allows users to create and share their profile through a single QR code.</li>
+                    <li>
+                      OneQR is a digital profile platform that allows users to
+                      create and share their profile through a single QR code.
+                    </li>
                     <li>A demo of the product is shown before purchase.</li>
-                    <li>By purchasing, you confirm that you understand the product and its features.</li>
+                    <li>
+                      By purchasing, you confirm that you understand the product
+                      and its features.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">2. Plan Validity</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    2. Plan Validity
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>All OneQR plans come with <strong className="text-slate-900 dark:text-white">Lifetime validity</strong>.</li>
-                    <li>You will receive continuous access to the purchased features and standard support.</li>
-                    <li>No renewal fees or recurring charges apply for the features included in the plan.</li>
+                    <li>
+                      All OneQR plans come with{" "}
+                      <strong className="text-slate-900 ">
+                        Lifetime validity
+                      </strong>
+                      .
+                    </li>
+                    <li>
+                      You will receive continuous access to the purchased
+                      features and standard support.
+                    </li>
+                    <li>
+                      No renewal fees or recurring charges apply for the
+                      features included in the plan.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">3. No Refund Policy</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    3. No Refund Policy
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
                     <li>All sales are final.</li>
-                    <li>Since the product is demonstrated before purchase, <strong className="text-slate-900 dark:text-white">no refunds will be provided</strong> after payment.</li>
-                    <li>Refunds will not be given due to change of mind, lack of usage, dissatisfaction, or because the product no longer suits your needs.</li>
+                    <li>
+                      Since the product is demonstrated before purchase,{" "}
+                      <strong className="text-slate-900 ">
+                        no refunds will be provided
+                      </strong>{" "}
+                      after payment.
+                    </li>
+                    <li>
+                      Refunds will not be given due to change of mind, lack of
+                      usage, dissatisfaction, or because the product no longer
+                      suits your needs.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">4. Service Availability</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    4. Service Availability
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>We strive to keep OneQR available at all times, but temporary downtime may occur due to maintenance, server issues, database issues, security incidents, or other technical problems.</li>
+                    <li>
+                      We strive to keep OneQR available at all times, but
+                      temporary downtime may occur due to maintenance, server
+                      issues, database issues, security incidents, or other
+                      technical problems.
+                    </li>
                     <li>We do not guarantee 100% uninterrupted service.</li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">5. Limitation of Liability</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    5. Limitation of Liability
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>OneQR is a software product and is provided on a best-effort basis.</li>
-                    <li>We are not responsible for any business loss, revenue loss, missed opportunities, or damages resulting from service interruptions or technical issues.</li>
-                    <li>Our maximum liability, if applicable, will not exceed the amount paid for the plan.</li>
+                    <li>
+                      OneQR is a software product and is provided on a
+                      best-effort basis.
+                    </li>
+                    <li>
+                      We are not responsible for any business loss, revenue
+                      loss, missed opportunities, or damages resulting from
+                      service interruptions or technical issues.
+                    </li>
+                    <li>
+                      Our maximum liability, if applicable, will not exceed the
+                      amount paid for the plan.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">6. User Content</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    6. User Content
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>You are responsible for all content, links, and information added to your profile.</li>
-                    <li>Illegal, harmful, misleading, or offensive content is strictly prohibited.</li>
+                    <li>
+                      You are responsible for all content, links, and
+                      information added to your profile.
+                    </li>
+                    <li>
+                      Illegal, harmful, misleading, or offensive content is
+                      strictly prohibited.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">7. Intellectual Property</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    7. Intellectual Property
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>The OneQR software, design, branding, and technology remain the property of OneQR.</li>
-                    <li>Users may not copy, resell, reverse engineer, or redistribute the platform.</li>
+                    <li>
+                      The OneQR software, design, branding, and technology
+                      remain the property of OneQR.
+                    </li>
+                    <li>
+                      Users may not copy, resell, reverse engineer, or
+                      redistribute the platform.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">8. Changes & Updates</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    8. Changes & Updates
+                  </h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    <li>OneQR reserves the right to improve, modify, add, or remove features as the platform evolves.</li>
+                    <li>
+                      OneQR reserves the right to improve, modify, add, or
+                      remove features as the platform evolves.
+                    </li>
                   </ul>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white mt-4">9. Acceptance</h3>
+                  <h3 className="font-bold text-slate-900 mt-4">
+                    9. Acceptance
+                  </h3>
                   <p>By completing your purchase, you acknowledge that:</p>
                   <ul className="list-disc pl-5 space-y-1 pb-4">
                     <li>You have seen the product demo.</li>
@@ -283,10 +384,10 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                   </ul>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-slate-200 dark:border-white/10 shrink-0">
+                <div className="pt-4 mt-4 border-t border-slate-200 shrink-0">
                   <button
                     onClick={() => {
-                      localStorage.setItem('oneqr_accepted_terms', 'true');
+                      localStorage.setItem("oneqr_accepted_terms", "true");
                       setActiveTab(initialTab);
                     }}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 border border-white/15 shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
@@ -296,7 +397,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                   </button>
                 </div>
               </motion.div>
-            ) : activeTab === 'login' ? (
+            ) : activeTab === "login" ? (
               <motion.form
                 key="login"
                 initial={{ opacity: 0, x: -10 }}
@@ -307,7 +408,10 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               >
                 {/* Mobile Input */}
                 <div>
-                  <label htmlFor="login-phone" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                  <label
+                    htmlFor="login-phone"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
                     Mobile Number
                   </label>
                   <div className="relative">
@@ -316,16 +420,21 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       type="tel"
                       id="login-phone"
                       value={loginPhone}
-                      onChange={(e) => setLoginPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                      onChange={(e) =>
+                        setLoginPhone(e.target.value.replace(/[^0-9]/g, ""))
+                      }
                       placeholder="e.g. 9876543210"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Password Input */}
                 <div>
-                  <label htmlFor="login-pass" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                  <label
+                    htmlFor="login-pass"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
                     Password
                   </label>
                   <div className="relative">
@@ -336,7 +445,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
                     />
                     <button
                       type="button"
@@ -354,26 +463,27 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
 
                 {/* Remember me & forgot details row */}
                 <div className="flex items-center justify-between text-xs pt-1">
-                  <label className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                  <label className="flex items-center gap-2 text-slate-600 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-blue-600 focus:ring-0 focus:ring-offset-0 w-3.5 h-3.5"
+                      className="rounded border-slate-200 bg-slate-50 text-blue-600 focus:ring-0 focus:ring-offset-0 w-3.5 h-3.5"
                     />
                     <span>Remember me</span>
                   </label>
-                  <span className="text-blue-600 dark:text-blue-500 hover:underline cursor-pointer">Forgot password?</span>
+                  <span className="text-blue-600 hover:underline cursor-pointer">
+                    Forgot password?
+                  </span>
                 </div>
-
 
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={status === 'loading'}
+                  disabled={status === "loading"}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 border border-white/15 shadow-lg shadow-blue-500/10 disabled:opacity-50 transition-all mt-4 cursor-pointer"
                 >
-                  {status === 'loading' ? (
+                  {status === "loading" ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Signing in...</span>
@@ -385,8 +495,6 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                     </>
                   )}
                 </button>
-
-
               </motion.form>
             ) : (
               <motion.form
@@ -399,7 +507,10 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               >
                 {/* Mobile Input */}
                 <div>
-                  <label htmlFor="signup-phone" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                  <label
+                    htmlFor="signup-phone"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
                     Mobile Number
                   </label>
                   <div className="relative">
@@ -408,16 +519,21 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       type="tel"
                       id="signup-phone"
                       value={signupPhone}
-                      onChange={(e) => setSignupPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                      onChange={(e) =>
+                        setSignupPhone(e.target.value.replace(/[^0-9]/g, ""))
+                      }
                       placeholder="e.g. 9876543210"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Password Input */}
                 <div>
-                  <label htmlFor="signup-pass" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                  <label
+                    htmlFor="signup-pass"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
                     Create Password
                   </label>
                   <div className="relative">
@@ -428,7 +544,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
                       placeholder="At least 6 characters"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
                     />
                     <button
                       type="button"
@@ -446,7 +562,10 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
 
                 {/* Confirm Password Input */}
                 <div>
-                  <label htmlFor="signup-confirm" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                  <label
+                    htmlFor="signup-confirm"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -457,11 +576,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                       value={signupConfirmPassword}
                       onChange={(e) => setSignupConfirmPassword(e.target.value)}
                       placeholder="Repeat password"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white dark:focus:bg-slate-900/80 transition-all"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
                     >
                       {showConfirmPassword ? (
@@ -473,14 +594,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                   </div>
                 </div>
 
-
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={status === 'loading'}
+                  disabled={status === "loading"}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 border border-white/15 shadow-lg shadow-blue-500/10 disabled:opacity-50 transition-all mt-4 cursor-pointer"
                 >
-                  {status === 'loading' ? (
+                  {status === "loading" ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Creating Account...</span>
@@ -492,15 +612,13 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
                     </>
                   )}
                 </button>
-
-
               </motion.form>
             )}
           </AnimatePresence>
 
           {/* Status Notifications Alerts */}
           <AnimatePresence>
-            {status === 'success' && (
+            {status === "success" && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -512,7 +630,7 @@ export default function AuthModal({ onClose, initialTab = 'login' }) {
               </motion.div>
             )}
 
-            {status === 'error' && (
+            {status === "error" && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}

@@ -22,13 +22,13 @@ export default function Pricing({ onSelectPlan }) {
       cta: 'Choose Basic',
       isPopular: false,
       isBestSeller: false,
-      glow: 'from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900',
-      buttonStyle: 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white border-slate-200 dark:border-white/10'
+      cardStyle: 'bg-white border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300',
+      buttonStyle: 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'
     },
     {
       id: 'premium',
       name: 'Premium Plan',
-      description: 'Unlock detailed scan analytics, document sharing, and no watermarks (Best Seller & Most Popular).',
+      description: 'Unlock detailed scan analytics, document sharing, and no watermarks.',
       price: 1999,
       originalPrice: 3999,
       savings: 'Save ₹2,000 (50% Off)',
@@ -45,8 +45,8 @@ export default function Pricing({ onSelectPlan }) {
       cta: 'Upgrade to Premium',
       isPopular: true,
       isBestSeller: true,
-      glow: 'from-blue-100/50 via-indigo-50/30 to-white dark:from-blue-600/20 dark:via-indigo-600/10 dark:to-[#030712]',
-      buttonStyle: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-cyan-400'
+      cardStyle: 'bg-white border-blue-500 shadow-xl relative scale-100 md:scale-105 z-10',
+      buttonStyle: 'bg-blue-600 text-white shadow-md hover:bg-blue-700 border-blue-600'
     },
     {
       id: 'enterprise',
@@ -69,19 +69,17 @@ export default function Pricing({ onSelectPlan }) {
       cta: 'Choose Enterprise',
       isPopular: false,
       isBestSeller: false,
-      glow: 'from-amber-100/50 via-orange-50/30 to-white dark:from-amber-600/20 dark:via-orange-600/10 dark:to-[#030712]',
-      buttonStyle: 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white border-slate-200 dark:border-white/10'
+      cardStyle: 'bg-white border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300',
+      buttonStyle: 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'
     }
   ];
 
   return (
-    <section id="pricing" className="relative py-24 border-t border-slate-200 dark:border-white/5 overflow-hidden">
-      {/* Background glowing effects */}
-      <div className="absolute top-[20%] left-[-10vw] w-[35vw] h-[35vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[20%] right-[-10vw] w-[30vw] h-[30vw] rounded-full bg-cyan-600/5 blur-[100px] pointer-events-none" />
+    <section id="pricing" className="relative py-24 bg-white overflow-hidden border-t border-slate-200">
+      <div className="absolute top-[20%] left-[-10vw] w-[35vw] h-[35vw] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[20%] right-[-10vw] w-[30vw] h-[30vw] rounded-full bg-cyan-50/50 blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -89,24 +87,20 @@ export default function Pricing({ onSelectPlan }) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-blue-600 dark:text-blue-500 text-sm font-extrabold uppercase tracking-widest">
+            <span className="inline-block py-1.5 px-4 rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest mb-4">
               Lifetime Plans
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3 mb-6">
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
               Plans Built for Every Growth Phase
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed">
+            <p className="text-slate-600 text-lg leading-relaxed font-medium">
               Equip yourself or your business with physical and digital smart integrations. Choose the tier that matches your network demands.
             </p>
           </motion.div>
         </div>
 
-        {/* Pricing Cards Grid - Responsive 3-column layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-7xl mx-auto">
           {plans.map((plan, idx) => {
-            const price = plan.price;
-            const originalPrice = plan.originalPrice;
-            const savingsText = plan.savings;
             const hasStarBadge = plan.isPopular || plan.isBestSeller;
             return (
               <motion.div
@@ -115,65 +109,58 @@ export default function Pricing({ onSelectPlan }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
-                className={`group relative rounded-3xl p-8 bg-white dark:bg-slate-900/40 border ${
-                  plan.isPopular 
-                    ? 'border-blue-500/50 shadow-lg dark:shadow-glass-glow' 
-                    : 'border-slate-200 dark:border-white/5 hover:border-slate-350 dark:hover:border-white/10'
-                } transition-all duration-300 flex flex-col justify-between overflow-hidden`}
+                className={`group rounded-[2rem] p-8 border transition-all duration-300 flex flex-col justify-between overflow-hidden ${plan.cardStyle}`}
               >
-                {/* Custom Colored Glow Layer */}
-                <div className={`absolute -inset-px rounded-3xl bg-gradient-to-tr ${plan.glow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10`} />
+                {hasStarBadge && (
+                  <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400" />
+                )}
 
                 <div>
-                  {/* Card Popular Tag Header */}
                   <div className="flex justify-between items-center mb-6">
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</span>
+                    <span className="text-2xl font-bold text-slate-900">{plan.name}</span>
                     {hasStarBadge && (
-                      <div className="flex items-center gap-1 py-1 px-2.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[9px] font-extrabold uppercase tracking-widest">
-                        <Star className="w-2.5 h-2.5 fill-blue-500 dark:fill-blue-400" />
+                      <div className="flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold uppercase tracking-widest">
+                        <Star className="w-3 h-3 fill-blue-500 text-blue-500" />
                         <span>Best Seller</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Description */}
-                  <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+                  <p className="text-slate-500 text-sm leading-relaxed mb-6 font-medium">
                     {plan.description}
                   </p>
 
-                  {/* Price */}
-                  <div className="flex flex-col mb-6 border-b border-slate-200 dark:border-white/5 pb-6">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                        ₹{price}
+                  <div className="flex flex-col mb-8 border-b border-slate-100 pb-8">
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-5xl font-extrabold text-slate-900 tracking-tight">
+                        ₹{plan.price}
                       </span>
-                      <span className="text-slate-400 dark:text-slate-550 text-lg sm:text-xl font-medium line-through">
-                        ₹{originalPrice}
+                      <span className="text-slate-400 text-xl font-medium line-through">
+                        ₹{plan.originalPrice}
                       </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <span className="text-slate-555 text-xs font-semibold">
+                    <div className="flex flex-wrap items-center gap-2.5 mt-3">
+                      <span className="text-slate-600 text-xs font-bold uppercase tracking-wide">
                         One-time payment
                       </span>
-                      <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
-                        {savingsText}
+                      <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md tracking-wider">
+                        {plan.savings}
                       </span>
                     </div>
                   </div>
 
-                  {/* Feature check list */}
                   <ul className="space-y-4 mb-10">
                     {plan.features.map((feat) => {
                       const isHeaderFeature = feat.startsWith('Everything in');
                       return (
                         <li key={feat} className="flex items-start gap-3">
-                          <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${hasStarBadge ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
                             <Check className="w-3 h-3" />
                           </div>
-                           <span className={`text-xs sm:text-sm leading-normal font-medium ${
+                           <span className={`text-sm leading-normal ${
                             isHeaderFeature 
-                              ? 'text-blue-605 dark:text-white font-extrabold tracking-wide uppercase text-[10px]' 
-                              : 'text-slate-700 dark:text-white'
+                              ? 'text-blue-700 font-bold uppercase text-[11px] tracking-wide' 
+                              : 'text-slate-700 font-medium'
                           }`}>
                             {feat}
                           </span>
@@ -183,14 +170,13 @@ export default function Pricing({ onSelectPlan }) {
                   </ul>
                 </div>
 
-                {/* Checkout CTA */}
                 <button
                   onClick={() => {
                     if (onSelectPlan) {
                       onSelectPlan(plan.id);
                     }
                   }}
-                  className={`w-full py-3.5 rounded-2xl font-bold text-sm text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${plan.buttonStyle}`}
+                  className={`w-full py-4 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-2 border transition-all cursor-pointer ${plan.buttonStyle}`}
                 >
                   <span>{plan.cta}</span>
                   <ArrowRight className="w-4 h-4" />

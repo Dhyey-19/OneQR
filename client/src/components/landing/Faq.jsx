@@ -29,13 +29,11 @@ export default function Faq() {
   ];
 
   return (
-    <section id="faq" className="relative py-24 border-t border-slate-200 dark:border-white/5 overflow-hidden">
-      {/* Background glowing effects */}
-      <div className="absolute top-[20%] left-[-10vw] w-[35vw] h-[35vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[20%] right-[-10vw] w-[30vw] h-[30vw] rounded-full bg-cyan-600/5 blur-[100px] pointer-events-none" />
+    <section id="faq" className="relative py-24 bg-white overflow-hidden border-t border-slate-200">
+      <div className="absolute top-[20%] left-[-10vw] w-[35vw] h-[35vw] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[20%] right-[-10vw] w-[30vw] h-[30vw] rounded-full bg-cyan-50/50 blur-[100px] pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
-        {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -43,20 +41,19 @@ export default function Faq() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-blue-600 dark:text-blue-500 text-sm font-extrabold uppercase tracking-widest">
+            <span className="inline-block py-1.5 px-4 rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest mb-4 shadow-sm">
               Got Questions?
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3 mb-6">
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
               Frequently Asked Questions
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed">
+            <p className="text-slate-600 text-lg leading-relaxed font-medium">
               Find immediate answers about setup details, NFC chip compatibility, catalog hosting, custom theme templates, and metrics monitoring.
             </p>
           </motion.div>
         </div>
 
 
-        {/* Collapsible FAQ Accordions */}
         <div className="space-y-4 max-w-3xl mx-auto">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
@@ -67,28 +64,26 @@ export default function Faq() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
-                className={`rounded-2xl border ${
-                  isOpen ? 'border-blue-500/30 bg-slate-50 dark:bg-[#0c1224]/80' : 'border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/40'
-                } transition-all duration-300 overflow-hidden shadow-sm dark:shadow-glass`}
+                className={`rounded-[1.5rem] border ${
+                  isOpen ? 'border-blue-200 bg-blue-50/30 shadow-md ring-4 ring-blue-50/50' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
+                } transition-all duration-300 overflow-hidden`}
               >
-                {/* Accordion Trigger */}
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full px-6 py-5 text-left flex justify-between items-center gap-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  className="w-full px-6 py-5 text-left flex justify-between items-center gap-4 cursor-pointer"
                 >
-                  <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                  <span className={`text-base sm:text-lg font-bold transition-colors ${isOpen ? 'text-blue-700' : 'text-slate-900 group-hover:text-blue-600'}`}>
                     {faq.q}
                   </span>
                   <motion.div
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
-                    className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0"
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isOpen ? 'bg-blue-100 text-blue-600 border-blue-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}
                   >
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5" />
                   </motion.div>
                 </button>
 
-                {/* Accordion Content */}
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
@@ -98,7 +93,7 @@ export default function Faq() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <div className="px-6 pb-6 text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed border-t border-slate-200 dark:border-white/5 pt-4">
+                      <div className="px-6 pb-6 text-slate-600 text-sm sm:text-base leading-relaxed font-medium">
                         {faq.a}
                       </div>
                     </motion.div>

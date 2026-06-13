@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
   --color-brand-50: #eff6ff;
   --color-brand-100: #dbeafe;
@@ -13,76 +11,67 @@
   --color-brand-700: #1d4ed8;
   --color-brand-800: #1e40af;
   --color-brand-900: #1e3a8a;
-  --color-brand-950: #172554;
+  --color-brand-950: #0f172a;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
   }
   
   body {
     background-color: #ffffff;
-    color: #0f172a;
+    color: #111111;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  body.dark {
-    background-color: #0f172a;
-    color: #f8fafc;
-  }
-
   /* Custom Scrollbar - Minimal and Clean */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-  .dark ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #e2e8f0;
+    border-radius: 6px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: #cbd5e1;
   }
 }
 
-/* Fallbacks for previous glassmorphism and gradient classes to maintain layout but remove effects */
+/* Glassmorphism utilities */
 .glass {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-}
-.dark .glass {
-  background: #1e293b;
-  border: 1px solid #334155;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 .glass-light {
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
-}
-.dark .glass-light {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
-.glass-glow {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); /* Replaced glow with standard subtle shadow */
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.06);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
 }
 
 /* Lenis Smooth Scroll Configuration */
@@ -106,33 +95,37 @@ html.lenis, html.lenis body {
   pointer-events: none;
 }
 
-/* Custom Utilities Cleaned Up */
+/* Background Patterns */
 .dash-grid {
-  background: none;
+  background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+    linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+  background-size: 40px 40px;
 }
-.dark .dash-grid {
-  background: none;
+
+.qr-pattern {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 .text-gradient-primary {
-  color: #2563eb;
-}
-.dark .text-gradient-primary {
-  color: #3b82f6;
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .text-gradient-blue {
-  color: #1d4ed8;
-}
-.dark .text-gradient-blue {
-  color: #60a5fa;
+  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .glow-blob {
   display: none !important;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar Utilities */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -143,27 +136,18 @@ html.lenis, html.lenis body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* slate-300 */
+  background: #e2e8f0;
   border-radius: 10px;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155; /* slate-700 */
-}
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; /* slate-400 */
+  background: #cbd5e1;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #475569; /* slate-600 */
-}
-
-/* No Scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
