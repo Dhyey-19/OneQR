@@ -74,26 +74,6 @@
   transform: translateY(-2px);
 }
 
-/* Lenis Smooth Scroll Configuration */
-html.lenis, html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overflow: clip;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
-.lenis.lenis-scrolling iframe {
-  pointer-events: none;
-}
 
 /* Background Patterns */
 .dash-grid {

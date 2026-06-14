@@ -451,7 +451,6 @@ export default function ManageQrTab({
         {/* Left Column: Configuration Forms */}
         <div
           className="lg:col-span-9 w-full h-full lg:overflow-y-auto custom-scrollbar pr-0 lg:pr-4 space-y-8 pb-10"
-          data-lenis-prevent="true"
         >
           {/* 1. Digital Profile Builder Card */}
           <div className="p-6 md:p-8 glass border border-slate-200  rounded-3xl space-y-6">
@@ -1606,7 +1605,6 @@ export default function ManageQrTab({
                 {/* Phone Scrollable Body */}
                 <div
                   className="flex-1 flex flex-col overflow-y-auto relative no-scrollbar pb-6"
-                  data-lenis-prevent="true"
                 >
                   {/* Header Banner */}
                   <div

@@ -237,7 +237,7 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
                 exit={{ opacity: 0, y: -10 }}
                 className="flex flex-col h-[60vh] max-h-[500px]"
               >
-                <div data-lenis-prevent className="flex-1 overflow-y-auto pr-4 custom-scrollbar text-sm text-slate-700 space-y-4">
+                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar text-sm text-slate-700 space-y-4">
                   <h2 className="text-lg font-extrabold text-slate-900 sticky top-0 bg-white/95 backdrop-blur-md py-2 border-b border-slate-100 z-10">
                     OneQR – Terms & Purchase Policy
                   </h2>

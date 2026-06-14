@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import Lenis from 'lenis';
 import { AnimatePresence } from 'framer-motion';
 
 // Layout & Shared Components
@@ -56,26 +55,6 @@ export default function App() {
     setAuthModalOpen(true);
   };
 
-  // Initialize Lenis Smooth Scrolling
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      wheelMultiplier: 1,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
-  }, []);
 
   // Listen to logout / auth change to auto-redirect from dashboard to landing page
   useEffect(() => {

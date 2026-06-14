@@ -669,7 +669,6 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
 
             <div
               className="p-3 max-h-[60vh] overflow-y-auto overscroll-contain"
-              data-lenis-prevent="true"
             >
               <div className="flex flex-col gap-2">
                 {availableQRs.map((item) => {
