@@ -104,6 +104,7 @@ export default function ManageQrTab({
   // Profile Data States
   profileLogo,
   setProfileLogo,
+  setProfileLogoFile,
   headerColor,
   setHeaderColor,
   qrUrl,
@@ -524,8 +525,16 @@ export default function ManageQrTab({
                       />
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
+                          if (profileLogo && profileLogo.includes("cloudinary.com")) {
+                            try {
+                              await apiRequest("/profile/delete-file", "POST", { url: profileLogo });
+                            } catch (err) {
+                              console.error("Failed to delete logo from Cloudinary", err);
+                            }
+                          }
                           setProfileLogo("");
+                          if (setProfileLogoFile) setProfileLogoFile(null);
                           if (logoInputRef.current)
                             logoInputRef.current.value = "";
                         }}
@@ -551,10 +560,12 @@ export default function ManageQrTab({
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        if (setProfileLogoFile) setProfileLogoFile(file);
                         const reader = new FileReader();
                         reader.onload = (event) =>
                           setProfileLogo(event.target.result);
-                        reader.readAsDataURL(e.target.files[0]);
+                        reader.readAsDataURL(file);
                       }
                     }}
                     className="text-sm text-slate-500  file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-slate-100  file:text-slate-700  hover:file:bg-slate-200  cursor-pointer"
@@ -966,15 +977,7 @@ export default function ManageQrTab({
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
                   Social & Connect Channels
                 </label>
-                <p className="text-[10px] text-slate-500  mb-2">
-                  Drag and drop to reorder the items.
-                </p>
-                <Reorder.Group
-                  axis="y"
-                  values={socialOrder}
-                  onReorder={setSocialOrder}
-                  className="space-y-3"
-                >
+                <div className="space-y-3 pt-2">
                   {socialOrder.map((key) => {
                     const platforms = {
                       facebook: {
@@ -1048,26 +1051,10 @@ export default function ManageQrTab({
                     const Icon = platform.icon;
 
                     return (
-                      <Reorder.Item
+                      <div
                         key={key}
-                        value={key}
-                        className="flex items-center gap-2.5 p-2 bg-white  border border-slate-200  rounded-2xl cursor-grab active:cursor-grabbing hover:border-blue-500/30 transition-all relative group"
+                        className="flex items-center gap-2.5 p-2 bg-white  border border-slate-200  rounded-2xl hover:border-blue-500/30 transition-all relative group"
                       >
-                        {/* 1. Drag Handle indicator dots */}
-                        <div className="flex flex-col gap-0.5 opacity-30 group-hover:opacity-75 transition-opacity shrink-0 pl-1">
-                          <div className="flex gap-0.5">
-                            <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
-                            <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
-                          </div>
-                          <div className="flex gap-0.5">
-                            <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
-                            <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
-                          </div>
-                          <div className="flex gap-0.5">
-                            <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
-                            <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
-                          </div>
-                        </div>
 
                         {/* 2. Brand Icon Circle Container */}
                         <div className="w-8 h-8 rounded-xl bg-slate-50  flex items-center justify-center shrink-0 border border-slate-200/50 ">
@@ -1096,10 +1083,10 @@ export default function ManageQrTab({
                             className="w-full px-3 py-2.5 rounded-xl bg-slate-50  border border-slate-200  text-slate-900  placeholder-slate-400  text-xs focus:outline-none focus:border-blue-500/40 focus:bg-white  transition-all"
                           />
                         </div>
-                      </Reorder.Item>
+                      </div>
                     );
                   })}
-                </Reorder.Group>
+                </div>
               </div>
               {/* Section Bank Trigger - Mobile only */}
               <div

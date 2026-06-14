@@ -46,6 +46,7 @@ export default function DashboardPage({ subViewProp }) {
 
   // Digital Profile Form States
   const [profileLogo, setProfileLogo] = useState("");
+  const [profileLogoFile, setProfileLogoFile] = useState(null);
   const [headerColor, setHeaderColor] = useState("#2563eb");
   const [qrUrl, setQrUrl] = useState("https://oneqr.co/user/profile");
   const [qrColor, setQrColor] = useState("000000");
@@ -114,6 +115,7 @@ export default function DashboardPage({ subViewProp }) {
         setProfileSlug(profile.slug || "");
         setProfilePlan(profile.plan || "free");
         setProfileLogo(profile.profileLogo || "");
+        setProfileLogoFile(null);
         setHeaderColor(profile.headerColor || "#2563eb");
         const cleanPrefix = qrUrlPrefix.endsWith("/")
           ? qrUrlPrefix
@@ -457,6 +459,7 @@ export default function DashboardPage({ subViewProp }) {
     setProfileDocuments([]);
     setSelectedFeedbacks([]);
     setHeaderColor("#2563eb");
+    setProfileLogoFile(null);
   };
 
   // Save builder form details to Cloudinary & MongoDB
@@ -488,7 +491,7 @@ export default function DashboardPage({ subViewProp }) {
         const doc = updatedDocs[i];
         if (doc.file) {
           const formData = new FormData();
-          formData.append("document", doc.file);
+          formData.append("file", doc.file);
 
           if (doc.publicId) {
             formData.append("oldPublicId", doc.publicId);
@@ -526,10 +529,36 @@ export default function DashboardPage({ subViewProp }) {
 
       setProfileDocuments(updatedDocs);
 
+      let finalProfileLogo = profileLogo;
+      if (profileLogoFile) {
+        const logoFormData = new FormData();
+        logoFormData.append("file", profileLogoFile);
+
+        const logoUploadRes = await fetch(
+          `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/profile/upload`,
+          {
+            method: "POST",
+            headers,
+            body: logoFormData,
+          },
+        );
+
+        if (!logoUploadRes.ok) {
+          throw new Error("Failed to upload business logo.");
+        }
+
+        const logoUploadData = await logoUploadRes.json();
+        if (logoUploadData.status === "success") {
+          finalProfileLogo = logoUploadData.data.url;
+        }
+      } else if (!profileLogo) {
+        finalProfileLogo = "";
+      }
+
       // 2. Build payload to save in MongoDB
       const payload = {
         profileId: activeProfileId,
-        profileLogo,
+        profileLogo: finalProfileLogo,
         qrUrl,
         qrColor,
         headerColor,
@@ -697,6 +726,7 @@ export default function DashboardPage({ subViewProp }) {
             saveSuccess={saveSuccess}
             profileLogo={profileLogo}
             setProfileLogo={setProfileLogo}
+            setProfileLogoFile={setProfileLogoFile}
             headerColor={headerColor}
             setHeaderColor={setHeaderColor}
             qrUrl={qrUrl}

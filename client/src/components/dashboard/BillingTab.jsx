@@ -749,7 +749,7 @@ export default function BillingTab({
       {/* Details Bottom Sheet Modal */}
       <AnimatePresence>
         {selectedPlanDetails && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center p-0 md:p-4">
+          <div className="fixed inset-0 z-[100] flex items-end justify-center md:items-center p-0 md:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

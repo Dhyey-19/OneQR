@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Check,
   Link2,
@@ -635,9 +636,9 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
       </div>
 
       {/* Download Options Modal */}
-      {isDownloadModalOpen && (
+      {isDownloadModalOpen && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
           onClick={(e) => {
             e.stopPropagation();
             setIsDownloadModalOpen(false);
@@ -699,7 +700,8 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

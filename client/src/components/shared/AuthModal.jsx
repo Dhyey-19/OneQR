@@ -150,7 +150,7 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
       {/* Backdrop Blur */}
       <motion.div
         initial={{ opacity: 0 }}

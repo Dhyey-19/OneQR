@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Hero from '../components/landing/Hero';
+import Showcase from '../components/landing/Showcase';
 import Features from '../components/landing/Features';
 import Pricing from '../components/landing/Pricing';
 import Testimonials from '../components/landing/Testimonials';
@@ -29,7 +30,10 @@ export default function LandingPage({ openAuthModal, handleSelectPlan }) {
       {/* 1. Hero Section */}
       <Hero onOpenAuth={openAuthModal} />
       
-      {/* 2. Features Grid */}
+      {/* 2. Showcase Section */}
+      <Showcase />
+      
+      {/* 3. Features Grid */}
       <Features />
       
       {/* 3. Pricing Section */}
