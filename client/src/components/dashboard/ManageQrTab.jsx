@@ -349,6 +349,7 @@ export default function ManageQrTab({
 
   // Documents/Images Actions
   const addDocument = () => {
+    if (profileDocuments.length >= 10) return;
     setProfileDocuments([
       ...profileDocuments,
       { id: Date.now(), label: "", filename: "No file chosen", size: "" },
@@ -359,7 +360,10 @@ export default function ManageQrTab({
     const doc = profileDocuments.find((d) => d.id === id);
     if (doc && doc.url) {
       try {
-        await apiRequest("/profile/delete-file", "POST", { url: doc.url });
+        await apiRequest("/profile/delete-file", {
+          method: "POST",
+          body: JSON.stringify({ url: doc.url })
+        });
       } catch (err) {
         console.error("Failed to delete file from Cloudinary", err);
       }
@@ -507,9 +511,9 @@ export default function ManageQrTab({
                 }`}
               >
                 <span
-                  className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "branding" ? "text-white" : "text-slate-800 "}`}
+                  className={`text-[14px] font-extrabold ${activeAccordion === "branding" ? "text-white" : "text-slate-800 "}`}
                 >
-                  1. Profile & Branding
+                  Business Details
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "branding" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -890,9 +894,9 @@ export default function ManageQrTab({
                 }`}
               >
                 <span
-                  className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "contact" ? "text-white" : "text-slate-800 "}`}
+                  className={`text-[14px] font-extrabold ${activeAccordion === "contact" ? "text-white" : "text-slate-800 "}`}
                 >
-                  2. Contact Channels
+                  Contact Details
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "contact" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -968,9 +972,9 @@ export default function ManageQrTab({
                 }`}
               >
                 <span
-                  className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "social" ? "text-white" : "text-slate-800 "}`}
+                  className={`text-[14px] font-extrabold ${activeAccordion === "social" ? "text-white" : "text-slate-800 "}`}
                 >
-                  3. Social & Connect Channels
+                  Social Links
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "social" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -1044,13 +1048,6 @@ export default function ManageQrTab({
                         value: socialWhatsapp,
                         setter: setSocialWhatsapp,
                       },
-                      upi: {
-                        imgSrc: "/assets/upi.png",
-                        label: "UPI VPA ID",
-                        placeholder: "e.g. yourname@okaxis",
-                        value: socialUPI,
-                        setter: setSocialUPI,
-                      },
                     };
                     const platform = platforms[key];
                     if (!platform) return null;
@@ -1108,9 +1105,9 @@ export default function ManageQrTab({
                 }`}
               >
                 <span
-                  className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "bank" ? "text-white" : "text-slate-800 "}`}
+                  className={`text-[14px] font-extrabold ${activeAccordion === "bank" ? "text-white" : "text-slate-800 "}`}
                 >
-                  4. Bank Details
+                  Bank Details
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "bank" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -1129,6 +1126,22 @@ export default function ManageQrTab({
                     Provide your bank account details to receive payments
                     directly. Fill only what is needed.
                   </p>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    UPI VPA ID
+                  </label>
+                  <div className="relative">
+                    <img src="/assets/upi.png" alt="UPI" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 object-contain opacity-70" />
+                    <input
+                      type="text"
+                      value={socialUPI}
+                      onChange={(e) => setSocialUPI(e.target.value)}
+                      placeholder="e.g. yourname@okaxis"
+                      className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/40 focus:bg-white transition-all"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -1213,9 +1226,9 @@ export default function ManageQrTab({
                     }`}
                   >
                     <span
-                      className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "custom" ? "text-white" : "text-slate-800 "}`}
+                      className={`text-[14px] font-extrabold ${activeAccordion === "custom" ? "text-white" : "text-slate-800 "}`}
                     >
-                      5. Custom Panels & Buttons
+                      Custom Links
                     </span>
                     <ChevronDown
                       className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "custom" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -1228,15 +1241,15 @@ export default function ManageQrTab({
                   >
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                        Custom Links (Dynamic Panels)
+                        Custom Links
                       </label>
                       <button
                         type="button"
                         onClick={addCustomLink}
-                        className="px-2.5 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                        className="p-1.5 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                        title="Add Custom Link"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Custom Link
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
 
@@ -1312,9 +1325,9 @@ export default function ManageQrTab({
                     }`}
                   >
                     <span
-                      className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "docs" ? "text-white" : "text-slate-800 "}`}
+                      className={`text-[14px] font-extrabold ${activeAccordion === "docs" ? "text-white" : "text-slate-800 "}`}
                     >
-                      6. Catalog Files & PDFs
+                      Upload Documents
                     </span>
                     <ChevronDown
                       className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "docs" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -1327,21 +1340,17 @@ export default function ManageQrTab({
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                          Product Catalogs, Menus & Images
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                          Upload Documents
                         </label>
-                        <span className="text-xs text-slate-500">
-                          Upload PDF menus, price lists, brochures, or store
-                          images
-                        </span>
                       </div>
                       <button
                         type="button"
                         onClick={addDocument}
-                        className="px-2.5 py-1.5 bg-cyan-600/10 hover:bg-cyan-600/20 border border-cyan-500/20 text-cyan-400 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                        className="p-1.5 bg-cyan-600/10 hover:bg-cyan-600/20 border border-cyan-500/20 text-cyan-400 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                        title="Add Document"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Document
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
 
@@ -1424,9 +1433,9 @@ export default function ManageQrTab({
                     }`}
                   >
                     <span
-                      className={`text-[13px] font-black uppercase tracking-wider ${activeAccordion === "feedbacks" ? "text-white" : "text-slate-800 "}`}
+                      className={`text-[14px] font-extrabold ${activeAccordion === "feedbacks" ? "text-white" : "text-slate-800 "}`}
                     >
-                      7. Showcase Client Reviews
+                      7. Customer Reviews
                     </span>
                     <ChevronDown
                       className={`w-5 h-5 transition-transform duration-300 ${activeAccordion === "feedbacks" ? "rotate-180 text-white" : "text-slate-500"}`}
@@ -1439,12 +1448,8 @@ export default function ManageQrTab({
                   >
                     <div>
                       <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                        Showcase Client Reviews & Testimonials
+                        Customer Reviews
                       </label>
-                      <span className="text-xs text-slate-500">
-                        Select up to 3 customer reviews/feedbacks to feature at
-                        the bottom of your profile page.
-                      </span>
                     </div>
 
                     {feedbackError && (
@@ -1560,7 +1565,7 @@ export default function ManageQrTab({
                     <span>Profile Saved!</span>
                   </>
                 ) : (
-                  <span>Save Profile Settings</span>
+                  <span>Save</span>
                 )}
               </button>
             </div>
@@ -1722,7 +1727,7 @@ export default function ManageQrTab({
                               id: "save",
                               icon: UserPlus,
                               color: "text-indigo-500",
-                              label: "Save Contact",
+                              label: "Contact",
                               href: "#",
                               target: undefined,
                             });

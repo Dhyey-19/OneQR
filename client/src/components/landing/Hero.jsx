@@ -54,7 +54,7 @@ export default function Hero({ onOpenAuth }) {
             className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold tracking-tight leading-[1.05] mb-6 text-slate-900"
           >
             Smart Digital <br />
-            <span className="text-gradient-primary">
+            <span className="text-blue-600">
               Presence
             </span> <br />
             for Professionals
@@ -121,7 +121,7 @@ export default function Hero({ onOpenAuth }) {
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-          className="lg:col-span-6 relative hidden lg:flex items-center justify-center"
+          className="lg:col-span-6 relative flex mt-12 lg:mt-0 items-center justify-center w-full"
         >
           {/* Main Floating Card - Glassmorphism Dashboard snippet */}
           <div className="relative w-full max-w-lg aspect-[4/3] rounded-3xl bg-white border border-slate-200 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.1)] overflow-hidden flex flex-col z-10">

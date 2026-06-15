@@ -18,6 +18,7 @@ import MockPaymentModal from "../components/dashboard/MockPaymentModal";
 import SuccessModal from "../components/dashboard/SuccessModal";
 import ClaimQrModal from "../components/dashboard/ClaimQrModal";
 import ConnectStandyModal from "../components/dashboard/ConnectStandyModal";
+import PlanDetailsTab from "../components/dashboard/PlanDetailsTab";
 
 export default function DashboardPage({ subViewProp }) {
   const navigate = useNavigate();
@@ -74,11 +75,11 @@ export default function DashboardPage({ subViewProp }) {
   const [socialUPI, setSocialUPI] = useState("");
   const [socialOrder, setSocialOrder] = useState([
     "whatsapp",
-    "facebook",
     "instagram",
+    "google",
+    "facebook",
     "youtube",
     "linkedin",
-    "google",
     "x",
     "upi",
   ]);
@@ -159,11 +160,11 @@ export default function DashboardPage({ subViewProp }) {
         } else {
           setSocialOrder([
             "whatsapp",
-            "facebook",
             "instagram",
+            "google",
+            "facebook",
             "youtube",
             "linkedin",
-            "google",
             "x",
             "upi",
           ]);
@@ -213,6 +214,12 @@ export default function DashboardPage({ subViewProp }) {
 
   // Initialize profile load on user change
   useEffect(() => {
+    const handleReset = () => setSubView("overview");
+    window.addEventListener("reset-dashboard-view", handleReset);
+    return () => window.removeEventListener("reset-dashboard-view", handleReset);
+  }, []);
+
+  useEffect(() => {
     const user = authService.getCurrentUser();
     if (user) {
       setTimeout(() => {
@@ -252,6 +259,13 @@ export default function DashboardPage({ subViewProp }) {
     }
     setSubView("manage-qr");
     navigate("/manage-qr");
+  };
+
+  const handleViewPlanDetails = (profile) => {
+    setActiveProfileId(profile._id);
+    setActiveQrId(profile.slug || null);
+    fetchProfile(null, profile._id);
+    setSubView("plan-details");
   };
 
   // Payment triggers
@@ -442,11 +456,11 @@ export default function DashboardPage({ subViewProp }) {
     setSocialUPI("");
     setSocialOrder([
       "whatsapp",
-      "facebook",
       "instagram",
+      "google",
+      "facebook",
       "youtube",
       "linkedin",
-      "google",
       "x",
       "upi",
     ]);
@@ -685,7 +699,7 @@ export default function DashboardPage({ subViewProp }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pt-28 pb-28 md:pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900 transition-colors duration-300">
+    <div className="min-h-screen bg-[#FAFAFA] pt-20 pb-28 md:pb-16 px-4 md:px-8 relative overflow-hidden text-slate-900 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {subView === "overview" && (
           <OverviewTab
@@ -696,7 +710,16 @@ export default function DashboardPage({ subViewProp }) {
               setConnectModalProfileId(profileId);
               setShowConnectModal(true);
             }}
+            onViewDetails={handleViewPlanDetails}
             currentUser={currentUser}
+          />
+        )}
+
+        {subView === "plan-details" && (
+          <PlanDetailsTab
+            profile={profiles.find((p) => p._id === activeProfileId) || profiles[0]}
+            onManage={(id) => handleSelectAndManageProfile(id)}
+            onBack={() => setSubView("overview")}
           />
         )}
 

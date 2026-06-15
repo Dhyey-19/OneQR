@@ -109,7 +109,7 @@ exports.getProfile = async (req, res, next) => {
             socialX: "",
             socialWhatsapp: "",
             socialUPI: "",
-            socialOrder: ['facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'whatsapp', 'upi'],
+            socialOrder: ['whatsapp', 'instagram', 'google', 'facebook', 'youtube', 'linkedin', 'x', 'upi'],
             bankUpiId: "",
             bankName: "",
             bankAccountNo: "",

@@ -14,6 +14,7 @@ import {
   MessageSquare,
   RefreshCw,
   Check,
+  Home,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
@@ -114,23 +115,28 @@ export default function Navbar({
     if (!currentUser) return null;
     return (
       <div className="relative z-50" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm cursor-pointer select-none"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0F172A] to-[#1E3A8A] flex items-center justify-center text-white font-bold text-xs shadow-inner">
-            <User className="w-4 h-4" />
-          </div>
-          {!isMobile && (
-            <span className="text-sm font-semibold text-slate-700 max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap">
-              {currentUser.phone}
-            </span>
-          )}
-          <ChevronDown
-            className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${profileDropdownOpen ? "rotate-180" : ""}`}
-          />
-        </button>
+        <div className="flex items-center gap-4 border-l border-white/10 pl-4 ml-2">
 
+          <div className="relative">
+            <button
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className={`flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-full transition-all cursor-pointer ${
+                isDashboardRoute 
+                  ? 'hover:bg-white/10 border-white/10' 
+                  : 'border border-transparent hover:border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                isDashboardRoute 
+                  ? 'bg-blue-950 text-white shadow-inner border border-white/10' 
+                  : 'bg-slate-100 text-slate-600 shadow-sm border border-slate-200'
+              }`}>
+                <User className="w-4 h-4" />
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 ${isDashboardRoute ? 'text-white/70' : 'text-slate-400'}`} />
+            </button>
+          </div>
+        </div>
         <AnimatePresence>
           {profileDropdownOpen && (
             <motion.div
@@ -205,7 +211,9 @@ export default function Navbar({
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
+          isDashboardRoute
+            ? "py-4 bg-blue-950 border-b border-white/10 shadow-lg text-white"
+            : scrolled
             ? "py-4 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
             : "py-6 bg-transparent"
         }`}
@@ -221,12 +229,14 @@ export default function Navbar({
             }}
             className="flex items-center gap-2.5 group"
           >
-            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-md transition-transform group-hover:scale-105 duration-300">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-105 duration-300 ${isDashboardRoute ? 'bg-white/10' : 'bg-slate-900'}`}>
               <Layers className="w-5 h-5 text-white" />
             </div>
-            <span className="font-extrabold text-xl tracking-tight text-slate-900">
-              One<span className="text-blue-600">QR</span>
-            </span>
+            <div className="flex flex-col">
+              <span className={`font-extrabold text-xl tracking-tight ${isDashboardRoute ? 'text-white' : 'text-slate-900'}`}>
+                One<span className={isDashboardRoute ? "text-blue-400" : "text-blue-600"}>QR</span>
+              </span>
+            </div>
           </a>
 
           {location.pathname !== "/manage-qr" && (
@@ -256,11 +266,11 @@ export default function Navbar({
                     <button
                       key={link.name}
                       onClick={() => navigate(link.path)}
-                      className={`text-sm font-semibold transition-all duration-300 cursor-pointer px-4 py-2 rounded-xl relative group ${location.pathname === link.path ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:text-blue-600 hover:bg-blue-50"}`}
+                      className={`text-sm font-semibold transition-all duration-300 cursor-pointer px-4 py-2 relative group ${location.pathname === link.path ? "text-white" : "text-white/70 hover:text-white"}`}
                     >
                       {link.name}
                       {location.pathname === link.path && (
-                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-blue-600 rounded-full"></span>
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-full h-0.5 bg-white rounded-full"></span>
                       )}
                     </button>
                   ))}
@@ -273,9 +283,9 @@ export default function Navbar({
                 <button
                   onClick={() => navigate("/dashboard")}
                   className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all cursor-pointer shadow-sm"
-                  title="Back to Dashboard"
+                  title="Home"
                 >
-                  &larr;
+                  <Home className="w-5 h-5" />
                 </button>
                 <button
                   disabled={isSaving}
@@ -349,7 +359,7 @@ export default function Navbar({
                     {isOpen ? (
                       <X className="w-5 h-5" />
                     ) : (
-                      <Menu className="w-5 h-5" />
+                      <Menu className={`w-5 h-5 ${isDashboardRoute ? 'text-white' : 'text-slate-600'}`} />
                     )}
                   </button>
                 )}

@@ -86,7 +86,38 @@ export default function ContactForm() {
                 We’d love to learn about your business and help you create a modern customer experience using OneQR.
               </p>
 
+              <div className="space-y-6 mt-6">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">What to expect</h3>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900">Personalized Demo</h4>
+                    <p className="text-slate-600 text-sm mt-0.5">See how OneQR can be tailored for your specific industry.</p>
+                  </div>
+                </div>
 
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900">Custom Strategy</h4>
+                    <p className="text-slate-600 text-sm mt-0.5">We'll help you map out the best ways to engage your audience.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900">No Commitments</h4>
+                    <p className="text-slate-600 text-sm mt-0.5">Just a friendly chat to see if we're a good fit for each other.</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </motion.div>

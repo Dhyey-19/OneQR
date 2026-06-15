@@ -610,7 +610,7 @@ export default function DemoProfilePage() {
               const actionCards = [];
               if (profileData.profilePhone) {
                 actionCards.push({ id: 'call', type: 'link', href: `tel:${profileData.profilePhone}`, icon: Phone, iconColor: 'text-green-500', label: 'Call' });
-                actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Save' });
+                actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Contact' });
               }
               if (profileData.profileEmail) {
                 actionCards.push({ id: 'email', type: 'link', href: `mailto:${profileData.profileEmail}`, icon: Mail, iconColor: 'text-yellow-500', label: 'Email' });
@@ -662,7 +662,7 @@ export default function DemoProfilePage() {
             <div className="space-y-3.5">
               <span className={`text-xs font-black uppercase tracking-widest block text-left ${activeTheme.subText}`}>Connect</span>
               <div className="grid grid-cols-2 gap-3.5">
-                {(profileData.socialOrder || ['whatsapp', 'facebook', 'google', 'instagram', 'youtube', 'linkedin', 'x', 'upi']).map(key => {
+                {(profileData.socialOrder || ['whatsapp', 'instagram', 'google', 'facebook', 'youtube', 'linkedin', 'x', 'upi']).map(key => {
                   const platforms = {
                     facebook: { icon: FaFacebook, color: 'text-blue-500', label: 'Facebook', value: profileData.socialFacebook },
                     google: { icon: FcGoogle, color: '', label: 'Google Review', value: profileData.socialGoogle },

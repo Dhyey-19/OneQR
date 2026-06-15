@@ -9,6 +9,7 @@ export default function OverviewTab({
   profiles = [],
   onManageProfile,
   onConnectStandy,
+  onViewDetails,
   currentUser,
 }) {
   const navigate = useNavigate();
@@ -181,8 +182,7 @@ export default function OverviewTab({
               <AllocatedQrCard
                 key={profile._id}
                 profile={profile}
-                onManage={onManageProfile}
-                onConnect={onConnectStandy}
+                onViewDetails={onViewDetails}
               />
             ))}
           </div>

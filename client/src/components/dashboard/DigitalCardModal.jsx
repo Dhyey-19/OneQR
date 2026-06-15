@@ -34,14 +34,16 @@ export default function DigitalCardModal({ profile, onClose }) {
   const website = profile.profileWebsite || '';
   const upiId = profile.bankUpiId || profile.socialUPI || '';
   
-  const isStandyConnected = !!profile.isStandyConnected;
   const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || window.location.origin;
   const cleanPrefix = qrUrlPrefix.endsWith("/") ? qrUrlPrefix : `${qrUrlPrefix}/`;
   const qrId = profile.qrId || profile.slug || "";
-  const finalQrUrl = qrId ? `${cleanPrefix}qr/${qrId}` : "";
+  const finalQrUrl = qrId ? `${cleanPrefix}${qrId}` : "";
+  
+  // Check if we have a valid link to generate QR
+  const hasQrUrl = !!finalQrUrl;
 
   // Using a solid color for the QR code
-  const qrGeneratedUrl = isStandyConnected && finalQrUrl
+  const qrGeneratedUrl = hasQrUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=${selectedColor.replace('#', '')}&data=${encodeURIComponent(finalQrUrl)}`
     : "";
 
@@ -362,9 +364,9 @@ export default function DigitalCardModal({ profile, onClose }) {
           <div className="mt-8 pt-6 border-t border-slate-200 space-y-3">
             <button
               onClick={handleDownload}
-              disabled={isDownloading || !isStandyConnected}
+              disabled={isDownloading || !hasQrUrl}
               className={`w-full py-3.5 px-4 rounded-xl text-white text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md ${
-                !isStandyConnected ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
+                !hasQrUrl ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 active:scale-[0.98]'
               }`}
             >
               {isDownloading ? (
@@ -379,9 +381,9 @@ export default function DigitalCardModal({ profile, onClose }) {
                 </>
               )}
             </button>
-            {!isStandyConnected && (
+            {!hasQrUrl && (
               <p className="text-[10px] text-amber-600 text-center font-semibold bg-amber-50 p-2 rounded-lg">
-                Connect a Standy to generate the QR code first.
+                Complete your profile to generate a QR link.
               </p>
             )}
           </div>
