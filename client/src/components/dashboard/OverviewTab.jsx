@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { QrCode } from "lucide-react";
+import { QrCode, Eye, Star, Mail, TrendingUp } from "lucide-react";
 import AllocatedQrCard from "./AllocatedQrCard";
 import { apiRequest } from "../../services/apiService";
 
@@ -53,24 +53,36 @@ export default function OverviewTab({
       value: totalScans.toLocaleString(),
       change: "Real-time scans",
       color: "text-blue-500",
+      bgColor: "bg-blue-50",
+      icon: QrCode,
+      trendIcon: TrendingUp,
     },
     {
       name: "Profile Views",
       value: totalViews.toLocaleString(),
       change: "Real-time views",
-      color: "text-cyan-500",
+      color: "text-teal-500",
+      bgColor: "bg-teal-50",
+      icon: Eye,
+      trendIcon: TrendingUp,
     },
     {
       name: "Average Rating",
-      value: `${averageRating} ★`,
+      value: `${averageRating}`,
       change: `${totalFeedbacks} Customer Reviews`,
       color: "text-amber-500",
+      bgColor: "bg-amber-50",
+      icon: Star,
+      trendIcon: Star,
     },
     {
       name: "Customer Feedbacks",
       value: totalFeedbacks.toLocaleString(),
       change: "Total submissions",
       color: "text-indigo-500",
+      bgColor: "bg-indigo-50",
+      icon: Mail,
+      trendIcon: Mail,
     },
     {
       name: "Engagement Rate",
@@ -80,6 +92,9 @@ export default function OverviewTab({
           : "0%",
       change: "Scans / Views",
       color: "text-emerald-500",
+      bgColor: "bg-emerald-50",
+      icon: TrendingUp,
+      trendIcon: TrendingUp,
     },
   ];
 
@@ -103,19 +118,30 @@ export default function OverviewTab({
         {stats.map((stat, index) => (
           <div
             key={stat.name}
-            className={`p-4 md:p-6 glass border border-slate-200 hover:border-slate-350 rounded-2xl transition-all shadow-sm flex flex-col justify-between ${index === 4 ? 'col-span-2 md:col-span-1' : ''}`}
+            className={`p-3 sm:p-4 md:p-5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl md:rounded-3xl shadow-sm flex flex-col justify-between ${index === 4 ? 'col-span-2 md:col-span-1' : ''}`}
           >
             <div>
-              <span className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                {stat.name}
-              </span>
-              <span className="text-xl md:text-3xl font-extrabold text-slate-900  mt-1 md:mt-2 block tracking-tight">
-                {stat.value}
+              <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                <div className={`w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${stat.bgColor}`}>
+                  <stat.icon className={`w-3.5 h-3.5 md:w-5 md:h-5 ${stat.color}`} strokeWidth={2.5} />
+                </div>
+                <span className="text-[8px] md:text-xs font-bold text-slate-500 uppercase tracking-widest leading-tight max-w-[100px]">
+                  {stat.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl sm:text-2xl md:text-4xl font-extrabold text-slate-900 block tracking-tight">
+                  {stat.value}
+                </span>
+                {stat.name === 'Average Rating' && <Star className="w-4 h-4 md:w-7 md:h-7 text-slate-900 fill-slate-900" />}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mt-3 md:mt-4">
+              <stat.trendIcon className={`w-3 h-3 md:w-3.5 md:h-3.5 ${stat.color}`} strokeWidth={2.5} />
+              <span className={`text-[9px] md:text-xs font-bold ${stat.color}`}>
+                {stat.change}
               </span>
             </div>
-            <span className="text-[9px] md:text-[10px] text-slate-500  font-medium mt-2 md:mt-3 block">
-              <strong className={stat.color}>{stat.change}</strong>
-            </span>
           </div>
         ))}
       </div>
@@ -177,7 +203,7 @@ export default function OverviewTab({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
             {profiles.map((profile) => (
               <AllocatedQrCard
                 key={profile._id}

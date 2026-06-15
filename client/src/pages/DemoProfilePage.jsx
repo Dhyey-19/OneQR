@@ -65,7 +65,8 @@ export default function DemoProfilePage() {
   const { slug: routeSlug } = useParams();
   const location = useLocation();
   const locationSlug = location.pathname.replace(/^\/|\/$/g, '');
-  const slug = routeSlug || locationSlug;
+  const cleanSlug = locationSlug.startsWith('qr/') ? locationSlug.replace('qr/', '') : locationSlug;
+  const slug = routeSlug || cleanSlug;
 
   const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(false);

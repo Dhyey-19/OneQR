@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   motion,
@@ -779,104 +780,107 @@ export default function ManageQrTab({
                   </div>
                 </div>
 
-                <AnimatePresence>
-                  {showTimingsModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="w-full max-w-md bg-white  border border-slate-200  rounded-2xl shadow-2xl overflow-hidden"
-                      >
-                        <div className="p-4 border-b border-slate-200  flex items-center justify-between">
-                          <h4 className="font-bold text-slate-900  flex items-center gap-2">
-                            <Clock className="w-5 h-5 text-blue-500" />
-                            Edit Office Timings
-                          </h4>
-                          <button
-                            type="button"
-                            onClick={() => setShowTimingsModal(false)}
-                            className="p-1.5 text-slate-500 hover:bg-slate-100  rounded-lg transition-colors cursor-pointer"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-                        <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                          {daysOfWeek.map((day) => (
-                            <div
-                              key={day}
-                              className="flex items-center justify-between gap-2 text-sm bg-slate-50  p-3 rounded-xl border border-slate-200 "
+                {createPortal(
+                  <AnimatePresence>
+                    {showTimingsModal && (
+                      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+                        >
+                          <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+                            <h4 className="font-bold text-slate-900 flex items-center gap-2">
+                              <Clock className="w-5 h-5 text-blue-500" />
+                              Edit Office Timings
+                            </h4>
+                            <button
+                              type="button"
+                              onClick={() => setShowTimingsModal(false)}
+                              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                             >
-                              <div className="flex items-center gap-2 w-20">
-                                <input
-                                  type="checkbox"
-                                  checked={timingsData[day]?.isOpen}
-                                  onChange={(e) =>
-                                    handleTimingChange(
-                                      day,
-                                      "isOpen",
-                                      e.target.checked,
-                                    )
-                                  }
-                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span
-                                  className={`font-semibold ${!timingsData[day]?.isOpen ? "text-slate-400 line-through" : "text-slate-700 "}`}
-                                >
-                                  {day}
-                                </span>
-                              </div>
-                              {timingsData[day]?.isOpen ? (
-                                <div className="flex items-center gap-1.5 flex-1 max-w-[220px]">
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                          <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            {daysOfWeek.map((day) => (
+                              <div
+                                key={day}
+                                className="flex items-center justify-between gap-2 text-sm bg-slate-50 p-3 rounded-xl border border-slate-200"
+                              >
+                                <div className="flex items-center gap-2 w-20">
                                   <input
-                                    type="time"
-                                    value={timingsData[day]?.start || "09:00"}
+                                    type="checkbox"
+                                    checked={timingsData[day]?.isOpen}
                                     onChange={(e) =>
                                       handleTimingChange(
                                         day,
-                                        "start",
-                                        e.target.value,
+                                        "isOpen",
+                                        e.target.checked,
                                       )
                                     }
-                                    className="px-2 py-1.5 rounded-lg bg-white  border border-slate-200  text-xs flex-1 text-center font-medium focus:outline-none focus:border-blue-500/50"
+                                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                   />
-                                  <span className="text-slate-400 font-bold">
-                                    -
+                                  <span
+                                    className={`font-semibold ${!timingsData[day]?.isOpen ? "text-slate-400 line-through" : "text-slate-700"}`}
+                                  >
+                                    {day}
                                   </span>
-                                  <input
-                                    type="time"
-                                    value={timingsData[day]?.end || "18:00"}
-                                    onChange={(e) =>
-                                      handleTimingChange(
-                                        day,
-                                        "end",
-                                        e.target.value,
-                                      )
-                                    }
-                                    className="px-2 py-1.5 rounded-lg bg-white  border border-slate-200  text-xs flex-1 text-center font-medium focus:outline-none focus:border-blue-500/50"
-                                  />
                                 </div>
-                              ) : (
-                                <div className="flex-1 max-w-[220px] text-[11px] font-extrabold text-rose-500 bg-rose-50  px-2 py-1.5 rounded-lg border border-rose-200  text-center uppercase tracking-wider">
-                                  Holiday / Closed
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="p-4 border-t border-slate-200 ">
-                          <button
-                            type="button"
-                            onClick={() => setShowTimingsModal(false)}
-                            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md cursor-pointer transition-colors"
-                          >
-                            Done
-                          </button>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
-                </AnimatePresence>
+                                {timingsData[day]?.isOpen ? (
+                                  <div className="flex items-center gap-1.5 flex-1 max-w-[220px]">
+                                    <input
+                                      type="time"
+                                      value={timingsData[day]?.start || "09:00"}
+                                      onChange={(e) =>
+                                        handleTimingChange(
+                                          day,
+                                          "start",
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="px-2 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs flex-1 text-center font-bold focus:outline-none focus:border-blue-500/50 cursor-pointer"
+                                    />
+                                    <span className="text-slate-400 font-bold">
+                                      -
+                                    </span>
+                                    <input
+                                      type="time"
+                                      value={timingsData[day]?.end || "18:00"}
+                                      onChange={(e) =>
+                                        handleTimingChange(
+                                          day,
+                                          "end",
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="px-2 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs flex-1 text-center font-bold focus:outline-none focus:border-blue-500/50 cursor-pointer"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex-1 max-w-[220px] text-[11px] font-extrabold text-rose-500 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 text-center uppercase tracking-wider">
+                                    Holiday / Closed
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="p-4 border-t border-slate-200">
+                            <button
+                              type="button"
+                              onClick={() => setShowTimingsModal(false)}
+                              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md cursor-pointer transition-colors"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </motion.div>
+                      </div>
+                    )}
+                  </AnimatePresence>,
+                  document.body
+                )}
               </div>
 
               {/* Section 2 Trigger - Mobile only */}

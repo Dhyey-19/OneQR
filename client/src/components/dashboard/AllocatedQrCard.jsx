@@ -1,4 +1,4 @@
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, MoreVertical, ChevronRight } from "lucide-react";
 
 export default function AllocatedQrCard({ profile, onViewDetails }) {
   const isStandyConnected = !!profile.isStandyConnected;
@@ -8,42 +8,52 @@ export default function AllocatedQrCard({ profile, onViewDetails }) {
   const cleanPrefix = qrUrlPrefix.endsWith("/") ? qrUrlPrefix : `${qrUrlPrefix}/`;
   const finalQrUrl = (profile.qrId || profile.slug) ? `${cleanPrefix}qr/${profile.qrId || profile.slug}` : "";
   const qrGeneratedUrl = isStandyConnected && finalQrUrl
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&color=000000&data=${encodeURIComponent(finalQrUrl)}`
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=000000&data=${encodeURIComponent(finalQrUrl)}`
       : "";
+
+  const planInfo = {
+    free: { name: "FREE", style: "bg-slate-100 text-slate-600" },
+    basic: { name: "BASIC", style: "bg-blue-100 text-blue-600" },
+    premium: { name: "PREMIUM", style: "bg-indigo-100 text-indigo-600" },
+    enterprise: { name: "ENTERPRISE", style: "bg-amber-100 text-amber-600" },
+  };
+  const currentPlan = planInfo[profile.plan || "free"] || planInfo.free;
 
   return (
     <div
       onClick={() => onViewDetails && onViewDetails(profile)}
-      className="flex items-center gap-4 p-4 bg-white border border-slate-200 hover:border-indigo-500/50 rounded-2xl transition-all shadow-sm cursor-pointer hover:shadow-md active:scale-[0.99] w-full"
+      className="flex flex-col items-center p-5 md:p-6 bg-white border border-blue-100 hover:border-blue-300 rounded-[1.5rem] md:rounded-[2rem] shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99] w-full h-full group"
     >
-      {/* Small Logo / Initials Avatar */}
-      <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
-        {profile.profileLogo ? (
-           <img src={profile.profileLogo} alt={businessName} className="w-full h-full object-cover" />
+      <div className="w-full flex items-center justify-between mb-4">
+        {/* Plan Type Chip */}
+        <div className={`px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase ${currentPlan.style}`}>
+          {currentPlan.name}
+        </div>
+        <button className="text-slate-400 hover:text-slate-600 transition-colors">
+          <MoreVertical className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* QR */}
+      <div className="flex-1 flex items-center justify-center w-full min-h-[100px] mb-4">
+        {isStandyConnected && qrGeneratedUrl ? (
+           <img src={qrGeneratedUrl} alt="QR" className="w-28 h-28 sm:w-32 sm:h-32 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" />
         ) : (
-           <span className="text-sm font-bold text-slate-500 uppercase">
-             {businessName.substring(0, 2)}
-           </span>
+           <ShieldAlert className="w-10 h-10 text-amber-500 opacity-80" />
         )}
       </div>
 
-      {/* Business Name */}
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm md:text-base font-bold text-slate-900 truncate">
+      <div className="flex flex-col items-center w-full mt-auto">
+        {/* Business Name */}
+        <h4 className="text-sm md:text-base font-extrabold text-slate-900 text-center truncate w-full px-2 mb-3">
           {businessName}
         </h4>
-        <p className="text-[10px] md:text-xs text-slate-500 truncate mt-0.5">
-           {isStandyConnected ? `ID: ${profile.slug}` : "Setup Pending"}
-        </p>
-      </div>
-
-      {/* Small QR */}
-      <div className="shrink-0 flex items-center justify-center w-12 h-12 bg-slate-50 border border-slate-200 rounded-lg">
-        {isStandyConnected && qrGeneratedUrl ? (
-           <img src={qrGeneratedUrl} alt="QR" className="w-8 h-8 rounded-sm mix-blend-multiply" />
-        ) : (
-           <ShieldAlert className="w-6 h-6 text-amber-500 opacity-80" />
-        )}
+        
+        {/* View Button */}
+        <button className="flex items-center justify-center gap-1 text-[11px] font-bold text-blue-600 bg-white border border-blue-600 group-hover:bg-blue-50 py-1.5 px-5 rounded-full transition-colors w-max">
+          View Details
+          <ChevronRight className="w-3 h-3" />
+        </button>
       </div>
     </div>
   );

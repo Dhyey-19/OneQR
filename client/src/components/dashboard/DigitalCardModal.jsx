@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Download, LayoutTemplate, Palette, Loader2, Link2, MapPin, Phone, Mail, Globe } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 
 export default function DigitalCardModal({ profile, onClose }) {
   const [selectedDesign, setSelectedDesign] = useState('modern');
@@ -37,7 +37,7 @@ export default function DigitalCardModal({ profile, onClose }) {
   const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || window.location.origin;
   const cleanPrefix = qrUrlPrefix.endsWith("/") ? qrUrlPrefix : `${qrUrlPrefix}/`;
   const qrId = profile.qrId || profile.slug || "";
-  const finalQrUrl = qrId ? `${cleanPrefix}${qrId}` : "";
+  const finalQrUrl = qrId ? `${cleanPrefix}qr/${qrId}` : "";
   
   // Check if we have a valid link to generate QR
   const hasQrUrl = !!finalQrUrl;
