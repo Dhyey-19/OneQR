@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   ExternalLink,
   X,
+  CreditCard,
 } from "lucide-react";
 import {
   downloadFlyer,
@@ -23,10 +24,12 @@ import {
   FaTwitter,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import DigitalCardModal from "./DigitalCardModal";
 
 export default function AllocatedQrCard({ profile, onManage, onConnect }) {
   const [isCopied, setIsCopied] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isDigitalCardModalOpen, setIsDigitalCardModalOpen] = useState(false);
   const isStandyConnected = !!profile.isStandyConnected;
   const isConnected = !!profile.slug;
   const isSetupComplete = !!(profile.profileCompany || profile.profileName);
@@ -347,7 +350,7 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
             )}
 
             {/* Utility Grid Row */}
-            <div className="flex gap-2 w-full">
+            <div className="grid grid-cols-2 gap-2 w-full">
               {isStandyConnected ? (
                 <>
                   <button
@@ -393,6 +396,14 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
                   >
                     <ExternalLink className="w-4 h-4 text-slate-500 " />
                     <span className="text-[9px] font-bold">View Page</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsDigitalCardModalOpen(true); }}
+                    className="flex-1 py-2 px-1 rounded-xl border border-slate-200  bg-slate-50  hover:bg-slate-100  text-slate-700 hover:text-brand-600   flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-[0.95]"
+                  >
+                    <CreditCard className="w-4 h-4 text-slate-500 " />
+                    <span className="text-[9px] font-bold">Digital Card</span>
                   </button>
                 </>
               ) : (
@@ -441,6 +452,15 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
                   >
                     <ExternalLink className="w-4 h-4 text-slate-500 " />
                     <span className="text-[9px] font-bold">View Page</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsDigitalCardModalOpen(true); }}
+                    disabled={!isConnected}
+                    className="flex-1 py-2 px-1 rounded-xl border border-slate-200  bg-slate-50  hover:bg-slate-100  text-slate-700 hover:text-brand-600   flex flex-col items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.95]"
+                  >
+                    <CreditCard className="w-4 h-4 text-slate-500 " />
+                    <span className="text-[9px] font-bold">Digital Card</span>
                   </button>
                 </>
               )}
@@ -557,6 +577,14 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
                   </button>
 
                   <button
+                    onClick={(e) => { e.stopPropagation(); setIsDigitalCardModalOpen(true); }}
+                    title="Generate Digital Card"
+                    className="w-10 h-10 rounded-xl border border-slate-200  bg-slate-100  hover:bg-slate-200  text-slate-700 hover:text-brand-600   transition-all flex items-center justify-center cursor-pointer active:scale-[0.95]"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                  </button>
+
+                  <button
                     onClick={handleDownloadClick}
                     title="Download QR Flyer"
                     className="w-10 h-10 rounded-xl border border-slate-200  bg-slate-100  hover:bg-slate-200  text-slate-700 hover:text-brand-600   transition-all flex items-center justify-center cursor-pointer active:scale-[0.95]"
@@ -613,6 +641,15 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
                     ) : (
                       <Link2 className="w-4 h-4" />
                     )}
+                  </button>
+
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsDigitalCardModalOpen(true); }}
+                    disabled={!isConnected}
+                    title="Generate Digital Card"
+                    className="w-10 h-10 rounded-xl border border-slate-200  bg-slate-100  hover:bg-slate-200  text-slate-700 hover:text-brand-600   transition-all flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.95]"
+                  >
+                    <CreditCard className="w-4 h-4" />
                   </button>
 
                   <button
@@ -702,6 +739,17 @@ export default function AllocatedQrCard({ profile, onManage, onConnect }) {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Digital Card Sharing Modal */}
+      {isDigitalCardModalOpen && (
+        <DigitalCardModal 
+          profile={profile} 
+          onClose={(e) => {
+            if(e) e.stopPropagation(); 
+            setIsDigitalCardModalOpen(false);
+          }} 
+        />
       )}
     </>
   );

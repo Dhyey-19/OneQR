@@ -86,47 +86,7 @@ export default function ContactForm() {
                 We’d love to learn about your business and help you create a modern customer experience using OneQR.
               </p>
 
-              <div className="space-y-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-blue-100 shadow-sm flex items-center justify-center text-blue-600 shrink-0">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Email Support</span>
-                    <div className="flex flex-col gap-2 mt-2">
-                      <div className="text-sm text-slate-600">
-                        <a href="mailto:gopaldhorajiya205@gmail.com" className="font-bold text-slate-900 hover:text-blue-600 transition-colors">
-                          Gopal Dhorajiya
-                        </a>
-                        <span className="text-slate-500 font-medium"> (gopaldhorajiya205@gmail.com)</span>
-                      </div>
-                      <div className="text-sm text-slate-600">
-                        <a href="mailto:dhyeyshah009@gmail.com" className="font-bold text-slate-900 hover:text-blue-600 transition-colors">
-                          Dhyey Shah
-                        </a>
-                        <span className="text-slate-500 font-medium"> (dhyeyshah009@gmail.com)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-cyan-100 shadow-sm flex items-center justify-center text-cyan-600 shrink-0">
-                    <Phone className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Call Sales & Support</span>
-                    <div className="flex flex-col gap-2 mt-2">
-                      <a href="tel:+918200875023" className="text-sm font-bold text-slate-900 hover:text-cyan-600 transition-colors">
-                        +91 82008 75023
-                      </a>
-                      <a href="tel:+919724277321" className="text-sm font-bold text-slate-900 hover:text-cyan-600 transition-colors">
-                        +91 97242 77321
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
           </motion.div>

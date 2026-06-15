@@ -554,7 +554,7 @@ export default function DemoProfilePage() {
             </h1>
           )}
           {profileData.profileBio && (
-            <p className="text-sm sm:text-[15px] font-bold text-indigo-500 text-center mt-2 px-6 max-w-md">
+            <p className="text-sm sm:text-[15px] font-bold text-indigo-500 text-center mt-2 px-6 max-w-md whitespace-pre-wrap break-words">
               {profileData.profileBio}
             </p>
           )}
@@ -610,7 +610,7 @@ export default function DemoProfilePage() {
               const actionCards = [];
               if (profileData.profilePhone) {
                 actionCards.push({ id: 'call', type: 'link', href: `tel:${profileData.profilePhone}`, icon: Phone, iconColor: 'text-green-500', label: 'Call' });
-                actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Save Contact' });
+                actionCards.push({ id: 'save', type: 'button', onClick: handleSaveContact, icon: UserPlus, iconColor: 'text-indigo-500', label: 'Save' });
               }
               if (profileData.profileEmail) {
                 actionCards.push({ id: 'email', type: 'link', href: `mailto:${profileData.profileEmail}`, icon: Mail, iconColor: 'text-yellow-500', label: 'Email' });
@@ -710,7 +710,8 @@ export default function DemoProfilePage() {
             const effectiveAccountNo = profileData.bankAccountNo || '';
             const effectiveIfsc = profileData.bankIfsc || '';
             const effectiveAccountName = profileData.bankAccountName || '';
-            const hasBankDetails = effectiveBankName || effectiveAccountNo || effectiveIfsc || effectiveAccountName;
+            const effectiveUpiId = profileData.bankUpiId || '';
+            const hasBankDetails = effectiveBankName || effectiveAccountNo || effectiveIfsc || effectiveAccountName || effectiveUpiId;
 
             if (!hasBankDetails) return null;
 
@@ -740,6 +741,15 @@ export default function DemoProfilePage() {
                     <div className="flex items-center justify-between gap-3">
                       <span className="opacity-60 flex items-center gap-2.5"><Globe className="w-5 h-5 text-blue-400 shrink-0" /> IFSC Code</span>
                       <span className="opacity-95 truncate">{effectiveIfsc}</span>
+                    </div>
+                  )}
+                  {effectiveUpiId && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="opacity-60 flex items-center gap-2.5">
+                        <img src="/assets/upi.png" alt="UPI" className="w-5 h-5 shrink-0 object-contain" />
+                        UPI ID
+                      </span>
+                      <span className="opacity-95 truncate">{effectiveUpiId}</span>
                     </div>
                   )}
                 </div>

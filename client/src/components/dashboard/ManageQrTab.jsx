@@ -236,10 +236,18 @@ export default function ManageQrTab({
   }, [profileTimings]);
 
   const handleTimingChange = (day, field, value) => {
-    const newData = {
-      ...timingsData,
-      [day]: { ...timingsData[day], [field]: value },
-    };
+    let newData = { ...timingsData };
+    newData[day] = { ...newData[day], [field]: value };
+
+    if (day === "Mon") {
+      const oldMonValue = timingsData.Mon[field];
+      daysOfWeek.forEach((d) => {
+        if (d !== "Mon" && timingsData[d][field] === oldMonValue) {
+          newData[d] = { ...newData[d], [field]: value };
+        }
+      });
+    }
+
     setTimingsData(newData);
     setProfileTimings(JSON.stringify(newData));
   };
@@ -513,7 +521,7 @@ export default function ManageQrTab({
                 className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== "branding" ? "hidden" : "block"}`}
               >
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                  Business Logo
+                  Logo
                 </label>
                 <div className="flex items-center gap-4">
                   {profileLogo ? (
@@ -554,22 +562,25 @@ export default function ManageQrTab({
                       </span>
                     </div>
                   )}
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        if (setProfileLogoFile) setProfileLogoFile(file);
-                        const reader = new FileReader();
-                        reader.onload = (event) =>
-                          setProfileLogo(event.target.result);
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="text-sm text-slate-500  file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-slate-100  file:text-slate-700  hover:file:bg-slate-200  cursor-pointer"
-                  />
+                  <label className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-sm font-bold text-slate-700 cursor-pointer transition-colors relative overflow-hidden">
+                    Choose File
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          if (setProfileLogoFile) setProfileLogoFile(file);
+                          const reader = new FileReader();
+                          reader.onload = (event) =>
+                            setProfileLogo(event.target.result);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </label>
                 </div>
               </div>
 
@@ -578,7 +589,7 @@ export default function ManageQrTab({
                 className={`space-y-3 md:col-span-2 p-4 rounded-2xl bg-slate-50  border border-slate-200  ${isMobileView && activeAccordion !== "branding" ? "hidden" : "block"}`}
               >
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                  Header Banner Color
+                  Theme Color
                 </label>
                 <div className="flex items-center gap-4 flex-wrap">
                   <div className="flex items-center gap-2 bg-slate-100  px-3 py-1.5 rounded-xl border border-slate-200 ">
@@ -606,7 +617,7 @@ export default function ManageQrTab({
                 className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== "branding" ? "hidden" : "block"}`}
               >
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                  Business / Company Name
+                  Business Name
                 </label>
                 <input
                   type="text"
@@ -622,9 +633,9 @@ export default function ManageQrTab({
                 className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== "branding" ? "hidden" : "block"}`}
               >
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block flex justify-between">
-                  <span>Profile URL / Custom Link</span>
+                  <span>Custom Link</span>
                   <span className="text-[10px] text-slate-400 normal-case font-normal">
-                    (Leave empty to auto-generate from Business Name)
+                    (Leave empty to auto-generate)
                   </span>
                 </label>
                 <div className="relative flex items-center">
@@ -653,12 +664,8 @@ export default function ManageQrTab({
               >
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider">
-                    Short Description
+                    Description
                   </label>
-                  <span className="text-xs font-semibold text-slate-500 ">
-                    Letters written: {profileBio ? profileBio.length : 0}{" "}
-                    characters
-                  </span>
                 </div>
                 <textarea
                   value={profileBio}
@@ -674,7 +681,7 @@ export default function ManageQrTab({
                 className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== "branding" ? "hidden" : "block"}`}
               >
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                  Physical Address
+                  Address
                 </label>
                 <textarea
                   value={profileAddress}
@@ -690,7 +697,7 @@ export default function ManageQrTab({
                 className={`space-y-2 md:col-span-2 ${isMobileView && activeAccordion !== "branding" ? "hidden" : "block"}`}
               >
                 <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                  GST Number
+                  GSTIN
                 </label>
                 <input
                   type="text"
@@ -729,7 +736,7 @@ export default function ManageQrTab({
               >
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                    Google Map URL
+                    Google Map
                   </label>
                   <div className="relative">
                     <img
@@ -749,7 +756,7 @@ export default function ManageQrTab({
 
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                    Office Timings / Working Hours
+                    Timings
                   </label>
                   <div className="w-full pl-9 pr-12 py-3 rounded-xl bg-slate-50  border border-slate-200  text-slate-900  text-sm relative flex items-center justify-between">
                     <Clock className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" />
@@ -898,7 +905,7 @@ export default function ManageQrTab({
               >
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                    Email Address
+                    Email
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -914,7 +921,7 @@ export default function ManageQrTab({
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                    Phone Number
+                    Phone
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -930,7 +937,7 @@ export default function ManageQrTab({
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                    Website URL
+                    Website
                   </label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -1142,7 +1149,7 @@ export default function ManageQrTab({
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500  uppercase tracking-wider block">
-                    Account Holder Name
+                    Account Name
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -1376,9 +1383,8 @@ export default function ManageQrTab({
                             </span>
                             <div className="flex items-center gap-2">
                               <label className="flex-grow flex items-center justify-between px-3 py-2 rounded-xl bg-white  border border-slate-200  cursor-pointer hover:border-slate-300  transition-all text-xs text-slate-500 truncate max-w-[200px] sm:max-w-none">
-                                <span className="truncate">{doc.filename}</span>
-                                <span className="text-[10px] text-blue-500 font-bold uppercase shrink-0 ml-2">
-                                  Browse
+                                <span className="text-[10px] text-blue-500 font-bold uppercase shrink-0">
+                                  {doc.file || doc.url ? 'File Selected' : 'Choose File'}
                                 </span>
                                 <input
                                   type="file"
@@ -1630,7 +1636,7 @@ export default function ManageQrTab({
                         </h1>
                       )}
                       {profileBio && (
-                        <p className="text-[9px] font-bold text-indigo-500 text-center mt-1 px-3 max-h-[40px] overflow-hidden text-ellipsis line-clamp-2">
+                        <p className="text-[9px] font-bold text-indigo-500 text-center mt-1 px-3 whitespace-pre-wrap break-words max-h-[60px] overflow-hidden text-ellipsis">
                           {profileBio}
                         </p>
                       )}

@@ -272,12 +272,10 @@ export default function Navbar({
               <div className="flex items-center gap-2 md:gap-4">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all cursor-pointer shadow-sm"
+                  className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all cursor-pointer shadow-sm"
+                  title="Back to Dashboard"
                 >
-                  <span className="hidden md:inline">
-                    &larr; Back to Dashboard
-                  </span>
-                  <span className="md:hidden">&larr; Back</span>
+                  &larr;
                 </button>
                 <button
                   disabled={isSaving}
@@ -303,7 +301,7 @@ export default function Navbar({
                       <span className="hidden md:inline">Saved!</span>
                     </>
                   ) : (
-                    <span>Save Profile</span>
+                    <span>Save</span>
                   )}
                 </button>
               </div>

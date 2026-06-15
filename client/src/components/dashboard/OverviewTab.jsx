@@ -98,11 +98,11 @@ export default function OverviewTab({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Core Stats Overview */}
-      <div className="flex md:grid md:grid-cols-3 lg:grid-cols-5 overflow-x-auto md:overflow-x-visible pb-3 md:pb-0 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-none">
-        {stats.map((stat) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
+        {stats.map((stat, index) => (
           <div
             key={stat.name}
-            className="min-w-[170px] md:min-w-0 snap-center p-4 md:p-6 glass border border-slate-200  hover:border-slate-350  rounded-2xl transition-all shadow-sm  flex flex-col justify-between"
+            className={`p-4 md:p-6 glass border border-slate-200 hover:border-slate-350 rounded-2xl transition-all shadow-sm flex flex-col justify-between ${index === 4 ? 'col-span-2 md:col-span-1' : ''}`}
           >
             <div>
               <span className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
@@ -128,7 +128,7 @@ export default function OverviewTab({
                 className="notranslate w-5 h-5 md:w-6 md:h-6 text-blue-500"
                 translate="no"
               />
-              Your Active Plans & Profiles
+              Your Plans
             </h3>
             <p className="hidden md:block text-slate-650  text-xs sm:text-sm mt-1">
               Manage your dynamic digital business profiles and connect physical
