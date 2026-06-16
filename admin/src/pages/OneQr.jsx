@@ -32,20 +32,11 @@ export default function OneQr() {
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [generateQuantity, setGenerateQuantity] = useState(10);
   const [generateQrType, setGenerateQrType] = useState('4x6');
-  const [activeQrSearchId, setActiveQrSearchId] = useState(null);
-  const [editingQrId, setEditingQrId] = useState(null);
   const [activeTab, setActiveTab] = useState('inactive');
-  const [selectedBatchFilter, setSelectedBatchFilter] = useState('');
+  const [managerView, setManagerView] = useState('batches');
+  const [selectedBatch, setSelectedBatch] = useState(null);
   const [downloadLoading, setDownloadLoading] = useState({});
   const [downloadProgress, setDownloadProgress] = useState({});
-  
-  // Track selected user for each unassigned QR code: { [qrId]: userId }
-  const [selectedUserForQr, setSelectedUserForQr] = useState({});
-  // Track specific QR codes being assigned: { [qrId]: loadingStateBoolean }
-  const [assigningState, setAssigningState] = useState({});
-
-  // Track selected plan for each QR code: { [qrId]: planId }
-  const [selectedPlanForQr, setSelectedPlanForQr] = useState({});
 
   // Quick Scan & Edit States
   const [scanModalOpen, setScanModalOpen] = useState(false);
@@ -70,16 +61,6 @@ export default function OneQr() {
 
       if (qrsRes.status === 'success') {
         setQrs(qrsRes.data);
-
-        // Prepopulate mobile numbers and plans for the forms
-        const initialUsers = {};
-        const initialPlans = {};
-        qrsRes.data.forEach(qr => {
-          initialUsers[qr.qrId] = qr.assignedTo ? qr.assignedTo.phone : '';
-          initialPlans[qr.qrId] = getBasePlanId(qr.plan);
-        });
-        setSelectedUserForQr(prev => ({ ...initialUsers, ...prev }));
-        setSelectedPlanForQr(prev => ({ ...initialPlans, ...prev }));
       }
       if (usersRes.status === 'success') {
         setUsers(usersRes.data);
@@ -414,39 +395,7 @@ export default function OneQr() {
     }
   };
 
-  const handleAssign = async (qrId) => {
-    const typedPhone = selectedUserForQr[qrId];
-    if (!typedPhone) {
-      setError('Please select or type a user mobile number to assign.');
-      return;
-    }
 
-    const matchedUser = users.find(u => u.phone === typedPhone.trim());
-    if (!matchedUser) {
-      setError('Selected mobile number is invalid or not registered.');
-      return;
-    }
-
-    const userId = matchedUser.id;
-    const planId = selectedPlanForQr[qrId] || 'free';
-
-    setAssigningState(prev => ({ ...prev, [qrId]: true }));
-    setError('');
-    setSuccess('');
-
-    try {
-      const res = await executeAssignFlow(userId, planId, qrId);
-
-      if (res.status === 'success') {
-        setEditingQrId(null);
-        fetchData();
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to assign QR code.');
-    } finally {
-      setAssigningState(prev => ({ ...prev, [qrId]: false }));
-    }
-  };
 
   const handleStatusChange = async (batchObjectId, newStatus) => {
     setError('');
@@ -459,6 +408,7 @@ export default function OneQr() {
       if (res.status === 'success') {
         setSuccess('Batch status updated successfully.');
         setBatches(prev => prev.map(b => b._id === batchObjectId ? { ...b, status: newStatus } : b));
+        setSelectedBatch(prev => prev && prev._id === batchObjectId ? { ...prev, status: newStatus } : prev);
         setTimeout(() => setSuccess(''), 3000);
       } else {
         setError(res.message || 'Failed to update batch status.');
@@ -607,13 +557,7 @@ export default function OneQr() {
     }
   };
 
-  const handleSelectUser = (qrId, userId) => {
-    setSelectedUserForQr(prev => ({ ...prev, [qrId]: userId }));
-  };
 
-  const handleSelectPlan = (qrId, planId) => {
-    setSelectedPlanForQr(prev => ({ ...prev, [qrId]: planId }));
-  };
 
   const formatPlanName = (plan) => {
     if (!plan || plan === 'free') return 'FREE';
@@ -654,25 +598,24 @@ export default function OneQr() {
   };
 
   const startEditing = (qr) => {
-    setEditingQrId(qr.qrId);
-    setSelectedUserForQr(prev => ({
-      ...prev,
-      [qr.qrId]: qr.assignedTo ? qr.assignedTo.phone : ''
-    }));
-    setSelectedPlanForQr(prev => ({
-      ...prev,
-      [qr.qrId]: getBasePlanId(qr.plan)
-    }));
+    setScannedQr(qr);
+    setModalSelectedUser(qr.assignedTo ? qr.assignedTo.phone : '');
+    setModalSelectedPlan(getBasePlanId(qr.plan));
+    setModalErrorMessage('');
+    setModalScanStatus('editing');
+    setScanModalOpen(true);
   };
 
 
 
-  // Filter QR codes by active/inactive tab, batch filter, and QR ID or target phone number
+  // Filter QR codes by active/inactive tab, current selected batch (if in batch view), and search query
   const filteredQrs = qrs
     .filter(qr => activeTab === 'active' ? !!qr.assignedTo : !qr.assignedTo)
     .filter(qr => {
-      if (!selectedBatchFilter) return true;
-      return qr.batchId && qr.batchId._id === selectedBatchFilter;
+      if (managerView === 'batches' && selectedBatch) {
+        return qr.batchId && qr.batchId._id === selectedBatch._id;
+      }
+      return true; // No batch filter in search view
     })
     .filter(qr => 
       qr.qrId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -682,6 +625,118 @@ export default function OneQr() {
   const totalQrs = qrs.length;
   const assignedQrs = qrs.filter(qr => qr.assignedTo).length;
   const unassignedQrs = totalQrs - assignedQrs;
+
+  const renderQrTable = (qrsList) => {
+    if (loading) {
+      return (
+        <div className="table-loading">
+          <div className="spinner"></div>
+          <p>Loading QR codes...</p>
+        </div>
+      );
+    }
+
+    if (qrsList.length === 0) {
+      return (
+        <div className="table-empty" style={{ border: '1px dashed #e2e8f0', borderRadius: '16px', padding: '32px' }}>
+          <p>No QR codes found matching your filters.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>QR ID</th>
+              <th>Batch ID</th>
+              <th>Created At</th>
+              <th>Status</th>
+              <th>Plan</th>
+              <th>Assigned Mobile</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {qrsList.map((qr) => (
+              <tr key={qr._id}>
+                <td data-label="QR ID">
+                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '0.9rem' }}>{qr.qrId}</span>
+                </td>
+                <td data-label="Batch ID">
+                  {qr.batchId ? (
+                    <span style={{ fontSize: '0.85rem', color: 'var(--accent-secondary)', fontWeight: '600' }}>
+                      {qr.batchId.batchId}
+                    </span>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>-</span>
+                  )}
+                </td>
+                <td data-label="Created At" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                  {formatDate(qr.createdAt)}
+                </td>
+                <td data-label="Status">
+                  {qr.assignedTo ? (
+                    <span className="badge badge-status-active">Active</span>
+                  ) : (
+                    <span className="badge badge-status-inactive">Inactive</span>
+                  )}
+                </td>
+                <td data-label="Plan">
+                  {qr.assignedTo ? (
+                    <span className={`badge ${getPlanBadgeClass(qr.plan)}`}>
+                      {formatPlanName(qr.plan)}
+                    </span>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>-</span>
+                  )}
+                </td>
+                <td data-label="Assigned Mobile">
+                  {qr.assignedTo ? (
+                    <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{qr.assignedTo.phone}</span>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>-</span>
+                  )}
+                </td>
+                <td data-label="Actions" className="stack-mobile actions-cell">
+                  <div className="actions-wrapper">
+                    <button 
+                      onClick={() => handleDownload(qr.qrId)}
+                      className="btn-primary btn-action-icon"
+                      title="Download QR Image"
+                    >
+                      <Download size={14} />
+                    </button>
+
+                    {qr.assignedTo ? (
+                      <button 
+                        onClick={() => startEditing(qr)}
+                        className="btn-primary btn-action-icon"
+                        style={{ background: 'linear-gradient(135deg, var(--accent-primary), #7c3aed)' }}
+                        title="Edit Fields"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => startEditing(qr)}
+                        className="btn-primary btn-action-icon"
+                        style={{ background: 'linear-gradient(135deg, var(--accent-secondary), #ec4899)' }}
+                        title="Assign User & Plan"
+                      >
+                        <UserPlus size={14} />
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
     <div style={{ width: '100%' }}>
@@ -776,221 +831,288 @@ export default function OneQr() {
         </div>
       </section>
 
-      {/* QR Code Batches Management Section */}
-      <section className="section-card glass-panel" style={{ marginBottom: '32px' }}>
-        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-          <h2 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Layers size={20} color="var(--accent-primary)" />
-            <span>QR Code Batches</span>
-          </h2>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-            Total Batches: {batches.length}
-          </span>
-        </div>
+      {/* View Switcher Tabs */}
+      <div className="view-tabs" style={{ marginBottom: '24px' }}>
+        <button
+          className={`view-tab-btn ${managerView === 'batches' ? 'active' : ''}`}
+          onClick={() => {
+            setManagerView('batches');
+            if (managerView === 'batches') {
+              setSelectedBatch(null);
+            }
+          }}
+        >
+          Batches Directory
+        </button>
+        <button
+          className={`view-tab-btn ${managerView === 'search' ? 'active' : ''}`}
+          onClick={() => {
+            setManagerView('search');
+          }}
+        >
+          Global QR Search
+        </button>
+      </div>
 
-        <div className="table-container" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+      {/* Batches View */}
+      {managerView === 'batches' && !selectedBatch && (
+        <section className="section-card glass-panel" style={{ marginBottom: '32px' }}>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+            <h2 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Layers size={20} color="var(--accent-primary)" />
+              <span>QR Code Batches Directory</span>
+            </h2>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+              Total Batches: {batches.length}
+            </span>
+          </div>
+
           {loading ? (
             <div className="table-loading">
               <div className="spinner"></div>
               <p>Loading batches...</p>
             </div>
           ) : batches.length === 0 ? (
-            <div className="table-empty">
+            <div className="table-empty" style={{ border: '1px dashed #e2e8f0', borderRadius: '16px', padding: '32px' }}>
               <p>No batches generated yet. Click "Generate QR Code" to create one.</p>
             </div>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Batch ID</th>
-                  <th>Layout Type</th>
-                  <th>Created At</th>
-                  <th>QR Count</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {batches.map((batch) => {
-                  const isDownloading = downloadLoading[batch._id];
-                  const progress = downloadProgress[batch._id];
-                  
-                  return (
-                    <tr key={batch._id}>
-                      <td data-label="Batch ID">
-                        <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                          {batch.batchId}
-                        </span>
-                      </td>
-                      <td data-label="Layout Type">
-                        <span style={{
+            <div className="batch-grid">
+              {batches.map((batch) => {
+                const isDownloading = downloadLoading[batch._id];
+                const progress = downloadProgress[batch._id];
+                const totalInBatch = batch.qrCount || 0;
+                const assignedInBatch = qrs.filter(q => q.batchId && q.batchId._id === batch._id && q.assignedTo).length;
+                const percent = totalInBatch > 0 ? Math.round((assignedInBatch / totalInBatch) * 100) : 0;
+                
+                return (
+                  <div key={batch._id} className="batch-card">
+                    <div>
+                      <div className="batch-card-header">
+                        <div className="batch-card-id" title={batch.batchId}>
+                          Batch: {batch.batchId.substring(0, 8)}...
+                        </div>
+                        <span className={`badge`} style={{
+                          textTransform: 'uppercase',
                           fontSize: '0.75rem',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid var(--glass-border)',
-                          fontWeight: '600',
-                          color: 'var(--text-primary)'
+                          fontWeight: '700',
+                          color: batch.status === 'ordered' ? '#d97706' : 
+                                 batch.status === 'printed' ? '#2563eb' : 
+                                 batch.status === 'shipped' ? '#7c3aed' : '#059669',
+                          background: batch.status === 'ordered' ? 'rgba(217, 119, 6, 0.08)' : 
+                                      batch.status === 'printed' ? 'rgba(37, 99, 235, 0.08)' : 
+                                      batch.status === 'shipped' ? 'rgba(124, 58, 237, 0.08)' : 'rgba(5, 150, 105, 0.08)',
+                          border: batch.status === 'ordered' ? '1px solid rgba(217, 119, 6, 0.15)' : 
+                                  batch.status === 'printed' ? '1px solid rgba(37, 99, 235, 0.15)' : 
+                                  batch.status === 'shipped' ? '1px solid rgba(124, 58, 237, 0.15)' : '1px solid rgba(5, 150, 105, 0.15)',
+                          padding: '4px 10px',
+                          borderRadius: '20px'
                         }}>
-                          {batch.qrType || '4x6'}
+                          {batch.status}
                         </span>
-                      </td>
-                      <td data-label="Created At" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      </div>
+
+                      <div className="batch-card-meta">
+                        <div className="batch-meta-item">
                           <Calendar size={14} />
-                          {new Date(batch.createdAt).toLocaleString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                      </td>
-                      <td data-label="QR Count" style={{ fontWeight: 'bold' }}>
-                        {batch.qrCount}
-                      </td>
-                      <td data-label="Status">
-                        <select
-                          value={batch.status}
-                          onChange={(e) => handleStatusChange(batch._id, e.target.value)}
-                          className="form-input"
-                          style={{
-                            padding: '6px 10px',
-                            margin: 0,
-                            fontSize: '0.85rem',
-                            fontWeight: '600',
-                            borderRadius: '8px',
-                            width: 'auto',
-                            display: 'inline-block',
-                            background: 'var(--input-bg)',
-                            borderColor: 'var(--glass-border)',
-                            color: batch.status === 'ordered' ? 'var(--warning)' : 
-                                   batch.status === 'printed' ? 'var(--accent-secondary)' : 
-                                   batch.status === 'shipped' ? 'var(--accent-primary)' : 'var(--success)'
-                          }}
-                        >
-                          <option value="ordered" style={{ color: 'var(--warning)' }}>Ordered</option>
-                          <option value="printed" style={{ color: 'var(--accent-secondary)' }}>Printed</option>
-                          <option value="shipped" style={{ color: 'var(--accent-primary)' }}>Shipped</option>
-                          <option value="delivered" style={{ color: 'var(--success)' }}>Delivered</option>
-                        </select>
-                      </td>
-                      <td data-label="Actions" style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                        <button
-                          onClick={() => {
-                            if (selectedBatchFilter === batch._id) {
-                              setSelectedBatchFilter('');
-                            } else {
-                              setSelectedBatchFilter(batch._id);
-                            }
-                          }}
-                          className="btn-primary"
-                          style={{
-                            margin: 0,
-                            width: 'auto',
-                            padding: '8px 12px',
-                            background: selectedBatchFilter === batch._id 
-                              ? 'linear-gradient(135deg, var(--accent-primary), #4f46e5)'
-                              : 'rgba(255, 255, 255, 0.05)',
-                            border: selectedBatchFilter === batch._id ? 'none' : '1px solid var(--glass-border)',
-                            color: selectedBatchFilter === batch._id ? '#fff' : 'var(--text-primary)',
-                            fontSize: '0.85rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontWeight: '600'
-                          }}
-                        >
-                          <span>{selectedBatchFilter === batch._id ? 'Showing QRs' : 'Filter QRs'}</span>
-                        </button>
-                        <button
-                          onClick={() => handleDownloadBatch(batch._id, batch.batchId, batch.qrCount)}
-                          disabled={isDownloading}
-                          className="btn-primary"
-                          style={{
-                            margin: 0,
-                            width: 'auto',
-                            padding: '8px 12px',
-                            background: isDownloading 
-                              ? 'var(--table-hover)' 
-                              : 'linear-gradient(135deg, var(--accent-secondary), #0ea5e9)',
-                            fontSize: '0.85rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}
-                        >
-                          {isDownloading ? (
-                            <>
-                              <RefreshCw size={14} className="spinner" />
-                              <span style={{ fontSize: '0.75rem' }}>
-                                {progress ? `${progress.current}/${progress.total}` : 'Prep...'}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Download size={14} />
-                              <span>Download</span>
-                            </>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                          <span>
+                            {new Date(batch.createdAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                        <div className="batch-meta-item">
+                          <Layers size={14} />
+                          <span>Layout: {batch.qrType || '4x6'}</span>
+                        </div>
+                        <div className="batch-meta-item" style={{ justifyContent: 'space-between', width: '100%', marginTop: '8px' }}>
+                          <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                            Fulfillment Progress:
+                          </span>
+                          <span style={{ fontWeight: '700', color: percent === 100 ? '#059669' : 'var(--text-primary)' }}>
+                            {assignedInBatch}/{totalInBatch} ({percent}%)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="progress-bar-container">
+                        <div 
+                          className={`progress-bar-fill ${percent === 100 ? 'complete' : ''}`} 
+                          style={{ width: `${percent}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="batch-card-footer">
+                      <button
+                        onClick={() => setSelectedBatch(batch)}
+                        className="btn-primary"
+                        style={{
+                          margin: 0,
+                          flex: 1,
+                          padding: '10px',
+                          background: 'linear-gradient(135deg, var(--accent-primary), #4f46e5)',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '10px'
+                        }}
+                      >
+                        View QRs
+                      </button>
+                      <button
+                        onClick={() => handleDownloadBatch(batch._id, batch.batchId, totalInBatch)}
+                        disabled={isDownloading}
+                        className="btn-primary"
+                        style={{
+                          margin: 0,
+                          flex: 1,
+                          padding: '10px',
+                          background: isDownloading 
+                            ? '#f1f5f9' 
+                            : 'linear-gradient(135deg, var(--accent-secondary), #0ea5e9)',
+                          color: isDownloading ? '#94a3b8' : '#fff',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          border: 'none',
+                          borderRadius: '10px'
+                        }}
+                      >
+                        {isDownloading ? (
+                          <>
+                            <RefreshCw size={14} className="spinner" />
+                            <span>
+                              {progress ? `${progress.current}/${progress.total}` : 'Prep...'}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Download size={14} />
+                            <span>Download Zip</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* QR Code Index Directory */}
-      <section className="section-card glass-panel">
-        <div className="section-header" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <h2 className="section-title" style={{ margin: 0 }}>QR Code Directory</h2>
-
-            <div className="section-header-actions">
-              {/* Batch Filter Dropdown */}
-              <select
-                value={selectedBatchFilter}
-                onChange={(e) => setSelectedBatchFilter(e.target.value)}
-                className="form-input"
-                style={{
-                  padding: '10px 12px',
-                  fontSize: '0.85rem',
-                  width: 'auto',
-                  minWidth: '160px',
-                  borderRadius: '12px',
-                  margin: 0,
-                  background: 'var(--input-bg)',
-                  borderColor: 'var(--glass-border)',
-                  color: 'var(--text-primary)',
-                  fontWeight: '600'
-                }}
-              >
-                <option value="">All Batches</option>
-                {batches.map(batch => (
-                  <option key={batch._id} value={batch._id}>
-                    {batch.batchId} ({batch.qrCount} QRs)
-                  </option>
-                ))}
-              </select>
-
-              <div className="input-wrapper">
-                <input
-                  type="text"
-                  placeholder="Search QR ID or phone..."
-                  className="form-input"
-                  style={{ padding: '10px 12px 10px 36px', fontSize: '0.85rem' }}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Search size={16} className="input-icon" style={{ left: '12px' }} />
+      {/* Batch Details View */}
+      {managerView === 'batches' && selectedBatch && (
+        <div>
+          <div className="detail-header-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <button
+                  onClick={() => setSelectedBatch(null)}
+                  className="btn-primary"
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '8px 16px',
+                    borderRadius: '10px',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '16px',
+                    width: 'auto',
+                    marginTop: 0
+                  }}
+                >
+                  <span>&larr; Back to Batches</span>
+                </button>
+                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-primary)' }}>
+                  Batch: {selectedBatch.batchId}
+                </h2>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '12px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={14} />
+                    Created: {new Date(selectedBatch.createdAt).toLocaleString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Layers size={14} />
+                    Layout: {selectedBatch.qrType || '4x6'}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    Total QR Codes: {selectedBatch.qrCount}
+                  </span>
+                </div>
               </div>
 
-              <div className="actions-button-group">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Fulfillment Status
+                </span>
+                <select
+                  value={selectedBatch.status}
+                  onChange={(e) => handleStatusChange(selectedBatch._id, e.target.value)}
+                  className="form-input"
+                  style={{
+                    padding: '10px 16px',
+                    margin: 0,
+                    fontSize: '0.9rem',
+                    fontWeight: '700',
+                    borderRadius: '12px',
+                    width: 'auto',
+                    minWidth: '150px',
+                    background: '#ffffff',
+                    borderColor: '#cbd5e1',
+                    color: selectedBatch.status === 'ordered' ? '#d97706' : 
+                           selectedBatch.status === 'printed' ? '#2563eb' : 
+                           selectedBatch.status === 'shipped' ? '#7c3aed' : '#059669'
+                  }}
+                >
+                  <option value="ordered" style={{ color: '#d97706' }}>Ordered</option>
+                  <option value="printed" style={{ color: '#2563eb' }}>Printed</option>
+                  <option value="shipped" style={{ color: '#7c3aed' }}>Shipped</option>
+                  <option value="delivered" style={{ color: '#059669' }}>Delivered</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <section className="section-card glass-panel" style={{ textAlign: 'left' }}>
+            <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+              <div>
+                <h2 className="section-title" style={{ margin: 0 }}>QR Codes in Batch</h2>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Manage and assign individual QR codes from this print batch.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div className="input-wrapper" style={{ margin: 0 }}>
+                  <input
+                    type="text"
+                    placeholder="Search by ID or phone..."
+                    className="form-input"
+                    style={{ padding: '10px 12px 10px 36px', fontSize: '0.85rem', margin: 0, width: '220px' }}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Search size={16} className="input-icon" style={{ left: '12px' }} />
+                </div>
+
                 <button 
                   onClick={handleRefresh} 
                   className="btn-primary" 
@@ -1001,33 +1123,138 @@ export default function OneQr() {
                 </button>
               </div>
             </div>
+
+            <div className="directory-tabs" style={{
+              display: 'flex',
+              gap: '8px',
+              borderBottom: '1px solid #e2e8f0',
+              paddingBottom: '8px',
+              marginBottom: '20px'
+            }}>
+              <button
+                onClick={() => setActiveTab('inactive')}
+                className={`tab-btn directory-tab-button ${activeTab === 'inactive' ? 'active' : ''}`}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid',
+                  borderColor: activeTab === 'inactive' ? 'rgba(236, 72, 153, 0.3)' : 'transparent',
+                  background: activeTab === 'inactive' ? 'rgba(236, 72, 153, 0.05)' : 'transparent',
+                  color: activeTab === 'inactive' ? 'var(--accent-secondary)' : 'var(--text-muted)',
+                  fontWeight: '600',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>Inactive QRs</span>
+                <span style={{
+                  background: activeTab === 'inactive' ? 'var(--accent-secondary)' : '#e2e8f0',
+                  color: activeTab === 'inactive' ? '#fff' : '#475569',
+                  padding: '2px 8px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem'
+                }}>
+                  {loading ? '...' : qrs.filter(q => q.batchId && q.batchId._id === selectedBatch._id && !q.assignedTo).length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('active')}
+                className={`tab-btn directory-tab-button ${activeTab === 'active' ? 'active' : ''}`}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid',
+                  borderColor: activeTab === 'active' ? 'rgba(124, 58, 237, 0.3)' : 'transparent',
+                  background: activeTab === 'active' ? 'rgba(124, 58, 237, 0.05)' : 'transparent',
+                  color: activeTab === 'active' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  fontWeight: '600',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>Active QRs</span>
+                <span style={{
+                  background: activeTab === 'active' ? 'var(--accent-primary)' : '#e2e8f0',
+                  color: activeTab === 'active' ? '#fff' : '#475569',
+                  padding: '2px 8px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem'
+                }}>
+                  {loading ? '...' : qrs.filter(q => q.batchId && q.batchId._id === selectedBatch._id && q.assignedTo).length}
+                </span>
+              </button>
+            </div>
+
+            {renderQrTable(filteredQrs)}
+          </section>
+        </div>
+      )}
+
+      {/* Global QR Search View */}
+      {managerView === 'search' && (
+        <section className="section-card glass-panel" style={{ textAlign: 'left' }}>
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+            <div>
+              <h2 className="section-title" style={{ margin: 0 }}>Global QR Search Directory</h2>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Search and manage all active or inactive QR codes across all generated print batches.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div className="input-wrapper" style={{ margin: 0 }}>
+                <input
+                  type="text"
+                  placeholder="Search globally by ID or phone..."
+                  className="form-input"
+                  style={{ padding: '10px 12px 10px 36px', fontSize: '0.85rem', margin: 0, width: '250px' }}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search size={16} className="input-icon" style={{ left: '12px' }} />
+              </div>
+
+              <button 
+                onClick={handleRefresh} 
+                className="btn-primary" 
+                style={{ padding: '10px 14px', marginTop: 0, width: 'auto' }}
+                disabled={refreshing || loading}
+              >
+                <RefreshCw size={16} className={refreshing ? 'spinner' : ''} style={{ margin: 0 }} />
+              </button>
+            </div>
           </div>
 
-          {/* Directory Status Tabs */}
           <div className="directory-tabs" style={{
             display: 'flex',
             gap: '8px',
-            borderBottom: '1px solid var(--glass-border)',
+            borderBottom: '1px solid #e2e8f0',
             paddingBottom: '8px',
-            marginTop: '8px'
+            marginBottom: '20px'
           }}>
             <button
-              onClick={() => {
-                setActiveTab('inactive');
-                setEditingQrId(null);
-              }}
+              onClick={() => setActiveTab('inactive')}
               className={`tab-btn directory-tab-button ${activeTab === 'inactive' ? 'active' : ''}`}
               style={{
                 padding: '8px 16px',
                 borderRadius: '8px',
                 border: '1px solid',
                 borderColor: activeTab === 'inactive' ? 'rgba(236, 72, 153, 0.3)' : 'transparent',
-                background: activeTab === 'inactive' ? 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05))' : 'transparent',
+                background: activeTab === 'inactive' ? 'rgba(236, 72, 153, 0.05)' : 'transparent',
                 color: activeTab === 'inactive' ? 'var(--accent-secondary)' : 'var(--text-muted)',
                 fontWeight: '600',
                 fontSize: '0.85rem',
                 cursor: 'pointer',
-                transition: 'all 0.3s',
+                transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -1035,8 +1262,8 @@ export default function OneQr() {
             >
               <span>Inactive QRs</span>
               <span style={{
-                background: activeTab === 'inactive' ? 'var(--accent-secondary)' : 'rgba(255, 255, 255, 0.1)',
-                color: activeTab === 'inactive' ? '#fff' : 'var(--text-muted)',
+                background: activeTab === 'inactive' ? 'var(--accent-secondary)' : '#e2e8f0',
+                color: activeTab === 'inactive' ? '#fff' : '#475569',
                 padding: '2px 8px',
                 borderRadius: '20px',
                 fontSize: '0.75rem'
@@ -1046,22 +1273,19 @@ export default function OneQr() {
             </button>
 
             <button
-              onClick={() => {
-                setActiveTab('active');
-                setEditingQrId(null);
-              }}
+              onClick={() => setActiveTab('active')}
               className={`tab-btn directory-tab-button ${activeTab === 'active' ? 'active' : ''}`}
               style={{
                 padding: '8px 16px',
                 borderRadius: '8px',
                 border: '1px solid',
                 borderColor: activeTab === 'active' ? 'rgba(124, 58, 237, 0.3)' : 'transparent',
-                background: activeTab === 'active' ? 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(124, 58, 237, 0.05))' : 'transparent',
+                background: activeTab === 'active' ? 'rgba(124, 58, 237, 0.05)' : 'transparent',
                 color: activeTab === 'active' ? 'var(--accent-primary)' : 'var(--text-muted)',
                 fontWeight: '600',
                 fontSize: '0.85rem',
                 cursor: 'pointer',
-                transition: 'all 0.3s',
+                transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -1069,8 +1293,8 @@ export default function OneQr() {
             >
               <span>Active QRs</span>
               <span style={{
-                background: activeTab === 'active' ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.1)',
-                color: activeTab === 'active' ? '#fff' : 'var(--text-muted)',
+                background: activeTab === 'active' ? 'var(--accent-primary)' : '#e2e8f0',
+                color: activeTab === 'active' ? '#fff' : '#475569',
                 padding: '2px 8px',
                 borderRadius: '20px',
                 fontSize: '0.75rem'
@@ -1079,228 +1303,10 @@ export default function OneQr() {
               </span>
             </button>
           </div>
-        </div>
 
-        <div className="table-container">
-          {loading ? (
-            <div className="table-loading">
-              <div className="spinner"></div>
-              <p>Loading QR codes directory...</p>
-            </div>
-          ) : filteredQrs.length === 0 ? (
-            <div className="table-empty">
-              <p>No QR codes found matching your query.</p>
-            </div>
-          ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>QR ID</th>
-                  <th>Batch ID</th>
-                  <th>Created At</th>
-                  <th>Status</th>
-                  <th>Plan</th>
-                  <th>Assigned Mobile</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredQrs.map((qr) => {
-                  const isEditing = editingQrId === qr.qrId;
-                  return (
-                    <tr key={qr._id}>
-                      <td data-label="QR ID">
-                        <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '0.9rem' }}>{qr.qrId}</span>
-                      </td>
-                      <td data-label="Batch ID">
-                        {qr.batchId ? (
-                          <span style={{ fontSize: '0.85rem', color: 'var(--accent-secondary)', fontWeight: '600' }}>
-                            {qr.batchId.batchId}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>-</span>
-                        )}
-                      </td>
-                      <td data-label="Created At" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                        {formatDate(qr.createdAt)}
-                      </td>
-                      <td data-label="Status">
-                        {qr.assignedTo ? (
-                          <span className="badge badge-status-active">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="badge badge-status-inactive">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td data-label="Plan" className={isEditing ? 'editing-cell' : ''}>
-                        {isEditing ? (
-                          <select
-                            className="form-input"
-                            value={selectedPlanForQr[qr.qrId] || 'free'}
-                            onChange={(e) => handleSelectPlan(qr.qrId, e.target.value)}
-                            disabled={assigningState[qr.qrId]}
-                            style={{ width: '100%', margin: 0, padding: '8px' }}
-                          >
-                            <option value="free">FREE</option>
-                            <option value="basic">Basic</option>
-                            <option value="premium">Premium</option>
-                            <option value="enterprise">Enterprise</option>
-                          </select>
-                        ) : (
-                          qr.assignedTo ? (
-                            <span className={`badge ${getPlanBadgeClass(qr.plan)}`}>
-                              {formatPlanName(qr.plan)}
-                            </span>
-                          ) : (
-                            <span style={{ color: 'var(--text-muted)' }}>-</span>
-                          )
-                        )}
-                      </td>
-                      <td data-label="Assigned Mobile" className={isEditing ? 'editing-cell' : ''}>
-                        {isEditing ? (
-                          <div style={{ position: 'relative', width: '100%', maxWidth: '180px', zIndex: 20 }} className="mobile-width-full">
-                            <input
-                              type="text"
-                              placeholder="Type mobile..."
-                              className="form-input select-user-assign"
-                              value={selectedUserForQr[qr.qrId] || ''}
-                              onChange={(e) => {
-                                handleSelectUser(qr.qrId, e.target.value);
-                                setActiveQrSearchId(qr.qrId);
-                              }}
-                              onFocus={() => setActiveQrSearchId(qr.qrId)}
-                              onBlur={() => {
-                                // Delay slightly to let click register
-                                setTimeout(() => setActiveQrSearchId(null), 200);
-                              }}
-                              disabled={assigningState[qr.qrId]}
-                              style={{ width: '100%', margin: 0, padding: '8px 10px' }}
-                            />
-                            
-                            {activeQrSearchId === qr.qrId && (
-                              <div className="glass-panel" style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                right: 0,
-                                maxHeight: '180px',
-                                overflowY: 'auto',
-                                zIndex: 100,
-                                marginTop: '4px',
-                                border: '1px solid var(--glass-border)',
-                                boxShadow: 'var(--shadow)',
-                                background: 'var(--select-option-bg)',
-                                borderRadius: '8px',
-                                padding: '4px 0'
-                              }}>
-                                {users
-                                  .filter(u => u.phone && u.phone.includes(selectedUserForQr[qr.qrId] || ''))
-                                  .map(u => (
-                                    <div
-                                      key={u.id}
-                                      onMouseDown={(e) => {
-                                        e.preventDefault(); // Prevents input blur
-                                        handleSelectUser(qr.qrId, u.phone);
-                                        setActiveQrSearchId(null);
-                                      }}
-                                      style={{
-                                        padding: '8px 12px',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        color: 'var(--text-primary)',
-                                        textAlign: 'left',
-                                        transition: 'background 0.2s'
-                                      }}
-                                      className="suggestion-item"
-                                    >
-                                      {u.phone}
-                                    </div>
-                                  ))}
-                                {users.filter(u => u.phone && u.phone.includes(selectedUserForQr[qr.qrId] || '')).length === 0 && (
-                                  <div style={{ padding: '8px 12px', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'left' }}>
-                                    No matches
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          qr.assignedTo ? (
-                            <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{qr.assignedTo.phone}</span>
-                          ) : (
-                            <span style={{ color: 'var(--text-muted)' }}>-</span>
-                          )
-                        )}
-                      </td>
-                      <td data-label="Actions" className="stack-mobile actions-cell">
-                        {isEditing ? (
-                          <div className="actions-wrapper">
-                            <button
-                              onClick={() => handleAssign(qr.qrId)}
-                              className="btn-primary"
-                              style={{ margin: 0, width: 'auto', padding: '8px 14px' }}
-                              disabled={assigningState[qr.qrId] || !selectedUserForQr[qr.qrId]}
-                            >
-                              {assigningState[qr.qrId] ? (
-                                <span className="spinner spinner-tiny"></span>
-                              ) : (
-                                <span>Save</span>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => setEditingQrId(null)}
-                              className="btn-primary btn-danger"
-                              style={{ margin: 0, width: 'auto', padding: '8px 14px' }}
-                              disabled={assigningState[qr.qrId]}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="actions-wrapper">
-                            {/* Download button */}
-                            <button 
-                              onClick={() => handleDownload(qr.qrId)}
-                              className="btn-primary btn-action-icon"
-                              title="Download QR Image"
-                            >
-                              <Download size={14} />
-                            </button>
-
-                            {/* Edit / Assign button */}
-                            {qr.assignedTo ? (
-                              <button 
-                                onClick={() => startEditing(qr)}
-                                className="btn-primary btn-action-icon"
-                                style={{ background: 'linear-gradient(135deg, var(--accent-primary), #7c3aed)' }}
-                                title="Edit Fields"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => startEditing(qr)}
-                                className="btn-primary btn-action-icon"
-                                style={{ background: 'linear-gradient(135deg, var(--accent-secondary), #ec4899)' }}
-                                title="Assign User & Plan"
-                              >
-                                <UserPlus size={14} />
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </section>
+          {renderQrTable(filteredQrs)}
+        </section>
+      )}
 
 
 

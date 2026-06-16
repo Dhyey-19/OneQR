@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Lock, AlertTriangle, ShieldCheck, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Phone, Lock, AlertTriangle, ShieldCheck, ArrowRight } from 'lucide-react';
 import { authService } from '../services/authService';
 
-export default function Login({ onLoginSuccess, theme, toggleTheme }) {
+export default function Login({ onLoginSuccess }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,32 +38,6 @@ export default function Login({ onLoginSuccess, theme, toggleTheme }) {
 
   return (
     <div className="login-container">
-      {/* Theme Toggle Button */}
-      <button 
-        onClick={toggleTheme} 
-        style={{
-          position: 'absolute',
-          top: '24px',
-          right: '24px',
-          background: 'var(--glass-bg)',
-          border: '1px solid var(--glass-border)',
-          borderRadius: '50%',
-          width: '44px',
-          height: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'var(--text-primary)',
-          zIndex: 10,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          backdropFilter: 'blur(8px)',
-          transition: 'all 0.2s'
-        }}
-        title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-      >
-        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-      </button>
 
       {/* Visual background glow blobs */}
       <div className="glow-blob blob-1"></div>

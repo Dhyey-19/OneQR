@@ -12,8 +12,6 @@ import {
   UserPlus,
   Lock,
   Mail,
-  Sun,
-  Moon,
   Plus,
   Trash2,
   Link as LinkIcon,
@@ -23,7 +21,7 @@ import { apiRequest } from '../services/apiService';
 import { authService } from '../services/authService';
 import OneQr from './OneQr';
 
-export default function Dashboard({ onLogout, theme, toggleTheme }) {
+export default function Dashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('users'); // 'users' | 'oneqr'
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -313,25 +311,6 @@ export default function Dashboard({ onLogout, theme, toggleTheme }) {
           </button>
           <span className="sidebar-logo-text">OneQR Admin</span>
         </div>
-        <button 
-          onClick={toggleTheme} 
-          className="theme-toggle-btn"
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            padding: '8px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background 0.2s'
-          }}
-          title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-        >
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
       </div>
 
       {/* Sidebar Backdrop Overlay on Mobile */}
@@ -355,26 +334,6 @@ export default function Dashboard({ onLogout, theme, toggleTheme }) {
             </div>
             <span className="sidebar-logo-text">OneQR Admin</span>
           </div>
-          <button 
-            onClick={toggleTheme} 
-            className="theme-toggle-btn"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s',
-              opacity: 0.8
-            }}
-            title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-          >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
         </div>
 
         <nav className="sidebar-menu">
@@ -680,21 +639,6 @@ export default function Dashboard({ onLogout, theme, toggleTheme }) {
             <button 
               onClick={() => setSelectedUserForProfiles(null)}
               className="modal-close-btn"
-              style={{
-                position: 'absolute',
-                right: '20px',
-                top: '20px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s'
-              }}
             >
               <X size={20} />
             </button>
