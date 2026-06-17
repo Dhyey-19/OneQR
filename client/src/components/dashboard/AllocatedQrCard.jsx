@@ -1,6 +1,6 @@
 import { ShieldAlert, MoreVertical, ChevronRight } from "lucide-react";
 
-export default function AllocatedQrCard({ profile, onViewDetails }) {
+export default function AllocatedQrCard({ profile, onViewDetails, onConnectStandy }) {
   const isStandyConnected = !!profile.isStandyConnected;
   const businessName = profile.profileCompany || profile.profileName || "Digital Profile";
   
@@ -50,10 +50,17 @@ export default function AllocatedQrCard({ profile, onViewDetails }) {
         </h4>
         
         {/* View Button */}
-        <button className="flex items-center justify-center gap-1 text-[11px] font-bold text-blue-600 bg-white border border-blue-600 group-hover:bg-blue-50 py-1.5 px-5 rounded-full transition-colors w-max">
-          View Details
-          <ChevronRight className="w-3 h-3" />
-        </button>
+        <div className="flex flex-col w-full gap-2 px-1">
+          <button onClick={(e) => { e.stopPropagation(); onViewDetails && onViewDetails(profile); }} className="w-full flex items-center justify-center gap-1 text-[11px] font-bold text-blue-600 bg-white border border-blue-600 hover:bg-blue-50 py-2 px-2 rounded-full transition-colors">
+            View Details
+            <ChevronRight className="w-3 h-3" />
+          </button>
+          {!isStandyConnected && (
+            <button onClick={(e) => { e.stopPropagation(); onConnectStandy && onConnectStandy(profile._id); }} className="w-full flex items-center justify-center gap-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 py-2 px-2 rounded-full transition-colors">
+              Connect Standy
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

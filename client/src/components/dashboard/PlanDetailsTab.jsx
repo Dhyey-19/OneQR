@@ -3,7 +3,7 @@ import { Link2, Download, Share2, ExternalLink, CreditCard, BarChart2, Sparkles,
 import DigitalCardModal from "./DigitalCardModal";
 import DownloadQrModal from "./DownloadQrModal";
 
-export default function PlanDetailsTab({ profile, onManage, onBack }) {
+export default function PlanDetailsTab({ profile, onManage, onBack, onConnectStandy }) {
   const [isCopied, setIsCopied] = useState(false);
   const [showDigitalCard, setShowDigitalCard] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -20,7 +20,7 @@ export default function PlanDetailsTab({ profile, onManage, onBack }) {
   const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || window.location.origin;
   const cleanPrefix = qrUrlPrefix.endsWith("/") ? qrUrlPrefix : `${qrUrlPrefix}/`;
   const finalQrUrl = (profile.qrId || profile.slug) ? `${cleanPrefix}qr/${profile.qrId || profile.slug}` : "";
-  const qrGeneratedUrl = finalQrUrl
+  const qrGeneratedUrl = (profile.isStandyConnected && finalQrUrl)
     ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=000000&data=${encodeURIComponent(finalQrUrl)}`
     : "";
 
@@ -117,13 +117,24 @@ export default function PlanDetailsTab({ profile, onManage, onBack }) {
       </div>
 
       {/* Edit Profile Button */}
-      <button 
-        onClick={() => onManage(profile._id)}
-        className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
-      >
-        <Sparkles className="w-5 h-5" />
-        Edit Digital Profile
-      </button>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <button 
+          onClick={() => onManage(profile._id)}
+          className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+        >
+          <Sparkles className="w-5 h-5" />
+          Edit Digital Profile
+        </button>
+        {!profile.isStandyConnected && (
+          <button 
+            onClick={() => onConnectStandy && onConnectStandy(profile._id)}
+            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-lg shadow-amber-500/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+          >
+            <QrCode className="w-5 h-5" />
+            Connect Standy
+          </button>
+        )}
+      </div>
 
       {/* Quick Actions */}
       <div className="space-y-4">

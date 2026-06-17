@@ -720,6 +720,10 @@ export default function DashboardPage({ subViewProp }) {
             profile={profiles.find((p) => p._id === activeProfileId) || profiles[0]}
             onManage={(id) => handleSelectAndManageProfile(id)}
             onBack={() => setSubView("overview")}
+            onConnectStandy={(profileId) => {
+              setConnectModalProfileId(profileId);
+              setShowConnectModal(true);
+            }}
           />
         )}
 

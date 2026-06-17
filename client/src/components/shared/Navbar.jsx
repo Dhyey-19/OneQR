@@ -100,6 +100,7 @@ export default function Navbar({
     { name: "Dashboard", path: "/dashboard" },
     { name: "Feedback", path: "/feedbacks" },
     { name: "Plans", path: "/plans" },
+    { name: "Profile", path: "/profile" },
   ];
 
   const isDashboardRoute = [
@@ -172,6 +173,17 @@ export default function Navbar({
               >
                 <MessageSquare className="w-4 h-4 text-slate-400" />
                 <span>Feedbacks</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  navigate("/profile");
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                <User className="w-4 h-4 text-slate-400" />
+                <span>Profile</span>
               </button>
 
               <button
@@ -403,7 +415,7 @@ export default function Navbar({
                 </Fragment>
               ))}
 
-              {!currentUser && (
+              {!currentUser ? (
                 <>
                   <div className="h-px bg-slate-100 my-2" />
                   <div className="flex flex-col gap-3">
@@ -415,6 +427,45 @@ export default function Navbar({
                       className="w-full text-center py-3 rounded-xl bg-slate-900 text-sm font-semibold text-white hover:bg-slate-800 transition-all shadow-md cursor-pointer"
                     >
                       Login
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="h-px bg-slate-100 my-2" />
+                  <div className="flex flex-col gap-1">
+                    <div className="px-2 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                      My Account
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/dashboard");
+                      }}
+                      className="w-full flex items-center gap-3 p-2 rounded-xl text-left text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                    >
+                      <Grid className="w-4 h-4 text-slate-400" />
+                      <span>Dashboard</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/profile");
+                      }}
+                      className="w-full flex items-center gap-3 p-2 rounded-xl text-left text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                    >
+                      <User className="w-4 h-4 text-slate-400" />
+                      <span>Profile</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-3 p-2 rounded-xl text-left text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-400" />
+                      <span>Log Out</span>
                     </button>
                   </div>
                 </>
