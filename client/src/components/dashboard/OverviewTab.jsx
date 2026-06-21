@@ -209,6 +209,7 @@ export default function OverviewTab({
                 key={profile._id}
                 profile={profile}
                 onViewDetails={onViewDetails}
+                onConnectStandy={onConnectStandy}
               />
             ))}
           </div>

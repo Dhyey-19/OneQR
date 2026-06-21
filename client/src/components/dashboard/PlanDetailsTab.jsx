@@ -20,7 +20,7 @@ export default function PlanDetailsTab({ profile, onManage, onBack, onConnectSta
   const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || window.location.origin;
   const cleanPrefix = qrUrlPrefix.endsWith("/") ? qrUrlPrefix : `${qrUrlPrefix}/`;
   const finalQrUrl = (profile.qrId || profile.slug) ? `${cleanPrefix}qr/${profile.qrId || profile.slug}` : "";
-  const qrGeneratedUrl = finalQrUrl
+  const qrGeneratedUrl = (profile.isStandyConnected && finalQrUrl)
     ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=000000&data=${encodeURIComponent(finalQrUrl)}`
     : "";
 
@@ -116,8 +116,13 @@ export default function PlanDetailsTab({ profile, onManage, onBack, onConnectSta
         ))}
       </div>
 
+<<<<<<< HEAD
       <div className="flex flex-col sm:flex-row gap-3 w-full">
         {/* Edit Profile Button */}
+=======
+      {/* Edit Profile Button */}
+      <div className="flex flex-col sm:flex-row gap-4">
+>>>>>>> 576f4db0f270bedef781d4c0a768b030061a70e2
         <button 
           onClick={() => onManage(profile._id)}
           className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-blue-500/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
@@ -125,6 +130,7 @@ export default function PlanDetailsTab({ profile, onManage, onBack, onConnectSta
           <Sparkles className="w-5 h-5" />
           Edit Digital Profile
         </button>
+<<<<<<< HEAD
         
         {!profile.isStandyConnected && onConnectStandy && (
           <button 
@@ -133,6 +139,15 @@ export default function PlanDetailsTab({ profile, onManage, onBack, onConnectSta
           >
             <QrCode className="w-5 h-5" />
             Connect Physical QR
+=======
+        {!profile.isStandyConnected && (
+          <button 
+            onClick={() => onConnectStandy && onConnectStandy(profile._id)}
+            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-lg shadow-amber-500/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+          >
+            <QrCode className="w-5 h-5" />
+            Connect Standy
+>>>>>>> 576f4db0f270bedef781d4c0a768b030061a70e2
           </button>
         )}
       </div>
