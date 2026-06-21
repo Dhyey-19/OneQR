@@ -35,9 +35,9 @@ if (config.RAZORPAY_KEY_ID && config.RAZORPAY_KEY_SECRET) {
 
 // Pricing plans configuration
 const plansConfig = {
-  basic: { amount: 99900, name: "Basic Plan" },
-  premium: { amount: 199900, name: "Premium Plan" },
-  enterprise: { amount: 499900, name: "Enterprise Plan" },
+  basic: { amount: 49900, name: "Basic Plan" },
+  premium: { amount: 99900, name: "Premium Plan" },
+  enterprise: { amount: 199900, name: "Enterprise Plan" },
 };
 
 /**

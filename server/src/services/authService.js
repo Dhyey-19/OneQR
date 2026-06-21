@@ -93,9 +93,33 @@ const getUserById = async (userId) => {
   }
   return user;
 };
+
+/**
+ * Resets the user's password using their phone number
+ * @param {Object} data 
+ * @param {string} data.phone
+ * @param {string} data.newPassword
+ * @returns {Promise<Object>} Object containing the updated user
+ */
+const resetPassword = async ({ phone, newPassword }) => {
+  const user = await User.findOne({ phone });
+  if (!user) {
+    const error = new Error("No account found with this mobile number.");
+    error.status = 404;
+    throw error;
+  }
+
+  // Set the new password and save (mongoose pre-save hook will hash it)
+  user.password = newPassword;
+  await user.save();
+
+  return { user };
+};
+
 module.exports = {
   generateToken,
   signup,
   login,
   getUserById,
+  resetPassword,
 };

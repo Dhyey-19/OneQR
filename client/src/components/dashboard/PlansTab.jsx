@@ -34,12 +34,12 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
       name: "Basic Plan",
       description:
         "Essential tools to create a digital business profile and launch your smart QR business card.",
-      price: 999,
-      originalPrice: 1999,
-      savings: "Save ₹1,000 (50% Off)",
+      price: 499,
+      originalPrice: 999,
+      savings: "Save ₹500 (50% Off)",
       validity: "Lifetime",
       features: [
-        'QR Standee : 4" x 4"',
+        "No Physical Standee (Website Only)",
         "Unlimited Scans",
         "Digital Business Page",
         "Professional Dashboard",
@@ -55,13 +55,13 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
       name: "Premium Plan",
       description:
         "Unlock detailed scan analytics, document sharing, and no watermarks (Best Seller & Most Popular).",
-      price: 1999,
-      originalPrice: 3999,
-      savings: "Save ₹2,000 (50% Off)",
+      price: 999,
+      originalPrice: 1999,
+      savings: "Save ₹1,000 (50% Off)",
       validity: "Lifetime",
       features: [
         "Everything in Basic +",
-        'QR Standee : 6" x 4"',
+        'QR Standee : 4" x 4"',
         "Customized Social Links",
         "Theme Based QR",
         "Digital Visiting Card",
@@ -78,9 +78,9 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
       name: "Enterprise Plan",
       description:
         "Advanced tools for larger brands requiring dedicated setups, custom links, and infinite scans.",
-      price: 4999,
-      originalPrice: 9999,
-      savings: "Save ₹5,000 (50% Off)",
+      price: 1999,
+      originalPrice: 3999,
+      savings: "Save ₹2,000 (50% Off)",
       validity: "Lifetime",
       features: [
         "Everything in Premium +",
@@ -110,7 +110,7 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
   };
   return (
     <div
-      className={`mx-auto space-y-6 px-2 sm:px-0 pb-12 transition-all duration-300 ${activeSubTab === "plans" ? "max-w-xl" : "max-w-4xl"}`}
+      className={`mx-auto space-y-6 px-2 sm:px-0 pb-12 transition-all duration-300 ${activeSubTab === "plans" ? "max-w-5xl" : "max-w-4xl"}`}
     >
       {/* Segmented Control / Tab Switcher */}
       <div className="flex justify-center">
@@ -151,83 +151,94 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
           </div>
 
           {/* Plans Grid */}
-          <div className="space-y-4">
-            {plans.map((plan) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            {plans.map((plan) => {
+              const hasPurchased = currentUser?.orderHistory?.some(order => order.planId === plan.id && order.status === "success");
+
+              return (
               <div
                 key={plan.id}
                 onClick={() => handlePlanClick(plan)}
-                className="glass rounded-2xl p-5 border border-slate-200/60  hover:border-blue-500/40  transition-all shadow-md hover:shadow-lg relative overflow-hidden cursor-pointer flex flex-col justify-between"
+                className={`bg-white rounded-3xl p-6 border ${hasPurchased ? 'border-blue-500 shadow-lg ring-1 ring-blue-500/20' : 'border-slate-100 hover:border-slate-300'} transition-all shadow-md hover:shadow-xl relative overflow-hidden flex flex-col justify-between`}
               >
                 {plan.isPopular && (
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white font-extrabold text-[9px] uppercase tracking-widest px-3.5 py-1 rounded-bl-xl flex items-center gap-1 shadow-sm shadow-blue-500/10">
-                    <Star className="w-2.5 h-2.5 fill-white" />
+                  <div className="absolute top-0 right-0 bg-blue-600 text-white font-extrabold text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-bl-2xl flex items-center gap-1 shadow-sm shadow-blue-500/20">
+                    <Star className="w-3 h-3 fill-white" />
                     <span>Best Seller</span>
                   </div>
                 )}
 
-                <div className="space-y-4 text-left">
+                <div className="space-y-5 text-left mb-6">
                   {/* Plan Header */}
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <h3 className="font-extrabold text-slate-900  text-base">
-                        {plan.name}
-                      </h3>
-                      <span className="text-[10px] text-slate-550  leading-normal block max-w-[80%] line-clamp-1">
-                        {plan.features[0]}
-                      </span>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="flex items-baseline gap-1.5 leading-none">
-                        <span className="text-2xl font-black text-slate-900 ">
-                          ₹{plan.price}
-                        </span>
-                        <span className="text-xs text-slate-400  font-medium line-through">
-                          ₹{plan.originalPrice}
+                  <div className="space-y-1 mt-2">
+                    <h3 className="font-extrabold text-slate-900 text-xl">
+                      {plan.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed min-h-[36px]">
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  {/* Pricing */}
+                  <div className="flex items-baseline gap-2 leading-none pb-4 border-b border-slate-100">
+                    <span className="text-4xl font-black text-slate-900">
+                      ₹{plan.price}
+                    </span>
+                    <span className="text-sm text-slate-400 font-medium line-through">
+                      ₹{plan.originalPrice}
+                    </span>
+                  </div>
+
+                  {/* Features List */}
+                  <div className="space-y-3 pt-2 flex-grow">
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5">
+                        <div className="mt-0.5 w-4 h-4 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                          <Check className="w-2.5 h-2.5 text-blue-600" strokeWidth={3} />
+                        </div>
+                        <span className="text-xs text-slate-700 font-medium leading-snug">
+                          {feature}
                         </span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-
-                  {/* Badges */}
-                  <div className="flex items-center gap-2 text-slate-650  py-2.5 border-t border-b border-slate-100 ">
-                    <Zap className="w-4 h-4 text-blue-500 shrink-0" />
-                    <div className="text-left leading-tight">
-                      <span className="text-[9px] text-slate-400 block uppercase">
-                        Benefits
-                      </span>
-                      <span className="truncate block font-bold">
-                        Unlimited Scans
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs text-slate-500  leading-relaxed">
-                    {plan.description}
-                  </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 mt-1">
-                  <span className="text-[10px] text-blue-600  font-bold flex items-center gap-1 hover:underline">
-                    <Info className="w-3.5 h-3.5" /> View Details
-                  </span>
+                <div className="mt-auto space-y-3">
+                  {hasPurchased && (
+                    <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-blue-50 rounded-xl border border-blue-100">
+                      <Check className="w-3.5 h-3.5 text-blue-600" strokeWidth={3} />
+                      <span className="text-xs font-bold text-blue-600">Current Active Plan</span>
+                    </div>
+                  )}
+                  
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleBuyNow(plan.id);
                     }}
-                    className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md shadow-blue-500/10 cursor-pointer transition-all active:scale-95"
+                    className={`w-full py-3 rounded-xl font-extrabold text-sm shadow-md transition-all active:scale-95 ${
+                      hasPurchased 
+                        ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/10' 
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+                    }`}
                   >
-                    Buy
+                    {hasPurchased ? 'Buy Again' : 'Upgrade Now'}
                   </button>
+                  
+                  <div className="text-center pt-2">
+                    <button className="text-[10px] text-blue-600 font-bold hover:underline inline-flex items-center gap-1">
+                      <Info className="w-3 h-3" /> Plan Details
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </>
       ) : (
         /* Order & Payment History Section */
-        <div className="p-4 md:p-8 glass border border-slate-200  rounded-2xl md:rounded-3xl relative overflow-hidden space-y-6">
+        <div className="p-4 md:p-8 bg-white border border-slate-100 shadow-sm rounded-2xl md:rounded-3xl relative overflow-hidden space-y-6">
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600  flex items-center justify-center">
               <FileText className="w-4 h-4" />
@@ -301,9 +312,9 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
                             ₹
                             {(() => {
                               const pid = (order.planId || "").toLowerCase();
-                              if (pid.includes("basic")) return "999.00";
-                              if (pid.includes("premium")) return "1,999.00";
-                              if (pid.includes("enterprise")) return "4,999.00";
+                              if (pid.includes("basic")) return "499.00";
+                              if (pid.includes("premium")) return "999.00";
+                              if (pid.includes("enterprise")) return "1,999.00";
                               if (pid.includes("free")) return "0.00";
                               return order.amount
                                 ? Number(order.amount).toLocaleString("en-IN", {
@@ -347,9 +358,9 @@ export default function PlansTab({ onUpgrade, isPaymentLoading, currentUser }) {
                           ₹
                           {(() => {
                             const pid = (order.planId || "").toLowerCase();
-                            if (pid.includes("basic")) return "999.00";
-                            if (pid.includes("premium")) return "1,999.00";
-                            if (pid.includes("enterprise")) return "4,999.00";
+                            if (pid.includes("basic")) return "499.00";
+                            if (pid.includes("premium")) return "999.00";
+                            if (pid.includes("enterprise")) return "1,999.00";
                             if (pid.includes("free")) return "0.00";
                             return order.amount
                               ? Number(order.amount).toLocaleString("en-IN", {

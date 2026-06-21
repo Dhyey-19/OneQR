@@ -39,6 +39,13 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Forgot Password States
+  const [resetPhone, setResetPhone] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
+
   // Status & Feedback States
   const [status, setStatus] = useState("idle"); // 'idle' | 'loading' | 'success' | 'error'
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -146,6 +153,67 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
         error.message ||
           "An error occurred during registration. Please try again.",
       );
+      setStatus("error");
+    }
+  };
+
+  // Handle Reset Password submission
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!resetPhone || !resetPassword || !resetConfirmPassword) {
+      setFeedbackMsg("Please fill out all fields.");
+      setStatus("error");
+      return;
+    }
+
+    if (resetPhone.length < 8) {
+      setFeedbackMsg("Please enter a valid mobile number.");
+      setStatus("error");
+      return;
+    }
+
+    if (resetPassword.length < 6) {
+      setFeedbackMsg("Password must be at least 6 characters.");
+      setStatus("error");
+      return;
+    }
+
+    if (resetPassword !== resetConfirmPassword) {
+      setFeedbackMsg("Passwords do not match.");
+      setStatus("error");
+      return;
+    }
+
+    setStatus("loading");
+
+    try {
+      const data = await authService.resetPassword(resetPhone, resetPassword);
+
+      setStatus("success");
+      setFeedbackMsg(
+        data.message || "Password reset successful! Switching to Login...",
+      );
+
+      // Auto transition to login tab with prefilled mobile
+      setTimeout(() => {
+        setLoginPhone(resetPhone);
+        setResetPhone("");
+        setResetPassword("");
+        setResetConfirmPassword("");
+        setActiveTab("login");
+        setStatus("idle");
+        setFeedbackMsg("");
+        setShowResetPassword(false);
+        setShowResetConfirmPassword(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Reset Password error:", error);
+      setFeedbackMsg(
+        error.message ||
+          "An error occurred during password reset. Please try again.",
+      );
+      setStatus("error");
     }
   };
 
@@ -472,7 +540,14 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
                     />
                     <span>Remember me</span>
                   </label>
-                  <span className="text-blue-600 hover:underline cursor-pointer">
+                  <span 
+                    onClick={() => {
+                      setActiveTab("forgot_password");
+                      setStatus("idle");
+                      setFeedbackMsg("");
+                    }}
+                    className="text-blue-600 hover:underline cursor-pointer"
+                  >
                     Forgot password?
                   </span>
                 </div>
@@ -496,7 +571,7 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
                   )}
                 </button>
               </motion.form>
-            ) : (
+            ) : activeTab === "signup" ? (
               <motion.form
                 key="signup"
                 initial={{ opacity: 0, x: 10 }}
@@ -608,6 +683,136 @@ export default function AuthModal({ onClose, initialTab = "login" }) {
                   ) : (
                     <>
                       <span>Create Account</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </motion.form>
+            ) : (
+              <motion.form
+                key="forgot_password"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                onSubmit={handleResetPasswordSubmit}
+                className="space-y-4"
+              >
+                {/* Mobile Input */}
+                <div>
+                  <label
+                    htmlFor="reset-phone"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
+                    Registered Mobile Number
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type="tel"
+                      id="reset-phone"
+                      value={resetPhone}
+                      onChange={(e) =>
+                        setResetPhone(e.target.value.replace(/[^0-9]/g, ""))
+                      }
+                      placeholder="e.g. 9876543210"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* New Password Input */}
+                <div>
+                  <label
+                    htmlFor="reset-pass"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type={showResetPassword ? "text" : "password"}
+                      id="reset-pass"
+                      value={resetPassword}
+                      onChange={(e) => setResetPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword(!showResetPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                    >
+                      {showResetPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm New Password Input */}
+                <div>
+                  <label
+                    htmlFor="reset-confirm"
+                    className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type={showResetConfirmPassword ? "text" : "password"}
+                      id="reset-confirm"
+                      value={resetConfirmPassword}
+                      onChange={(e) => setResetConfirmPassword(e.target.value)}
+                      placeholder="Repeat password"
+                      className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowResetConfirmPassword(!showResetConfirmPassword)
+                      }
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                    >
+                      {showResetConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center text-xs pt-2">
+                  <span 
+                    onClick={() => {
+                      setActiveTab("login");
+                      setStatus("idle");
+                      setFeedbackMsg("");
+                    }}
+                    className="text-slate-500 hover:text-slate-900 hover:underline cursor-pointer"
+                  >
+                    Back to Login
+                  </span>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 border border-white/15 shadow-lg shadow-blue-500/10 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {status === "loading" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Resetting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Reset Password</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}

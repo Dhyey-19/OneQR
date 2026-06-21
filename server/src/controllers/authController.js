@@ -61,6 +61,51 @@ exports.login = async (req, res) => {
 };
 
 /**
+ * @desc    Reset forgotten password
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+exports.resetPassword = async (req, res) => {
+  try {
+    const { phone, newPassword } = req.body;
+    
+    if (!phone || !newPassword) {
+      return res.status(400).json({
+        status: "error",
+        message: "Mobile number and new password are required.",
+      });
+    }
+
+    if (phone.length < 8) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please enter a valid mobile number.",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        status: "error",
+        message: "Password must be at least 6 characters.",
+      });
+    }
+
+    await authService.resetPassword({ phone, newPassword });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password reset successful! You can now log in.",
+    });
+  } catch (error) {
+    console.error("Reset Password error:", error);
+    return res.status(error.status || 500).json({
+      status: "error",
+      message: error.message || "Server error occurred during password reset. Please try again.",
+    });
+  }
+};
+
+/**
  * @desc    Get currently logged-in user profile
  * @route   GET /api/auth/me
  * @access  Private

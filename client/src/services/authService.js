@@ -51,6 +51,23 @@ export const authService = {
   },
 
   /**
+   * Resets a forgotten password
+   * @param {string} phone 
+   * @param {string} newPassword 
+   * @returns {Promise<Object>} containing success message
+   */
+  async resetPassword(phone, newPassword) {
+    const responseData = await apiRequest('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ phone, newPassword }),
+    });
+    if (responseData.status !== 'success') {
+      throw new Error(responseData.message || 'Password reset failed.');
+    }
+    return responseData;
+  },
+
+  /**
    * Resets and clears the user storage session
    */
   logout() {

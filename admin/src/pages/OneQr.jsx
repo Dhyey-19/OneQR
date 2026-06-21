@@ -30,7 +30,7 @@ export default function OneQr() {
   const [searchQuery, setSearchQuery] = useState('');
   const [generating, setGenerating] = useState(false);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
-  const [generateQuantity, setGenerateQuantity] = useState(10);
+  const [generateQuantity, setGenerateQuantity] = useState('');
   const [generateQrType, setGenerateQrType] = useState('4x6');
   const [activeTab, setActiveTab] = useState('inactive');
   const [managerView, setManagerView] = useState('batches');
@@ -144,8 +144,10 @@ export default function OneQr() {
     processFoundQrId(parsedId);
   };
 
-  const executeAssignFlow = async (userId, planId, qrId) => {
-    // 1. Fetch user's profiles
+  const executeAssignFlow = async (userId, planId, qr) => {
+    const qrId = qr.qrId;
+    
+    // 1. Fetch target user's profiles
     const profilesRes = await apiRequest(`/admin/users/${userId}/profiles`);
     if (profilesRes.status !== 'success') {
       throw new Error(profilesRes.message || 'Failed to fetch user profiles.');
@@ -153,14 +155,42 @@ export default function OneQr() {
     
     const profiles = profilesRes.data || [];
     
-    // 2. Find an existing slot of the same plan tier that has no QR connected
+    // 2. Check if we are updating an existing assignment for the SAME user
+    const isSameUser = qr.assignedTo && (qr.assignedTo._id === userId || qr.assignedTo.id === userId);
+    
+    if (isSameUser) {
+      const connectedProfile = profiles.find(p => p.slug === qrId);
+      if (connectedProfile) {
+        if (connectedProfile.plan === planId) {
+          return { status: 'success', message: 'No changes needed.' };
+        }
+        
+        // Call the specific endpoint to update the plan of this connected profile
+        const updatePlanRes = await apiRequest(`/admin/profiles/${connectedProfile._id}/plan`, {
+          method: 'POST',
+          body: JSON.stringify({ planId })
+        });
+        
+        if (updatePlanRes.status !== 'success') {
+          throw new Error(updatePlanRes.message || 'Failed to update plan.');
+        }
+        
+        return updatePlanRes;
+      }
+    } else if (qr.assignedTo) {
+      // Trying to assign to a different user via Quick Scan is not supported gracefully yet
+      // without an unlink step.
+      throw new Error('Reassigning to a different user is not supported here yet. Unlink it from the previous user first.');
+    }
+    
+    // 3. Flow for a completely NEW assignment
     const existingSlot = profiles.find(p => p.plan === planId && !p.slug);
     
     let targetProfileId;
     if (existingSlot) {
       targetProfileId = existingSlot._id;
     } else {
-      // 3. Create a new plan slot first
+      // Create a new plan slot first
       const assignPlanRes = await apiRequest('/admin/users/assign-plan', {
         method: 'POST',
         body: JSON.stringify({ userId, planId })
@@ -171,7 +201,7 @@ export default function OneQr() {
       targetProfileId = assignPlanRes.data._id;
     }
     
-    // 4. Connect the QR to the profile slot
+    // Connect the QR to the profile slot
     const connectRes = await apiRequest('/admin/profiles/connect-qr', {
       method: 'POST',
       body: JSON.stringify({ profileId: targetProfileId, qrId })
@@ -206,7 +236,7 @@ export default function OneQr() {
     setModalErrorMessage('');
 
     try {
-      const res = await executeAssignFlow(userId, planId, qrId);
+      const res = await executeAssignFlow(userId, planId, scannedQr);
 
       if (res.status === 'success') {
         setSuccess(`Successfully updated QR Code ${qrId}`);
@@ -703,29 +733,30 @@ export default function OneQr() {
                   <div className="actions-wrapper">
                     <button 
                       onClick={() => handleDownload(qr.qrId)}
-                      className="btn-primary btn-action-icon"
+                      className="btn-action"
                       title="Download QR Image"
                     >
                       <Download size={14} />
+                      <span className="desktop-only">Download</span>
                     </button>
 
                     {qr.assignedTo ? (
                       <button 
                         onClick={() => startEditing(qr)}
-                        className="btn-primary btn-action-icon"
-                        style={{ background: 'linear-gradient(135deg, var(--accent-primary), #7c3aed)' }}
+                        className="btn-action edit"
                         title="Edit Fields"
                       >
                         <Edit2 size={14} />
+                        <span className="desktop-only">Edit</span>
                       </button>
                     ) : (
                       <button 
                         onClick={() => startEditing(qr)}
-                        className="btn-primary btn-action-icon"
-                        style={{ background: 'linear-gradient(135deg, var(--accent-secondary), #ec4899)' }}
+                        className="btn-action assign"
                         title="Assign User & Plan"
                       >
                         <UserPlus size={14} />
+                        <span className="desktop-only">Assign</span>
                       </button>
                     )}
                   </div>
@@ -765,7 +796,7 @@ export default function OneQr() {
 
           <button 
             onClick={() => {
-              setGenerateQuantity(10);
+              setGenerateQuantity('');
               setGenerateModalOpen(true);
             }} 
             className="btn-primary"
@@ -1710,26 +1741,9 @@ export default function OneQr() {
                 className="form-input"
                 style={{ padding: '12px', margin: 0 }}
                 value={generateQuantity}
-                onChange={(e) => setGenerateQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => setGenerateQuantity(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1))}
+                placeholder="e.g. 50"
               />
-            </div>
-
-            <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-              <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '600' }}>
-                QR Template Size / Layout
-              </label>
-              <select
-                className="form-input"
-                style={{ padding: '12px', margin: 0, background: 'var(--input-bg)' }}
-                value={generateQrType}
-                onChange={(e) => setGenerateQrType(e.target.value)}
-              >
-                <option value="4x6">4x6 Layout (Default)</option>
-                <option value="4x4">4x4 Layout</option>
-              </select>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>
-                All generated QR codes will be grouped into a single batch and linked to the selected layout template.
-              </span>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -1747,7 +1761,7 @@ export default function OneQr() {
                 onClick={() => handleGenerate(generateQuantity, generateQrType)}
                 className="btn-primary"
                 style={{ flex: 1, padding: '12px', margin: 0 }}
-                disabled={generating}
+                disabled={generating || !generateQuantity}
               >
                 {generating ? (
                   <span className="spinner spinner-tiny"></span>

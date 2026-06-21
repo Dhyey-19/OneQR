@@ -11,6 +11,7 @@ const { UserSignupDto, UserLoginDto } = require("../dtos/userDto");
 
 router.post("/signup", validate(UserSignupDto), authController.signup);
 router.post("/login", validate(UserLoginDto), authController.login);
+router.post("/reset-password", authController.resetPassword);
 router.get("/me", protect, authController.getProfile);
 router.put("/profile", protect, authController.updateUserProfile);
 

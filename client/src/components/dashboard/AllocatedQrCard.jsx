@@ -7,7 +7,7 @@ export default function AllocatedQrCard({ profile, onViewDetails }) {
   const qrUrlPrefix = import.meta.env.VITE_QR_URL_PREFIX || window.location.origin;
   const cleanPrefix = qrUrlPrefix.endsWith("/") ? qrUrlPrefix : `${qrUrlPrefix}/`;
   const finalQrUrl = (profile.qrId || profile.slug) ? `${cleanPrefix}qr/${profile.qrId || profile.slug}` : "";
-  const qrGeneratedUrl = isStandyConnected && finalQrUrl
+  const qrGeneratedUrl = finalQrUrl
       ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=000000&data=${encodeURIComponent(finalQrUrl)}`
       : "";
 
@@ -35,9 +35,9 @@ export default function AllocatedQrCard({ profile, onViewDetails }) {
       </div>
 
       {/* QR */}
-      <div className="flex-1 flex items-center justify-center w-full min-h-[100px] mb-4">
-        {isStandyConnected && qrGeneratedUrl ? (
-           <img src={qrGeneratedUrl} alt="QR" className="w-28 h-28 sm:w-32 sm:h-32 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" />
+      <div className="flex-1 flex items-center justify-center w-full min-h-[100px] mb-4 relative group-hover:scale-105 transition-transform duration-300">
+        {qrGeneratedUrl ? (
+           <img src={qrGeneratedUrl} alt="QR" className="w-28 h-28 sm:w-32 sm:h-32 object-contain mix-blend-multiply" />
         ) : (
            <ShieldAlert className="w-10 h-10 text-amber-500 opacity-80" />
         )}

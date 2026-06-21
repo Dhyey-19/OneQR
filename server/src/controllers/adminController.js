@@ -391,7 +391,7 @@ exports.assignQrCode = async (req, res) => {
           paymentId: `admin_pay_${Date.now()}`,
           planId: planId,
           planName: planId === 'free' ? "Free Plan reset" : `${planNames[planId]} (QR: ${qr.qrId})`,
-          amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
+          amount: planId === 'basic' ? 499 : (planId === 'premium' ? 999 : (planId === 'enterprise' ? 1999 : 0)),
           status: "success",
           paidAt: new Date(),
         });
@@ -572,7 +572,7 @@ exports.assignPlan = async (req, res) => {
           paymentId: `admin_pay_${Date.now()}`,
           planId: planId,
           planName: planId === 'free' ? "Free Plan reset" : `${planNames[planId]} (QR: ${qr.qrId})`,
-          amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
+          amount: planId === 'basic' ? 499 : (planId === 'premium' ? 999 : (planId === 'enterprise' ? 1999 : 0)),
           status: "success",
           paidAt: new Date(),
         });
@@ -773,7 +773,7 @@ exports.assignPlanToUser = async (req, res) => {
       paymentId: `admin_pay_${Date.now()}`,
       planId: planId,
       planName: planId === 'free' ? "Free Plan slot (Admin Assigned)" : `${planNames[planId]} (Admin Assigned)`,
-      amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
+      amount: planId === 'basic' ? 499 : (planId === 'premium' ? 999 : (planId === 'enterprise' ? 1999 : 0)),
       status: "success",
       paidAt: new Date(),
     });
@@ -939,7 +939,7 @@ exports.updateProfilePlan = async (req, res) => {
         paymentId: `admin_pay_${Date.now()}`,
         planId: planId,
         planName: planId === 'free' ? `Free Plan reset (Admin)` : `${planNames[planId]} (Updated by Admin)`,
-        amount: planId === 'basic' ? 999 : (planId === 'premium' ? 1999 : (planId === 'enterprise' ? 4999 : 0)),
+        amount: planId === 'basic' ? 499 : (planId === 'premium' ? 999 : (planId === 'enterprise' ? 1999 : 0)),
         status: "success",
         paidAt: new Date(),
       });
