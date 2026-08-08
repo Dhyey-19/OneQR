@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Download, LayoutTemplate, Palette, Loader2, Link2, MapPin, Phone, Mail, Globe } from 'lucide-react';
+import { X, Download, LayoutTemplate, Palette, Loader2, Link2, MapPin, Phone, Mail, Globe, IndianRupee } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
 
 export default function DigitalCardModal({ profile, onClose }) {
@@ -21,8 +21,7 @@ export default function DigitalCardModal({ profile, onClose }) {
 
   const designs = [
     { id: 'modern', name: 'Modern' },
-    { id: 'classic', name: 'Classic' },
-    { id: 'minimal', name: 'Minimalist' }
+    { id: 'classic', name: 'Classic' }
   ];
 
   // Map Profile Data
@@ -165,11 +164,11 @@ export default function DigitalCardModal({ profile, onClose }) {
             </div>
           )}
           {upiId && (
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${selectedColor}20`, color: selectedColor }}>
-                <img src="/assets/upi.png" alt="UPI" className="w-3.5 h-3.5 object-contain" style={{ filter: 'grayscale(1) brightness(0.5)' }} crossOrigin="anonymous" />
+                <IndianRupee className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm font-bold text-slate-800">UPI: <span className="font-semibold text-slate-600">{upiId}</span></span>
+              <span className="text-sm font-semibold text-slate-700">{upiId}</span>
             </div>
           )}
         </div>
@@ -207,7 +206,7 @@ export default function DigitalCardModal({ profile, onClose }) {
             {mobile && <p className="text-sm text-slate-600 font-medium"><strong className="text-slate-900 w-16 inline-block">Mobile:</strong> {mobile}</p>}
             {email && <p className="text-sm text-slate-600 font-medium truncate"><strong className="text-slate-900 w-16 inline-block">Email:</strong> {email}</p>}
             {website && <p className="text-sm text-slate-600 font-medium truncate"><strong className="text-slate-900 w-16 inline-block">Web:</strong> {website.replace(/^https?:\/\//, '')}</p>}
-            {address && <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2"><strong className="text-slate-900 w-16 inline-block">Address:</strong> {address}</p>}
+            {address && <p className="text-sm text-slate-600 font-medium leading-relaxed line-clamp-2"><strong className="text-slate-900 w-16 inline-block">Address:</strong> {address}</p>}
             {upiId && <p className="text-sm text-slate-600 font-medium"><strong className="text-slate-900 w-16 inline-block">UPI ID:</strong> {upiId}</p>}
           </div>
         </div>
@@ -226,56 +225,6 @@ export default function DigitalCardModal({ profile, onClose }) {
         style={{ backgroundColor: selectedColor }}
       >
         POWERED BY ONEQR
-      </div>
-    </div>
-  );
-
-  const renderMinimalistCard = () => (
-    <div 
-      ref={cardRef}
-      className={`${cardWidth} ${cardHeight} bg-slate-900 shadow-xl relative overflow-hidden flex flex-col items-center justify-center p-10`}
-      style={{ boxSizing: 'border-box' }}
-    >
-      {/* Accent blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-64 h-64 rounded-full opacity-20 blur-3xl" style={{ backgroundColor: selectedColor }} />
-      <div className="absolute bottom-[-20%] right-[-10%] w-64 h-64 rounded-full opacity-20 blur-3xl" style={{ backgroundColor: selectedColor }} />
-
-      <div className="w-full flex items-center justify-between z-10 relative">
-        <div className="w-1/2 text-left pr-4">
-          {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain mb-4 brightness-0 invert opacity-90" crossOrigin="anonymous" />
-          ) : (
-            <div className="mb-4">
-              <span className="text-xl font-bold tracking-widest opacity-80" style={{ color: selectedColor }}>
-                {getAlphabeticalLogo(businessName)}
-              </span>
-            </div>
-          )}
-          
-          <h2 className="text-2xl font-light text-white mb-6 tracking-wide leading-tight">
-            {businessName}
-          </h2>
-          
-          <div className="space-y-2 text-sm text-slate-300 font-light">
-            {mobile && <p>{mobile}</p>}
-            {email && <p className="truncate">{email}</p>}
-            {website && <p className="truncate" style={{ color: selectedColor }}>{website.replace(/^https?:\/\//, '')}</p>}
-            {upiId && <p className="pt-2 text-xs uppercase tracking-wider opacity-60">UPI: {upiId}</p>}
-          </div>
-        </div>
-
-        <div className="w-1/2 flex flex-col items-end">
-          {qrGeneratedUrl && (
-            <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl">
-              <img src={qrGeneratedUrl} alt="QR" className="w-36 h-36 rounded-lg mix-blend-screen" crossOrigin="anonymous" style={{ filter: 'brightness(0) invert(1)' }} />
-            </div>
-          )}
-          {address && (
-            <p className="text-right text-[10px] text-slate-400 font-light mt-6 max-w-[200px] leading-relaxed">
-              {address}
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -408,7 +357,6 @@ export default function DigitalCardModal({ profile, onClose }) {
               <div style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }} className="md:transform-none">
                 {selectedDesign === 'modern' && renderModernCard()}
                 {selectedDesign === 'classic' && renderClassicCard()}
-                {selectedDesign === 'minimal' && renderMinimalistCard()}
               </div>
             </div>
           </div>
